@@ -10,7 +10,7 @@ def append_to_file(filename, content):
         print(f'The file {filename} does not exist.')
 
 def main():
-    filename = "./Files/data.txt"
+    filename = "src/files/data.txt"
     content = "This content must be written without race condition and correctly!\n"
 
     # Create multiple threads to append to the same file concurrently

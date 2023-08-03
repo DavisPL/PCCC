@@ -1,7 +1,7 @@
 def read_file(file_name):
     try:
         # Insecure directory traversal
-        file_path = "./Files/" + file_name
+        file_path = "src/files/" + file_name
         with open(file_path, 'r') as file:
             content = file.read()
             print("File Content:")

@@ -8,8 +8,8 @@ def write_to_file(file_path, content):
 
 
 def main():
-    file_path = './Files/my_social_security_number.txt'
-    content = "SSN is a sensitive information!\n Take care of it!\n"
+    file_path = 'src/files/my_social_security_number.txt'
+    content = "SSN is a sensitive information!\n Take care of it\n"
 
     write_to_file(file_path, content)
 
