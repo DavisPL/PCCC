@@ -10,7 +10,7 @@ def write_to_file(filename, content):
 def main():
    
     content = input("Enter the content to write: ")
-    write_to_file('./files/my_social_security_number.txt', content)
+    write_to_file('src/files/my_social_security_number.txt', content)
 
 if __name__ == "__main__":
     main()

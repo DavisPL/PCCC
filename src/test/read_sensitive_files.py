@@ -8,7 +8,7 @@ def read_file(filename):
        
 
 def main():
-    read_file('./files/my_social_security_number.txt')
+    read_file('src/files/my_social_security_number.txt')
     
 if __name__ == "__main__":
     main()
