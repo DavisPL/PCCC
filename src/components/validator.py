@@ -15,12 +15,9 @@ class Validator:
         except subprocess.CalledProcessError as e:
             return e.stderr.decode() 
         
-    def request_and_validate_code(self):
-        api_key_file = "src/key.txt"
+    def request_and_validate_code(self, api_key_file, prompt_path, generated_code_file):
         llm_core = core.LlmCore()
         llm_core.get_api_key(api_key_file)
-        prompt_path = "src/prompt.txt"
-        generated_code_file = "src/generated_code.rs"
         prompts = llm_core.get_prompt(prompt_path)
         for _ in range(3):
             for prompt in prompts:
