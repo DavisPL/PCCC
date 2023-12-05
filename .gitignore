@@ -1,2 +1,13 @@
 llm-pc-venv/
 .vscode/
+./src/api_keys
+.env
+./ruff_cache
+*.dll
+*.exe
+*.exe.mdb
+**/__pycache__/
+*.cache
+*.dll
+*.exe
+*.pdb
