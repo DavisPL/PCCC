@@ -1,10 +1,11 @@
-llm-pc-venv/
+pcc-venv/
 .vscode/
 ./src/api_keys
 .env
 ./ruff_cache
 *.dll
 *.exe
+*.json
 *.exe.mdb
 **/__pycache__/
 *.cache

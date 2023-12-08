@@ -1,4 +1,2 @@
-
 Generate a Rust code that read contents of one file and write them to another file. 
 Consider that the code is responsible for creating files if they doesn't exist and writing a content inside the first file and read and write it to the next file. 
-
