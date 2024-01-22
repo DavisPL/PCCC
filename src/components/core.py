@@ -14,10 +14,14 @@ import openai
 from dotenv import find_dotenv, load_dotenv
 from openai import OpenAI
 
+from utils import utils
+
 
 class LLMCore:
+    
     def __init__(self):
         self.client = OpenAI(api_key = "")
+        self.fileio_helper = utils.FileIO()
         # self.function = {
         #     "name": "json_format_composer",
         #     "description": "A function that takes in a list of arguments related to a \
@@ -83,21 +87,23 @@ class LLMCore:
     #         self.function = function
     # Open the file containing the API key
     def get_api_key(self):
+
         try:
             load_dotenv()
             """Reads api key from file"""
-            print(f"Succesfully read OpenAI API key")
+            print("Succesfully read OpenAI API key")
             self.client.api_key = os.environ["OPENAI_API_KEY"]
-        except Exception as e: 
+        except Exception as e:
             print(f"OpenAI API key has not been set properly and returns this error {e}")
 
         return self.client.api_key
 
     def get_prompt(self, prompt_path):
         try:
-            with open(prompt_path, "r") as file:
-                content = file.read()
-                prompts = content.split("---\n")
+            # with open(prompt_path, "r", encoding='utf-8') as file:
+            #     content = file.read()
+                self.fileio_helper.read_file(prompt_path)
+                prompts = self.fileio_helper.content.split("---\n")
                 prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
         except FileNotFoundError:
             ## TODO: Provide a format for prompt and pass it to the function
@@ -122,7 +128,8 @@ class LLMCore:
             max_tokens=4000,  # Adjustable number of tokens to control response length
             n=1,
             stop=None,
-            temperature=0.5,
+            temperature=0.1,
+            top_p =0.9,
             # functions=[self.function],
             # function_call={"name": "json_format_composer"}
             # response_format={"type": "json_object"},
@@ -136,23 +143,29 @@ class LLMCore:
             print(f"Generated response {response_json}")
             content_json = json.loads(response)
             code = content_json.get("code")
+            safety_property = content_json.get("safety_property")
+            print(f"safety_property,\n {safety_property}")
             programming_language = content_json.get("programming_language")
             print(f"programming_language \n {programming_language}")
+            req_files = content_json.get("req_files")
+            print(f"req_files \n {req_files}")
             responses.append(response)
             message_history.append({"role": "assistant", "content": response})
 
             try:
-                with open(generated_code_file, "w") as f:
-                    print(f"Code in JSON format: \n ------------------ \n {code}")
-                    f.write(code)
-                    f.close()
+                self.fileio_helper.content = code
+                self.fileio_helper.write_file(generated_code_file)
+                # with open(generated_code_file, "w", encoding='utf-8') as f:
+                #     print(f"Code in JSON format: \n ------------------ \n {code}")
+                #     f.write(code)
+                #     f.close()
             except FileNotFoundError:
                 print(f"Cannot find {generated_code_file}")
 
             except IOError as e:
                 print(f"Error writing into the file {generated_code_file}: {str(e)}")
 
-            return code, programming_language
+            return code, programming_language, safety_property, req_files
         except openai.APIConnectionError as e:
             # Handle connection error here
             print(f"Failed to connect to OpenAI API: {e}")
