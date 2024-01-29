@@ -12,3 +12,4 @@ pcc-venv/
 *.dll
 *.exe
 *.pdb
+.DS_Store
