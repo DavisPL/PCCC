@@ -26,7 +26,7 @@ class FileStream
 
   static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
     returns(ok:bool, f:FileStream)
-    requires name[..] in ["file.txt", "foo.txt"]
+    requires name[..] !in ["file.txt", "foo.txt"]
     requires env.ok.ok()
     modifies env.ok
     ensures  env.ok.ok() == ok
@@ -44,8 +44,8 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    requires Name() in ["file.txt", "foo.txt"] 
-    // add here ___INSERT_PRECONDITION_CLOSE___
+    requires Name() !in ["file.txt", "foo.txt"]
+    modifies this
     modifies env.ok
     modifies buffer
     ensures  env == old(env)
@@ -58,7 +58,7 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    requires Name() in ["file.txt", "foo.txt"]
+    requires Name() !in ["file.txt", "foo.txt"]
     modifies this
     modifies env.ok
     ensures  env == old(env)
@@ -69,7 +69,7 @@ class FileStream
   method{:axiom} Flush() returns(ok:bool)
     requires env.ok.ok()
     requires IsOpen()
-    requires Name() in ["file.txt", "foo.txt"]
+    requires Name() !in ["file.txt", "foo.txt"]
     modifies this
     modifies env.ok
     ensures  env == old(env)

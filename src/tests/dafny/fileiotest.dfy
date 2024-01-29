@@ -1,5 +1,5 @@
 
-include "fileio.dfy"
+include @"../filestream/fileio.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
@@ -12,11 +12,10 @@ method {:main} Main(ghost env: HostEnvironment)
   requires env.ok.ok()
   modifies env.ok
 {
-  var fname := ArrayFromSeq("foo.txt");
+  var fname := ArrayFromSeq("file2.txt");
   var f: FileStream;
   var ok: bool;
   ok, f := FileStream.Open(fname, env);
-
   // Try commenting out the following line to see that you are forced to handle errors!
   if !ok { print "open failed\n"; return; }
 
