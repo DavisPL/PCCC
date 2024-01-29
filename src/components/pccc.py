@@ -1,27 +1,34 @@
+import pdb
+from typing import Optional, Union
+
 from components import validator, vc_generator
 
 
 class PCCC:
-    def __init__(self, prompt: str, generated_file_path: str, attempts: int):
-        self.prompt = prompt
-        self.generated_file_path = generated_file_path
-        self.attempts = attempts
+    def __init__(self):
         print("PCCC is running!")
+        pass
 
-    def generate_proof_carrying_code(self):
+    def generate_proof_carrying_code(self, prompt: str, generated_file_path: str, attempts: int):
         code_validator = validator.Validator()
-        safety_property, code, req_files  = code_validator.request_and_validate_code(
-            self.attempts, self.prompt, self.generated_file_path
+        # TO DO: Handle retun values None
+   
+        # #    code_validator.validate_code(
+        # #         attempts, prompt, generated_file_path
+        # #     )
+        # safety_property, code, req_files = code_validator.validate_code(
+        #     attempts, prompt, generated_file_path
+        # )
+        #     # print(f"safety_property in pccc {safety_property}")
+        safety_property, code, req_files = code_validator.validate_code(
+            attempts, prompt, generated_file_path
         )
-        try:
-            assert safety_property is not None
-            assert code is not None
-            assert req_files is not None
-            # print(f"safety_property in pccc {safety_property}")
-            self.exec_vc_gen(safety_property, code, req_files)
-        except Exception as e:
-            print(f"PCCC cannot finish generating proof carrying code!")
-
+        if safety_property is None:
+            raise Exception("PCCC cannot find the safety property!")
+        elif code is None:
+            raise Exception("PCCC cannot find the code!") 
+        else:
+           self.exec_vc_gen(safety_property, code, req_files)
 
     def exec_vc_gen(self, safety_property, code, req_files) -> None:
         vc_gen = vc_generator.VcGen()
