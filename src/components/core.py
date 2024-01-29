@@ -196,6 +196,7 @@ class LLMCore:
         return programming_language
 
     def get_req_files(self, response_json):
+        # Get requeired files in the prompt
         try:
             req_files = response_json.get("req_files")
         except KeyError:
@@ -205,9 +206,11 @@ class LLMCore:
         return req_files
 
     def prompt_ammendment(self, role, response):
+         # Modifoes prompt to add role and messages
         self.messages.append({"role": role, "content": response})
 
     def generate_code_file(self, code, generated_code_file):
+        # Generates file to save the requested code
         try:
             self.fileio_helper.content = code
             self.fileio_helper.write_file(generated_code_file, code)
@@ -222,3 +225,4 @@ class LLMCore:
         return generated_code_file
     # def modify_prompt(self, prompt_path):
     #     self.fileio_helper.write_file(prompt_path, )
+    

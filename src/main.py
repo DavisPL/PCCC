@@ -1,15 +1,12 @@
 import argparse
 import sys
 
-from components import validator
+from components import pccc
 
 
 def main(prompt, generated_file_path, attempts):
-    print("Proof Carrying LLMs")
-    code_validator = validator.Validator()
-    code_validator.request_and_validate_code(
-        attempts, prompt, generated_file_path
-    )
+    pccc_obj = pccc.PCCC()
+    pccc_obj.generate_proof_carrying_code(prompt, generated_file_path, attempts)
 
 
 if __name__ == "__main__":
@@ -36,6 +33,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"args.prompt, {args.prompt}")
     print(f"args.generated_file_path, {args.generated_file_path}")
-    sys.exit(
-        main(args.prompt, args.generated_file_path, args.attempts)
-    )
+    sys.exit(main(args.prompt, args.generated_file_path, args.attempts))

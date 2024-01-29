@@ -11,15 +11,6 @@ class PCCC:
 
     def generate_proof_carrying_code(self, prompt: str, generated_file_path: str, attempts: int):
         code_validator = validator.Validator()
-        # TO DO: Handle retun values None
-   
-        # #    code_validator.validate_code(
-        # #         attempts, prompt, generated_file_path
-        # #     )
-        # safety_property, code, req_files = code_validator.validate_code(
-        #     attempts, prompt, generated_file_path
-        # )
-        #     # print(f"safety_property in pccc {safety_property}")
         safety_property, code, req_files = code_validator.validate_code(
             attempts, prompt, generated_file_path
         )
