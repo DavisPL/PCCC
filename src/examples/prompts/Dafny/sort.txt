@@ -5,7 +5,7 @@ Ensure that the entire code value is enclosed in double quotes.
 Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
 "programming_language": The programming language used to write the code
 
-Your task is to generate the requested code based on learning from the below example:
+Your task is to generate the requested code. Take the following example and try to come up with the response by learning from it:
 This example incremetns values in an array:
 datatype Color = Red | White | Blue
 
@@ -36,50 +36,4 @@ method DutchFlag(a: array<Color>)
   }
 }
 
-Fibonnci method example
-method Fibonacci(n: nat) returns (res: nat)
-{
-    var a := 0;
-    var b := 1;
-    var i := 0;
-    while i < n
-    {
-        var temp := a;
-        a := b;
-        b := temp + b;
-        i := i + 1;
-    }
-    res := a;
-}
-
-
-Then, Generate a Dafny code to sort an array using selection sort. Selection Sort is a sorting algorithm that repeatedly finds the minimum among the unsorted elements and then appends it to the segment of sorted elements. Its specification is like that of DutchFlag in the previous section, but here use integers instead of colors. Finally, return response using the provided json format.
-
- 
-
-method SelectionSort(a: array<int>)
-  modifies a
-  ensures forall i, j :: 0 <= i < j < a.Length ==> a[i] <= a[j]
-  ensures multiset(a[..]) == old(multiset(a[..]))
-{
-  var n := a.Length;
-  for i := 0 to n-1
-    invariant 0 <= i <= n
-    invariant forall k, j :: 0 <= k < j < i ==> a[k] <= a[j]
-    invariant multiset(a[..]) == old(multiset(a[..]))
-  {
-    var minIndex := i;
-    for j := i+1 to n
-    {
-      if a[j] < a[minIndex] then
-      {
-        minIndex := j;
-      }
-    }
-    var temp := a[i];
-    a[i] := a[minIndex];
-    a[minIndex] := temp;
-  }
-} 
-
- Compiler Error:
+Use the above example and define a sort function in Dafny and sort the array

@@ -32,4 +32,22 @@ Then, Generate a Dafny code that include a method which is called CopyArray. Thi
 listed in the modifies clause into another one.
 Finally, generates the response in the requested JSON format.
 
+ 
 
+method CopyArray(a: array<int>, b: array<int>)
+  modifies b
+  ensures forall i :: 0 <= i < a.Length ==> b[i] == a[i]
+{
+  var n := 0;
+  while n != a.Length
+    invariant 0 <= n <= a.Length
+    invariant forall i :: 0 <= i < n ==> b[i] == a[i]
+  {
+    b[n] := a[n];
+    assert forall i :: 0 <= i < n ==> b[i] == a[i];
+    assert b[n] == a[n];
+    n := n + 1;
+  }
+} 
+
+ Compiler Error:
