@@ -94,17 +94,6 @@ namespace @__default
                 ok = false;
             }
         }
-
-        public static List<string> GetSensitiveFiles()
-        {
-            return new List<string>
-            {
-                "secret1.txt",
-                "secret2.txt",
-                "secret3.txt"
-            }
-        }
-
     }
 
 }

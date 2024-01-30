@@ -13,7 +13,7 @@ json format.
 The generated code should have prpoer preconditions, postconditions, assertions and invarients based on Dafny syntax.
 
 programming_language: Dafny
-req_files: [./tests/filestream/fileio_with_sensitive_files.dfy]
+req_files: ["/Users/pari/pcc-llms/src/tests/filestream/fileio_with_sensitive_files.dfy"]
  
 safety_property: CannotAccessSensitiveFiles(l: <List of files>, access: <type of access>)
 files = ["bar.txt", "baz.txt"]

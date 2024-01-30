@@ -1,9 +1,23 @@
-method Main() {
-  var n := 10; // replace with your desired number
-  print Fibonacci(n);
+method Fibonacci(n: nat) returns (res: nat)
+{
+    var a := 0;
+    var b := 1;
+    var i := 0;
+    while i < n
+    invariant a >= 0 && b >= 0;
+    invariant i <= n;
+    {
+        var temp := a;
+        a := b;
+        b := temp + b;
+        i := i + 1;
+    }
+    assert a >= 0;
+    res := a;
 }
-
-function Fibonacci(n: nat): nat {
-  if n <= 2 then 1
-  else Fibonacci(n-1) + Fibonacci(n-2)
+method Main()
+{
+    var n := 10;
+    var res := Fibonacci(n);
+    print res;
 }

@@ -23,7 +23,7 @@ class Validator:
 
     # Add validator for dafny
     def compile_code(self, generated_code_file, compiler):
-        print(f"compiler {compiler}")
+        print(f"Compiler {compiler}")
         try:
             subprocess.run(
                 [compiler, generated_code_file],
@@ -53,81 +53,14 @@ class Validator:
             
             compiler_type = llm_response["programming_language"]
             error_message = self.compile_code(generated_code_file, compiler_type)
-            if error_message is not None:
+            if error_message is None:
+                return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]
+            else:
                 modified_prompt = f"{prompt}\n\n \n\n{llm_response['code']} \n\n Compiler Error:\n{error_message}"
                 llm_core.prompt_ammendment("user", modified_prompt)
-                # import pdb; pdb.set_trace()
-                # llm_core.messages
-                #TO DO: Replace the modified prompt with a prompt that each error is attached to the related line
-                #Use utils nstrument class here
+                #TODO: Replace the modified prompt with a prompt that each error is attached to the related line
+                ##TODO: Use utils instrument class here
                 time.sleep(
                     5
                 )  # Adds a delay to avoid hitting the API rate limit too quickly
-        return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]
-            
-                # code_lines = code_instrument.count_lines()
-                # import pdb; pdb.set_trace()
-            # try:
-            #     llm_response["code"] 
-            #     compiler_type = llm_response["programming_language"]
-                # error_message = self.compile_code(
-                #     generated_code_file, compiler_type)
-            #     llm_core.prompt_ammendment("system", error_message)
-            #     llm_core.message_history.append
-            #     llm_core.prompt_ammendment("system", error_message)
-            #     llm_core.message_history.append
-            # except TypeError as e:
-            #     print(e)
-                
-            # except ValueError as e:
-            #     print(e)
-                
-            # else:
-            #     print("Code does not exist!")
-            
-               
-                # try:
-                #     assert code is not None
-                #     print(f"Received code:\n{code}")
-                #     error_message = self.compile_code(generated_code_file, compiler_type)
-                #     print("error_message")
-                # except AssertionError as msg:
-                #     print(msg)
-
-                # try:
-                #     assert error_message is None
-                #     return safety_property, code, req_files
-                # except AssertionError as msg:
-                #     print(msg)
-                #     new_prompt = f"{prompt}\n\n \n\n{code} \n\n Compiler Error:\n{error_message}"
-                #     time.sleep(
-                #         5
-                #     )  # Adds a delay to avoid hitting the API rate limit too quickly
-                #     with open(prompt_path, "w", encoding='utf-8') as f:
-                #         f.write(f"{new_prompt}")
-                # if llm_response["code"] is not None:
-                #     compiler_type = llm_response["programming_language"]
-                #     error_message = self.compile_code(
-                #         generated_code_file, compiler_type)
-                #     llm_core.prompt_ammendment("system", error_message)
-                #     llm_core.message_history.append
-                #     if error_message is None:
-                        # return safety_property, code, req_files
-                # else:
-                #     print("Failed to extract code from response. \n")
-
-                # print("Attempting to compile the code... \n")
-                # # error_message = self.compile_rust_code(generated_code_file)
-
-                # if error_message is None and code is not None:
-                #     print("Compilation succeeded! \n")
-                #     return safety_property, code, req_files
-                # else:
-                #     print(f"Compilation failed with error:\n{error_message}")
-                #     # Modify the prompt with the error message to get a better response
-                #     new_prompt = f"{prompt}\n\n \n\n{code} \n\n Compiler Error:\n{error_message}"
-                #     time.sleep(
-                #         5
-                #     )  # Adds a delay to avoid hitting the API rate limit too quickly
-                #     with open(prompt_path, "w", encoding='utf-8') as f:
-                #         f.write(f"{new_prompt}")
+        raise Exception(f"Compilation of the generated code after {attempts} attempts was not successful!")
