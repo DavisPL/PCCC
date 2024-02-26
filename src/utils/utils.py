@@ -42,18 +42,20 @@ class FileIO:
         except FileNotFoundError:
             print(f"Error: The file {file_path} does not exist.")
         return lines
+
     def write_lines(self, file_path, lines):
-        try: 
+        try:
             with open(file_path, 'w', encoding='utf-8') as file:
-            # Write the modified lines back to the file
+                # Write the modified lines back to the file
                 file.writelines(lines)
         except FileNotFoundError:
             print(f"Error: The file {file_path} does not exist.")
 
+
 class CodeInstrument:
     def __init__(self):
         pass
-    
+
     def spot_error_line(self, error, line):
         pattern = r"\((.*?)\)"
         matches = re.findall(pattern, error)
@@ -61,7 +63,7 @@ class CodeInstrument:
             print(f"The following matches were found: {matches}")
         else:
             print("No matches were found.")
-    
+
     def count_lines(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             # Count the number of lines
@@ -76,3 +78,18 @@ class CodeInstrument:
         lines[line_number - 1] = '# ' + new_text + '\n'
 
         file.write_lines(file_path, line_number)
+
+
+class PatternMatch():
+    def __init__(self) -> None:
+        pass
+
+    def match(self, pattern, string):
+        match = re.search(pattern, string)
+        if match:
+            print(
+                f"The pattern '{match.group(1)}' was found.")
+            return match.group(1)
+        else:
+            print("No match found.")
+        return None

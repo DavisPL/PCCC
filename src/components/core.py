@@ -189,6 +189,7 @@ class LLMCore:
     def programming_language(self, response_json):
         try:
             programming_language = response_json.get("programming_language")
+            print("Get PL ????", programming_language)
         except KeyError:
              print("KeyError: The 'programming_language' doesn't exist in model's resonse json object!")
         except ValueError:
