@@ -1,5 +1,4 @@
-
-include @"../filestream/fileio.dfy"
+include @"../filestream/fileio_with_sensitive_files.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
@@ -12,7 +11,7 @@ method {:main} Main(ghost env: HostEnvironment)
   requires env.ok.ok()
   modifies env.ok
 {
-  var fname := ArrayFromSeq("file2.txt");
+  var fname := ArrayFromSeq("bar.txt");
   var f: FileStream;
   var ok: bool;
   ok, f := FileStream.Open(fname, env);
@@ -24,6 +23,9 @@ method {:main} Main(ghost env: HostEnvironment)
   var data: array<byte> := ArrayFromSeq([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]);
 
   ok := f.Write(0, data, 0, data.Length as int32);
-
+  if !ok { print "Write failed\n"; return; }
+  var isOk:bool;
+  var res: seq<char>;
+  isOk, res := FileStream.Join("../../path", "foobar.txt", env);
   print "done!\n";
 }

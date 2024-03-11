@@ -15,16 +15,24 @@ class HostEnvironment
   ghost var ok:OkState
 }
 
+// class AuthorizedFiles 
+// {
+//   constructor{:axiom} () requires false
+//   function{:axiom} ok():bool reads ["file.txt", "foo.txt"]
+// }
+
 class FileStream
   {
 
   ghost var env:HostEnvironment
   function{:axiom} Name():string reads this
+  function{:axiom} Access():string reads this
   function{:axiom} IsOpen():bool reads this
   constructor{:axiom} () requires false
 
-  static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
+  static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
     returns(ok:bool, f:FileStream)
+    requires access[..] in ["ReadOnly"]
     requires name[..] in ["file.txt", "foo.txt"]
     requires env.ok.ok()
     modifies env.ok

@@ -76,4 +76,19 @@ class FileStream
     ensures  env.ok.ok() == ok
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen()
+
+  // method{:axiom} Join(cwd: array<char>, filename: array<char>) returns (ok:bool)
+  //   requires env.ok.ok()
+  //   requires IsOpen()
+  //   requires Name() in ["file.txt", "foo.txt"]
+  //   requires cwd != null && filename != null
+  //   modifies this
+  //   ensures  env == old(env)
+  //   ensures  env.ok.ok() == old(env.ok.ok())
+  //   ensures  Name() == old(Name())
+  //   ensures  result == os_path_join(cwd, filename)
+  //   ensures  old(env.ok.ok()) ==> IsOpen()
+
+  // function os_path_join(cwd: array<char>, filename: array<char>) : seq<char>
+  //     ensures result == cwd + [PathSeparator] + filename
 }

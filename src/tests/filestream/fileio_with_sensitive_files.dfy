@@ -22,17 +22,26 @@ class FileStream
   ghost var env:HostEnvironment
   function{:axiom} Name():string reads this
   function{:axiom} IsOpen():bool reads this
+  function{:axiom} Access():string reads this
+  function {:axiom} Capabilities():(string, string) reads this
   constructor{:axiom} () requires false
 
-  static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
+  // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
+    static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
     returns(ok:bool, f:FileStream)
-    ___INSERT_PRECONDITION_CLOSE___
+    // CannotAccessSensitiveFiles(l: ["bar.txt", "baz.txt"], access: ["bar.txt", "baz.txt"])
+    requires name[..] in ["bar.txt", "baz.txt"]
+    // requires access[..] in ["read", "write"]
+    // requires capabilities in [("bar.txt", "write")]
     requires env.ok.ok()
     modifies env.ok
     ensures  env.ok.ok() == ok
     ensures  ok ==> fresh(f) && f.env == env && f.IsOpen() && f.Name() == name[..]
 
   method{:axiom} Close() returns(ok:bool)
+    requires Name() in ["bar.txt", "baz.txt"]
+    // requires Access() in ["read", "write"]
+    // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     requires env.ok.ok()
     requires IsOpen()
     modifies this
@@ -44,7 +53,9 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    ___INSERT_PRECONDITION_CLOSE___
+    requires Name() in ["bar.txt", "baz.txt"]
+    // requires Access() in ["read", "write"]
+    // requires Capabilities() in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     modifies env.ok
     modifies buffer
     ensures  env == old(env)
@@ -57,7 +68,9 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    ___INSERT_PRECONDITION_CLOSE___
+    requires Name() in ["bar.txt", "baz.txt"]
+    // requires Access() in ["read", "write"]
+    // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     modifies this
     modifies env.ok
     ensures  env == old(env)
@@ -68,11 +81,23 @@ class FileStream
   method{:axiom} Flush() returns(ok:bool)
     requires env.ok.ok()
     requires IsOpen()
-    ___INSERT_PRECONDITION_CLOSE___
     modifies this
     modifies env.ok
     ensures  env == old(env)
     ensures  env.ok.ok() == ok
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen()
+
+  static method{:axiom} Join(path:seq<char>, file:seq<char>, ghost env:HostEnvironment) 
+  returns(ok:bool, result:seq<char>)
+  // requires path1[..] in ["bar.txt", "baz.txt"]
+  requires file[..] in ["foo.txt", "foobar.txt"]
+  requires env.ok.ok()
+  modifies env.ok
+  ensures  env.ok.ok() == ok
+  requires forall i :: 0 <= i < |path| ==> !(((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') || (path[i] == '/' && path[i + 1] == '/'))) || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
+  requires forall i :: 0 <= i < |file| ==> !(((i < |file| - 1 && ((file[i] == '.' && file[i + 1] == '.') || (file[i] == '/' && file[i + 1] == '/'))) || (i < |file| - 2 && file[i] == '.' && file[i + 1] == '.' && file[i + 2] == '/')))
+  ensures forall i :: 0 <= i < |result| ==> !(((i < |result| - 1 && ((result[i] == '.' && result[i + 1] == '.') || (result[i] == '/' && result[i + 1] == '/'))) || (i < |result| - 2 && result[i] == '.' && result[i + 1] == '.' && result[i + 2] == '/')))
+  ensures |result| <= |path| + |file|
+
 }

@@ -1,11 +1,19 @@
-Act as a code assistant and provide your response as a JSON object with the following keys:
+Act as a code assistant and assist me in completing the given task. provide your response as a JSON object with the following keys:
 "description": explanations about the code,
 "code": The generated code. The code string is now a single line with \n inserted where the newlines should be.
 Ensure that the entire code value is enclosed in double quotes.
 Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
 "programming_language": The programming language used to write the code
+"req_files": Path to required libraries or files to complete the task
+"lis_of_sensitive_files": The sensitive files that the generated code shouldn't access
+"safety_property": The given safety property
 
-Your task is to generate the requested code based on learning from the below example:
+programming_language: Dafny
+req_files: ["/Users/pari/pcc-llms/src/tests/filestream/fileio_with_sensitive_files.dfy"]
+ 
+safety_property: CannotAccessSensitiveFiles(l: ["bar.txt", "baz.txt"], access: [Read, write])
+
+Your task is to generate the requested code in Dafny. Use the following example as a sample which  based on learning from the below example:
 This example incremetns values in an array:
 method IncrementArray(a: array<int>)
   modifies a
@@ -32,22 +40,7 @@ Then, Generate a Dafny code that include a method which is called CopyArray. Thi
 listed in the modifies clause into another one.
 Finally, generates the response in the requested JSON format.
 
- 
-
-method CopyArray(a: array<int>, b: array<int>)
-  modifies b
-  ensures forall i :: 0 <= i < a.Length ==> b[i] == a[i]
-{
-  var n := 0;
-  while n != a.Length
-    invariant 0 <= n <= a.Length
-    invariant forall i :: 0 <= i < n ==> b[i] == a[i]
-  {
-    b[n] := a[n];
-    assert forall i :: 0 <= i < n ==> b[i] == a[i];
-    assert b[n] == a[n];
-    n := n + 1;
-  }
-} 
-
- Compiler Error:
+When you provide an answer, please explain the reasoning and assumptions behind your selection of software frameworks. 
+If possible, use specific examples or evidence with associated code samples to support your answer of why the framework is the best selection for
+the task. Moreover, please address any potential ambiguities or limitations in your answer, in order to provide a more complete and accurate 
+response

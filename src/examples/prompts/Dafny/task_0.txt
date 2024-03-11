@@ -16,4 +16,3 @@ programming_language: Dafny
 req_files: ["/Users/pari/pcc-llms/src/tests/filestream/fileio_with_sensitive_files.dfy"]
  
 safety_property: CannotAccessSensitiveFiles(l: ["bar.txt", "baz.txt"], access: [Read, write])
----------------------------------

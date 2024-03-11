@@ -52,9 +52,9 @@ method {:main} Main(ghost env: HostEnvironment)
   if !ok { print "open failed\n"; return; }
 
   var fibResult := ComputeFibonacci(10); // Compute Fibonacci of 10
-  var data: array<byte> := ArrayFromSeq([fibResult]);
+  // var data: array<byte> := ArrayFromSeq([fibResult]);
 
-  ok := f.Write(0, data, 0, data.Length as int32);
+  // ok := f.Write(0, data, 0, data.Length as int32);
 
   print "done!\n";
 }

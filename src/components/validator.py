@@ -86,7 +86,7 @@ class Validator:
             else:
                 line, error = self.find_match(error_message)
                 modified_code = self.add_comment_to_line(line, error, llm_response['code'])
-                modified_prompt = f"{prompt}\n\n \n\n{modified_code} \n\n Compiler Error:\n{error_message}"
+                modified_prompt = f"{modified_code} \n\n Compiler Error:\n{error_message}"
                 llm_core.prompt_ammendment("user", modified_prompt)
                 print(f"modified prompt", modified_prompt)
                 #TODO: Replace the modified prompt with a prompt that each error is attached to the related line
