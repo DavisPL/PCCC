@@ -88,16 +88,19 @@ class FileStream
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen()
 
-  static method{:axiom} Join(path:seq<char>, file:seq<char>, ghost env:HostEnvironment) 
-  returns(ok:bool, result:seq<char>)
+  method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<char>)
   // requires path1[..] in ["bar.txt", "baz.txt"]
-  requires file[..] in ["foo.txt", "foobar.txt"]
+  // requires file[..] in ["foo.txt", "foobar.txt"]
   requires env.ok.ok()
-  modifies env.ok
-  ensures  env.ok.ok() == ok
   requires forall i :: 0 <= i < |path| ==> !(((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') || (path[i] == '/' && path[i + 1] == '/'))) || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
   requires forall i :: 0 <= i < |file| ==> !(((i < |file| - 1 && ((file[i] == '.' && file[i + 1] == '.') || (file[i] == '/' && file[i + 1] == '/'))) || (i < |file| - 2 && file[i] == '.' && file[i + 1] == '.' && file[i + 2] == '/')))
+  requires IsOpen()
+  modifies this
+  modifies env.ok
+  ensures  env == old(env)
+  ensures  env.ok.ok() == ok
   ensures forall i :: 0 <= i < |result| ==> !(((i < |result| - 1 && ((result[i] == '.' && result[i + 1] == '.') || (result[i] == '/' && result[i + 1] == '/'))) || (i < |result| - 2 && result[i] == '.' && result[i + 1] == '.' && result[i + 2] == '/')))
   ensures |result| <= |path| + |file|
 
+  // method{:axiom} IsFileNameValid (filename: seq<char>)
 }
