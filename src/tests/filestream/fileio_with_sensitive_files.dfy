@@ -2,7 +2,11 @@
 newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
 newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
 newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
-
+newtype{:nativeType "int"} maxPath = i:int | 0 <= i < 256
+// newtype{:nativeType "char"} validPathChar = c:char | c
+// newtype{:nativeType "path"} path = c:char | 
+// TODO: Define a new datatype for path (os.path type is a string)
+// TODO: Add constant values for CWD and everytime get.cwd is called it should check the value be the same
 class OkState
   {
   constructor{:axiom} () requires false
@@ -89,18 +93,50 @@ class FileStream
     ensures  ok ==> IsOpen()
 
   method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<char>)
-  // requires path1[..] in ["bar.txt", "baz.txt"]
-  // requires file[..] in ["foo.txt", "foobar.txt"]
+  // requires path[..] in ["/Users/pari/pcc-llms/src/"]
+  requires file[..] in ["foo.txt", "foobar.txt"]
   requires env.ok.ok()
-  requires forall i :: 0 <= i < |path| ==> !(((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') || (path[i] == '/' && path[i + 1] == '/'))) || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
-  requires forall i :: 0 <= i < |file| ==> !(((i < |file| - 1 && ((file[i] == '.' && file[i + 1] == '.') || (file[i] == '/' && file[i + 1] == '/'))) || (i < |file| - 2 && file[i] == '.' && file[i + 1] == '.' && file[i + 2] == '/')))
+  requires forall i :: 0 <= i < |path| ==> !(((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
+  || (path[i] == '/' && path[i + 1] == '/'))) || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
+  requires forall i :: 0 <= i < |file| ==> !(((i < |file| - 1 && ((file[i] == '.' && file[i + 1] == '.') 
+  || (file[i] == '/' && file[i + 1] == '/'))) || (i < |file| - 2 && file[i] == '.' && file[i + 1] == '.' && file[i + 2] == '/')))
   requires IsOpen()
   modifies this
   modifies env.ok
   ensures  env == old(env)
   ensures  env.ok.ok() == ok
-  ensures forall i :: 0 <= i < |result| ==> !(((i < |result| - 1 && ((result[i] == '.' && result[i + 1] == '.') || (result[i] == '/' && result[i + 1] == '/'))) || (i < |result| - 2 && result[i] == '.' && result[i + 1] == '.' && result[i + 2] == '/')))
+  ensures forall i :: 0 <= i < |result| ==> !(((i < |result| - 1 && ((result[i] == '.' && result[i + 1] == '.') 
+  || (result[i] == '/' && result[i + 1] == '/'))) || (i < |result| - 2 && result[i] == '.' && result[i + 1] == '.' && result[i + 2] == '/')))
   ensures |result| <= |path| + |file|
+  ensures  ok ==> IsOpen()
 
-  // method{:axiom} IsFileNameValid (filename: seq<char>)
+  method IsFilenameValid(filename: seq<char>) returns (ok: bool)
+  requires env.ok.ok()
+  requires IsOpen()
+  requires forall i :: 0 <= i < |filename| ==> ((filename[i] >= 'a' && filename[i] <= 'z') ||
+   (filename[i] >= 'A' && filename[i] <= 'Z') || (filename[i] >= '0' && filename[i] <= '9') ||
+    filename[i] == '_' || filename[i] == '.' || filename[i] == '-')
+  modifies this
+  modifies env.ok
+  ensures  env == old(env)
+  ensures  env.ok.ok() == ok
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+  method IsDirNameValid(dirname: seq<char>) returns (ok:bool)
+  requires env.ok.ok()
+  requires |dirname| > 0 && |dirname| < 256
+  modifies this
+  modifies env.ok
+  ensures  env == old(env)
+  ensures  env.ok.ok() == ok
+
+// TODO: Basically Join is similar to concatenation of two string
+  // method concatenation(str1: seq<char>, str2: seq<char>) returns (ok: bool, result: seq<char>) 
+  // requires env.ok.ok()
+  // modifies this
+  // modifies env.ok
+  // ensures  env == old(env)
+  // ensures  env.ok.ok() == ok
+
 }

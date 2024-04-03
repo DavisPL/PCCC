@@ -26,7 +26,7 @@ method {:main} Main(ghost env: HostEnvironment)
   if !ok { print "Write failed\n"; return; }
   var isOk:bool;
   var res: seq<char>;
-  // isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "../foobar.txt");
+  // isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/../generated_codes", "foobar.txt");
   isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
   print "done!\n";
 }
