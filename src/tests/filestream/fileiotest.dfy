@@ -24,9 +24,16 @@ method {:main} Main(ghost env: HostEnvironment)
 
   ok := f.Write(0, data, 0, data.Length as int32);
   if !ok { print "Write failed\n"; return; }
-  var isOk:bool;
+  var isOk:bool, isOk2:bool, isOk3 :bool;
   var res: seq<char>;
   // isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/../generated_codes", "foobar.txt");
-  isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  // isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  // isOk, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  // isOk := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_codes");
+  // isOk2 := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_code");
+  var dirName1 := "/Users/pari/pcc-llms/src/examples/generated_codes";
+  var dirName2 := "../Users/pari/pcc-llms/src/examples/generated_codes";
+
+  isOk3 := f.checkCWD(dirName1, dirName2);
   print "done!\n";
 }

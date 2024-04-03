@@ -28,6 +28,7 @@ class FileStream
   function{:axiom} IsOpen():bool reads this
   function{:axiom} Access():string reads this
   function {:axiom} Capabilities():(string, string) reads this
+  function{:axiom} Path():string reads this
   constructor{:axiom} () requires false
 
   // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
@@ -93,7 +94,7 @@ class FileStream
     ensures  ok ==> IsOpen()
 
   method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<char>)
-  // requires path[..] in ["/Users/pari/pcc-llms/src/"]
+  requires path[..] in ["/Users/pari/pcc-llms/src/"]
   requires file[..] in ["foo.txt", "foobar.txt"]
   requires env.ok.ok()
   requires forall i :: 0 <= i < |path| ==> !(((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
@@ -130,6 +131,26 @@ class FileStream
   modifies env.ok
   ensures  env == old(env)
   ensures  env.ok.ok() == ok
+
+  method GetCWD(dirname: seq<char>) returns (ok: bool)
+  requires env.ok.ok()
+  requires IsOpen()
+  ensures dirname == old(dirname)
+  ensures  env == old(env)
+  ensures  env.ok.ok() == ok
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+  method checkCWD(oldDirName: seq<char>, newDirName: seq<char>) returns (isEqual: bool)
+  requires env.ok.ok()
+  requires IsOpen()
+  ensures oldDirName == old(oldDirName)
+  requires oldDirName == newDirName
+  requires oldDirName in ["/Users/pari/pcc-llms/src/examples/generated_codes"]
+  ensures  env == old(env)
+  ensures  env.ok.ok() == isEqual
+  ensures  Name() == old(Name())
+  ensures  isEqual ==> IsOpen()
 
 // TODO: Basically Join is similar to concatenation of two string
   // method concatenation(str1: seq<char>, str2: seq<char>) returns (ok: bool, result: seq<char>) 
