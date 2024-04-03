@@ -45,7 +45,7 @@ module ReadBytesFromFile {
 
   method {:test} Test() {
     // TODO: extern function for the expected error prefix
-    theMain("/Users/pari/pcc-llms/src/tests/dafny/FileIOLib/examples/../data.txt", "");
+    theMain("../examples/../data.txt", "");
   }
 
   method theMain(dataPath: string, expectedErrorPrefix: string) {

@@ -1,4 +1,4 @@
-include @"../filestream/fileio_with_sensitive_files.dfy"
+include "../filestream/fileio_with_sensitive_files.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)

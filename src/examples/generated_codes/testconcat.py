@@ -11,6 +11,6 @@ def remove_dotdot_pattern(s):
     return result
 
 # Example usage:
-s = "some/../path/to/somewhere"
+s = "some/../../../path/to/somewhere"
 cleaned_string = remove_dotdot_pattern(s)
 print(cleaned_string)
