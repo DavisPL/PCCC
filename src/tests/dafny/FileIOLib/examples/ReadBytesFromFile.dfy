@@ -2,7 +2,7 @@
 //  *  Copyright by the contributors to the Dafny Project
 //  *  SPDX-License-Identifier: MIT
 //  *******************************************************************************/
-// include "/Users/pari/pcc-llms/src/tests/dafny/FileIOLib/FileIO.dfy"
+include "/Users/pari/pcc-llms/src/tests/dafny/FileIOLib/FileIO.dfy"
 // module ReadBytesFromFile {
 //   import FileIO
 
@@ -41,7 +41,7 @@
  *******************************************************************************/
 
 module ReadBytesFromFile {
-  import Std.FileIO
+  // import FileIO
 
   method {:test} Test() {
     // TODO: extern function for the expected error prefix
