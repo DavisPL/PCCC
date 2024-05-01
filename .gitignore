@@ -12,4 +12,5 @@ pcc-venv/
 *.dll
 *.exe
 *.pdb
+*.json
 .DS_Store
