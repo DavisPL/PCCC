@@ -11,7 +11,7 @@ def save_file_with_insecure_permissions(file_path, content):
     except Exception as e:
         print("An error occurred:", e)
 
-if __name__ == "__main__":
+def main():
     # Get the content to be saved in the file
     content = input("Enter the content to save in the file: ")
 
@@ -20,3 +20,6 @@ if __name__ == "__main__":
 
     # Call the function to save the file
     save_file_with_insecure_permissions(file_path, content)
+
+if __name__ == "__main__":
+    main()

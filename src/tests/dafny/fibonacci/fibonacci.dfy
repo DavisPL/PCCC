@@ -99,7 +99,7 @@ function Fib(n: nat): nat
 
 method ComputeFibonacci(n: nat) returns (result: nat)
   ensures result == Fib(n)
-  requires 0 <= Fib(n)
+  ensures 0 <= Fib(n)
   ensures forall j : int :: 0 <= j < n ==>  Fib(j) <= Fib(j +1)
 {
   var prev := 0;
