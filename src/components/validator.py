@@ -77,7 +77,7 @@ class Validator:
             llm_response = llm_core.request_code(
                 prompt, generated_code_file)
             
-            print(f"programming_language ----- ", llm_response["programming_language"])
+            print(f"programming_language \n ----- \n", llm_response["programming_language"])
             compiler_type = llm_response["programming_language"]
             error_message = self.compile_code(generated_code_file, compiler_type)
             

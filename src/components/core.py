@@ -11,10 +11,10 @@ import json
 import os
 
 import openai
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
 from openai import OpenAI
 
-from utils import exceptions, utils
+from utils import utils
 
 
 class LLMCore:
@@ -109,41 +109,39 @@ class LLMCore:
 
     def request_code(self, prompt, generated_code_file):
         # TODO Get model specifications from config in the function args
-
-        # self.message_history.append(
-        #     # {"role": "system", "content": "You are a helpful code generator tool"},
-        #     {"role": "user", "content": prompt, }
-        # )
-        #TODo separate the first line with role: system and the first line of prompt
+        #TODO separate the first line with role: system and the first line of prompt
 
         self.prompt_ammendment("user", prompt)
         completion = self.client.chat.completions.create(
-            model = "gpt-4",
+            model = "gpt-4-turbo", 
+            #ToDo evaluate with gpt-4-turbo and gpt-4o
             # returns response in JSON format 
             # model = "gpt-4-turbo-preview",
             # response_format={ "type": "json_object" },
             messages = self.messages, #A list of messages comprising the conversation so far
-            max_tokens = 4000,  # Adjustable number of tokens to control response length
-            n = 1,
-            stop = None,
+            max_tokens = 4096,  # Adjustable number of tokens to control response length
+            n = 1,  # Number of completions to generate
+            stop = None, # Stop completion tokens
             temperature = 0.1, # (0,2) default: 1
-            top_p = 0.9, # Deafault: 1
+            top_p = 0.9,  # (0,1) default: 1
             # functions=[self.function],
             # function_call={"name": "json_format_composer"}
         )
         try:
             # TODO Add config file for the model specifications
-            # TODO: Add function calling to api for a more structured json format with few shot learning
+            # TODO: Add function calling to api for a more structured json format
             response = completion.choices[0].message.content
-            self.prompt_ammendment("assistant", response)
+            self.prompt_ammendment("assistant", response) 
             self.responses.append(response)
             response_json = self.get_response_json(response)
-            code = self.get_code(response_json)
+            code = self.get_key_value(response_json, "code")
+            safety_property = self.get_key_value(response_json, "safety_property")
+            print(f"Get SP ???? {safety_property}")
+            required_files = self.get_key_value(response_json, "required_files")
+            programming_language = self.get_key_value(response_json, "programming_language")
+            print(f"Get PL ???? {programming_language}")
             generate_code_file = self.generate_code_file(
                 code, generated_code_file)
-            safety_property = self.get_safety_property(response_json)
-            required_files = self.get_req_files(response_json)
-            programming_language = self.programming_language(response_json)
             self.result = {"code": code,
                   "programming_language": programming_language,
                   "safety_property": safety_property,
@@ -160,41 +158,22 @@ class LLMCore:
             print(f"OpenAI API returned an API Error: {e}")
         except Exception as e:
             print(f"An error occured in the API: {e}")
-            # response = completion.choices[0].message.function_call.arguments
-        
+            #TODO: Add a retry mechanism
+            #TODO: Add a log mechanism
         return self.result
 
     def get_response_json(self, response):
         response_json = json.loads(response)
+        print(f"response_json {response_json}")
         return response_json
-
-    def get_code(self, response_json):       
+    def get_key_value (self, response_json, key):
         try:
-            code = response_json.get("code")
+            value = response_json.get(key)
         except KeyError:
-            print("KeyError: The 'code' doesn't exist in model's resonse json object!")
+            print(f"KeyError: The '{key}' doesn't exist in model's resonse json object!")
         except ValueError:
-            print("ValueError: The 'code' key doesn't have any value!")
-        return code
-
-    def get_safety_property(self, response_json):
-        try:
-            safety_property = response_json.get("safety_property")
-        except KeyError:
-             print("KeyError: The 'safety_property' doesn't exist in model's resonse json object!")
-        except ValueError:
-            print("ValueError: The 'safety_property' key doesn't have any value!")
-        return safety_property
-
-    def programming_language(self, response_json):
-        try:
-            programming_language = response_json.get("programming_language")
-            print("Get PL ????", programming_language)
-        except KeyError:
-             print("KeyError: The 'programming_language' doesn't exist in model's resonse json object!")
-        except ValueError:
-            print("ValueError: The 'programming_language' key doesn't have any value!")
-        return programming_language
+            print(f"ValueError: The '{key}' key doesn't have any value!")
+        return value
 
     def get_req_files(self, response_json):
         # Get requeired files in the prompt
