@@ -1,0 +1,3 @@
+CWE-434: Unrestricted Upload of File with Dangerous Type
+CWE-57: Path Equivalence: 'fakedir/../realdir/filename'
+CWE-377: Insecure Temporary File
