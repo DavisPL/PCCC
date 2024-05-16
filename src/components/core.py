@@ -122,7 +122,7 @@ class LLMCore:
             max_tokens = 4096,  # Adjustable number of tokens to control response length
             n = 1,  # Number of completions to generate
             stop = None, # Stop completion tokens
-            temperature = 0.1, # (0,2) default: 1
+            temperature = 0.5, # (0,2) default: 1
             top_p = 0.9,  # (0,1) default: 1
             # functions=[self.function],
             # function_call={"name": "json_format_composer"}
@@ -136,10 +136,8 @@ class LLMCore:
             response_json = self.get_response_json(response)
             code = self.get_key_value(response_json, "code")
             safety_property = self.get_key_value(response_json, "safety_property")
-            print(f"Get SP ???? {safety_property}")
             required_files = self.get_key_value(response_json, "required_files")
             programming_language = self.get_key_value(response_json, "programming_language")
-            print(f"Get PL ???? {programming_language}")
             generate_code_file = self.generate_code_file(
                 code, generated_code_file)
             self.result = {"code": code,
@@ -156,17 +154,17 @@ class LLMCore:
         except openai.APIError as e:
             # Handles API error here, e.g. retry or log
             print(f"OpenAI API returned an API Error: {e}")
-        except Exception as e:
-            print(f"An error occured in the API: {e}")
-            #TODO: Add a retry mechanism
-            #TODO: Add a log mechanism
+            # TODO: Add a retry mechanism
+            # TODO: Add a log mechanism
         return self.result
 
     def get_response_json(self, response):
+        # Converts the response to a json object
         response_json = json.loads(response)
-        print(f"response_json {response_json}")
         return response_json
+    
     def get_key_value (self, response_json, key):
+        # Get the value of the key in the response json object
         try:
             value = response_json.get(key)
         except KeyError:
@@ -198,11 +196,8 @@ class LLMCore:
             print(f"Cannot find {generated_code_file}")
 
         except IOError as e:
-            print(
-                f"Error writing into the file {generated_code_file}: {str(e)}")
+            print(f"Error writing into the file {generated_code_file}: {str(e)}")
         except EOFError as e:
-            print(e)
+            print(f"EOFError: {str(e)}")
         return generated_code_file
-    # def modify_prompt(self, prompt_path):
-    #     self.fileio_helper.write_file(prompt_path, )
     
