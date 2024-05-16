@@ -1,22 +1,43 @@
-method BubbleSort(a: array<int>)
-  modifies a
-  ensures forall i, j :: 0 <= i < j < a.Length ==> a[i] <= a[j]
-  ensures multiset(a[..]) == old(multiset(a[..]))
+method FindSharedElements(arr1: array<int>, arr2: array<int>) returns (result: array<int>)
 {
-  var n := a.Length;
-  for var i := 0 to n - 1
-    invariant forall k, l :: 0 <= k < l < i ==> a[k] <= a[l]
-    invariant multiset(a[..]) == old(multiset(a[..]))
-  {
-    for var j := 0 to n - i - 2
-      invariant forall k, l :: 0 <= k < l <= j ==> a[k] <= a[l]
-      invariant multiset(a[..]) == old(multiset(a[..]))
+  var temp: seq<int> := [];
+  if arr1.Length > 0 && arr2.Length > 0 {
+    for i := 0 to arr1.Length - 1
     {
-      if a[j] > a[j + 1] {
-        var temp := a[j];
-        a[j] := a[j + 1];
-        a[j + 1] := temp;
+      var element := arr1[i];
+      var found := false;
+      for j := 0 to arr2.Length - 1
+      {
+        if arr2[j] == element
+        {
+          found := true;
+          break;
+        }
       }
+      if found {
+        var alreadyIncluded := false;
+        if |temp| > 0 {
+          for k := 0 to |temp| - 1
+          {
+            if temp[k] == element
+            {
+              alreadyIncluded := true;
+              break;
+            }
+          }
+        }
+        if !alreadyIncluded
+        {
+          temp := temp + [element];
+        }
+      }
+    }
+  }
+  result := new int[|temp|];
+  if |temp| > 0 {
+    for i := 0 to |temp| - 1
+    {
+      result[i] := temp[i];
     }
   }
 }

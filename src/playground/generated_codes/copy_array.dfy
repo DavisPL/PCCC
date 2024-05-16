@@ -1,14 +1,14 @@
 method CopyArray(src: array<int>, dest: array<int>)
-  requires src != null && dest != null && src.Length == dest.Length
+  requires src != null && dest != null && dest.Length >= src.Length
   modifies dest
   ensures forall i :: 0 <= i < src.Length ==> dest[i] == src[i]
 {
-  var i := 0;
-  while i < src.Length
-    invariant 0 <= i <= src.Length
-    invariant forall j :: 0 <= j < i ==> dest[j] == src[j]
+  var n := 0;
+  while n < src.Length
+    invariant 0 <= n <= src.Length
+    invariant forall i :: 0 <= i < n ==> dest[i] == src[i]
   {
-    dest[i] := src[i];
-    i := i + 1;
+    dest[n] := src[n];
+    n := n + 1;
   }
 }

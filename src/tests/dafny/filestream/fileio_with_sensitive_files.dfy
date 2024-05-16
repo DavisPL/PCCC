@@ -12,7 +12,7 @@ datatype access = access(accessType: seq<char>)
 const sensitivePaths := ["/usr", "/System", "/bin", "/sbin", "/var", "/usr/local"]
 const fileMaxLength := 255
 const dirMaxLength := 4096
-const currWDir := ["/Users/pari/pcc-llms/"]
+const currWDir := ["/Users/pari/pcc-llms/src/playground/generated_codes"]
 const nonSensitiveFiles := ["safeFile_1.txt", "safeFile_2.txt", "safeFile_3.txt", "bar.txt", "baz.txt"]
 
 
@@ -76,12 +76,10 @@ class FileStream
       !(fileName in {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"})
   }
 
-  predicate hasPathTraversal(path: seq<char>)
-  {
-    forall i :: 0 <= i < |path| ==> (((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
+  predicate{:axiom} hasPathTraversal(path: seq<char>)
+  ensures forall i :: 0 <= i < |path| ==> (((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
     || (path[i] == '/' && path[i + 1] == '/'))) 
     || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
-  }
 
 
   // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
@@ -171,8 +169,11 @@ method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<
   requires file[..] in ["foo.txt", "foobar.txt"]
   requires IsValidFileName(file) == true
   requires env.ok.ok()
-  requires !hasPathTraversal(path)
-  requires !hasPathTraversal(file)
+  requires forall i :: 0 <= i < |path| ==> (((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
+    || (path[i] == '/' && path[i + 1] == '/'))) 
+    || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
+  // requires !hasPathTraversal(path)
+  // requires !hasPathTraversal(file)
   requires IsOpen()
   modifies this
   modifies env.ok

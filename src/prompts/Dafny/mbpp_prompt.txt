@@ -1,23 +1,12 @@
+Act as a code assistant and provide your response as a JSON object with the following keys:
+"description": explanations about the code,
+"code": The generated code. The code string is now a single line with \n inserted where the newlines should be.
+Ensure that the entire code value is enclosed in double quotes.
+Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
+"programming_language": The programming language used to write the code
 
+programming_language: Dafny
 
-Your task is to generate the requested code. 
-First, consider this example for sorting a list in python without using sort() function
-# Python program to print a list 
-# without using the sort() function
-# without an extra variable
- 
-l1=[76, 23, 45, 12, 54, 9] 
-print("Original List:", l1)
- 
-# sorting list using nested loops
-for i in range(0, len(l1)):
-    for j in range(i+1, len(l1)):
-        if l1[i] >= l1[j]:
-            l1[i], l1[j] = l1[j],l1[i]
- 
-# sorted list
-print("Sorted List", l1)
-Sort function in Dafny should implement the same indicated.
 
 SYSTEM:
 
@@ -319,12 +308,3 @@ method Multiply(a: int, b: int) returns (result: int)
 Task:
 
 Write a method in Dafny to find the shared elements from the given two array.
-
-Act as a code assistant and provide your response as a JSON object with the following keys:
-"description": explanations about the code,
-"code": The generated code. The code string is now a single line with \n inserted where the newlines should be.
-Ensure that the entire code value is enclosed in double quotes.
-Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
-"programming_language": The programming language used to write the code
-
-programming_language: Dafny

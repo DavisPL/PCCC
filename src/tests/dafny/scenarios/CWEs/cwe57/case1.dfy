@@ -19,17 +19,12 @@ method {:main} Main(ghost env: HostEnvironment)
   // Try commenting out the following line to see that you are forced to handle errors!
   if !ok { print "open failed\n"; return; }
 
-  // This is "hello world!" in ascii.
-  // The library requires the data to be an array of bytes, but Dafny has no char->byte conversions :(
-  var data: array<byte> := ArrayFromSeq([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]);
-  ok := f.Write(0, data, 0, data.Length as int32);
-  // var seq_data: seq<byte> := [104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10];
-  // ok := f.Write(0, seq_data, 0, |seq_data| as int32);
+
   if !ok { print "Write failed\n"; return; }
   var isOk:bool, okToJoin:bool, isCurDir :bool;
   var res: seq<char>;
   // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/../generated_codes", "foobar.txt");
-  // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  okToJoin, res := f.Join("/Users/pari/pcc-llms/src/playground/generated_codes", "foo.txt");
   // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
   // isOk := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_codes");
   // isOk2 := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_code");

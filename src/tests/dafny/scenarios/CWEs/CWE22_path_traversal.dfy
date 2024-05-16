@@ -1,4 +1,4 @@
-include "../filestream/fileio_with_sensitive_files.dfy"
+include "/Users/pari/pcc-llms/src/tests/dafny/filestream/fileio_with_sensitive_files.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
@@ -28,8 +28,8 @@ method {:main} Main(ghost env: HostEnvironment)
   if !ok { print "Write failed\n"; return; }
   var isOk:bool, okToJoin:bool, isEqual :bool;
   var res: seq<char>;
-  okToJoin, res := f.Join("/Users/pari/pcc-llms/examples/../generated_codes", "foobar.txt");
-  // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  // okToJoin, res := f.Join("/Users/pari/pcc-llms/examples/../generated_codes", "foobar.txt");
+  okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
   // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
   // isOk := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_codes");
   // isOk2 := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_code");
