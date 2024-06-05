@@ -1,4 +1,4 @@
-include "../../../filestream/fileio_with_sensitive_files.dfy"
+include "/Users/pari/pcc-llms/src/tests/dafny/filestream/fileio_with_sensitive_files.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
@@ -26,16 +26,16 @@ method {:main} Main(ghost env: HostEnvironment)
   // var seq_data: seq<byte> := [104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10];
   // ok := f.Write(0, seq_data, 0, |seq_data| as int32);
   if !ok { print "Write failed\n"; return; }
-  var isOk:bool, okToJoin:bool, isCurDir :bool;
+  var isOk:bool, okToJoin:bool, isEqual :bool;
   var res: seq<char>;
   // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/../generated_codes", "foobar.txt");
-  // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
+  okToJoin, res := f.Join("/Users/pari/pcc-llms/src/playground", "safeFile_1.txt");
   // okToJoin, res := f.Join("/Users/pari/pcc-llms/src/examples/generated_codes", "foobar.txt");
   // isOk := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_codes");
   // isOk2 := f.GetCWD("/Users/pari/pcc-llms/src/examples/generated_code");
-  var dirName1 := "/Users/pari/pcc-llms/src/playground/generated_codes";
-  var dirName2 := "/Users/pari/pcc-llms/src/playground";
+  var dirName1 := "/Users/pari/pcc-llms/src/examples/generated_codes";
+  var dirName2 := "/Users/pari/pcc-llms/src/examples/generated_codes";
 
-  isCurDir:= f.GetCWD(dirName1);
+  // isEqual:= f.GetCWD(dirName1, dirName2);
   print "done!\n";
 }
