@@ -65,23 +65,23 @@ class Validator:
 
     def validate_code(
         # Get the prompt, generated code file path, and the number of attempts
-        # prompt: str, generated_code_fil e: str, attempts: int
+        # prompt: str, generated_code_fil e: str, attempts: int, api_config: dict, env_config: dict
         # Return the safety property, code, and required files
-        self, attempts: int, prompt_path: str, generated_code_file: str
+        self, attempts: int, prompt_path: str, output_path: str, api_config: dict, env_config: dict
     ):
         llm_core = core.LLMCore()
         # code_instrument = utils.CodeInstrument()
 
         prompt = llm_core.get_prompt(prompt_path).pop()
 
-        for _ in range(attempts):
+        for _ in range(int(attempts)):
             # for prompt in prompts:
-            llm_response = llm_core.request_code(
-                prompt, generated_code_file)
+            llm_response = llm_core.execute_prompt(
+                api_config, env_config, prompt, output_path)
             compiler_type = llm_response["programming_language"]
             compiler_type = "Dafny"
             error_message = self.compile_code(
-                generated_code_file, compiler_type)
+                output_path, compiler_type)
 
             if error_message is None:
                 return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]

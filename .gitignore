@@ -1,4 +1,4 @@
-pcc-venv/
+pccc-venv/
 .vscode/
 ./src/api_keys
 .env
@@ -14,4 +14,5 @@ pcc-venv/
 *.pdb
 *.json
 .DS_Store
+makefile
 

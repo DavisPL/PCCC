@@ -2,12 +2,17 @@
 Proof Carrying Code Completions
 
 # Tutorials
-## How does it work?
+## Install requirenents
+To install required packages use the following command
 ```
-python3 main.py path_to_prompt path_to_save_generated_code number_of_attempts 
+pip install -r /path/to/requirements.txt
+```
+## Cinfiguration
+Use the env.config file to add your desired configurations to make Prooformer tool work.
+## How does it work?
+
+```
+cd src
+python3 main.py
 ```
 
-For instance, this is a command to run fibonacci prompt to generate fibonacci method in Dafny and save it in a fibonacci.dfy file and repeating the validation process 5 times:
-```
-python3 main.py ./examples/prompts/Dafny/fibonacci.txt ./examples/generated_codes/fibonacci.dfy 5
-```

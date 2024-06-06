@@ -7,19 +7,17 @@ Returns
 _type_
     _description_
 """
+import configparser
 import json
 import os
 
 import openai
-from dotenv import load_dotenv
 from openai import OpenAI
 
 from utils import utils
 
 
 class LLMCore:
-    load_dotenv()
-    client = OpenAI(api_key = os.environ.get("OPENAI_API_KEY"))
     result = {
         "code": None,
         "programming_language": None,
@@ -28,8 +26,7 @@ class LLMCore:
         "generate_code_file": None,
         
     }
-    if client.api_key is None:
-            raise KeyError("API key not found!")
+    
     fileio_helper = utils.FileIO()
     def __init__(self):
         self.responses = []
@@ -98,7 +95,32 @@ class LLMCore:
     #     if function:
     #         self.function = function
     # Open the file containing the API key
+    
+    def invoke_model(self, api_key, api_config):
 
+        client = OpenAI(api_key = api_key)
+        # response = invoke_gpt4(_task=task, _temp=_api_config['temp'], _key=_api_config['openai_api_key'])
+  
+        client.chat.completions.create(
+            model = api_config["model"],  # "gpt-4-turbo", 
+            #ToDo evaluate with gpt-4-turbo and gpt-4o
+            # returns response in JSON format 
+            # model = "gpt-4-turbo-preview",
+            # response_format={ "type": "json_object" },
+            messages = self.messages, #A list of messages comprising the conversation so far
+            max_tokens = api_config['max_tokens'],  # Adjustable number of tokens to control response length
+            n = api_config['n'],  # Number of completions to generate
+            stop = api_config['stop'], # Stop completion tokens
+            temperature = api_config['temp'], # (0,2) default: 1
+            top_p = api_config['top_p'],  # (0,1) default: 1
+            # functions=[self.function],
+            # function_call={"name": "json_format_composer"}
+        )
+# if client.api_key is None:
+#         raise KeyError("API key not found!")
+        
+            
+    
     def get_prompt(self, prompt_path):
         prompts = []
         self.fileio_helper.read_file(prompt_path)
@@ -107,26 +129,13 @@ class LLMCore:
         prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
         return prompts
 
-    def request_code(self, prompt, generated_code_file):
-        # TODO Get model specifications from config in the function args
+    def execute_prompt(self, api_config, env_config, prompt, output_path):
         #TODO separate the first line with role: system and the first line of prompt
+        
 
         self.prompt_ammendment("user", prompt)
-        completion = self.client.chat.completions.create(
-            model = "gpt-4-turbo", 
-            #ToDo evaluate with gpt-4-turbo and gpt-4o
-            # returns response in JSON format 
-            # model = "gpt-4-turbo-preview",
-            # response_format={ "type": "json_object" },
-            messages = self.messages, #A list of messages comprising the conversation so far
-            max_tokens = 4096,  # Adjustable number of tokens to control response length
-            n = 1,  # Number of completions to generate
-            stop = None, # Stop completion tokens
-            temperature = 0.5, # (0,2) default: 1
-            top_p = 0.9,  # (0,1) default: 1
-            # functions=[self.function],
-            # function_call={"name": "json_format_composer"}
-        )
+        completion = self.invoke_model(api_config['openai_api_key'], api_config)
+        
         try:
             # TODO Add config file for the model specifications
             # TODO: Add function calling to api for a more structured json format
@@ -139,7 +148,7 @@ class LLMCore:
             required_files = self.get_key_value(response_json, "required_files")
             programming_language = self.get_key_value(response_json, "programming_language")
             generate_code_file = self.generate_code_file(
-                code, generated_code_file)
+                code, output_path)
             self.result = {"code": code,
                   "programming_language": programming_language,
                   "safety_property": safety_property,
