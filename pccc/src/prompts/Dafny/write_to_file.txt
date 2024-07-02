@@ -1,0 +1,134 @@
+Act as a code assistant and provide your response as a JSON object with the following keys:
+"description": explanations about the code,
+"code": The generated code. The code string is now a single line with \n inserted where the newlines should be.
+Ensure that the entire code value is enclosed in double quotes.
+Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
+"programming_language": The programming language used to write the code
+"lis_of_sensitive_files": The sensitive files that the generated code shouldn't access
+"safety_property": The given safety property 
+
+Your task is to generate a code based on the requested code functionality, provided libraries and requested safety properties for the code.
+The generated code needs to meet the safety properties given to you. 
+Then, Generate a Dafny code that writes a hello world into a file.
+Dafny doesn't have fileio so the following library is provided as the fileIO library in Dafny. 
+include fileio.dfy into the generated code.
+fileio.dfy file:
+
+newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
+newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
+newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
+
+class OkState
+  {
+  constructor{:axiom} () requires false
+  function{:axiom} ok():bool reads this
+}
+
+class HostEnvironment
+  {
+  constructor{:axiom} () requires false
+  ghost var ok:OkState
+}
+
+
+
+class FileStream
+  {
+
+  ghost var env:HostEnvironment
+  function{:axiom} Name():string reads this
+  function{:axiom} IsOpen():bool reads this
+  constructor{:axiom} () requires false
+
+  static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
+    returns(ok:bool, f:FileStream)
+    requires name[..] == "file.txt"
+    requires env.ok.ok()
+    modifies env.ok
+    ensures  env.ok.ok() == ok
+    ensures  ok ==> fresh(f) && f.env == env && f.IsOpen() && f.Name() == name[..]
+
+  method{:axiom} Close() returns(ok:bool)
+    requires env.ok.ok()
+    requires IsOpen()
+    modifies this
+    modifies env.ok
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
+
+  method{:axiom} Read(fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+    requires env.ok.ok()
+    requires IsOpen()
+    requires 0 <= start as int <= end as int <= buffer.Length
+    requires Name() == "file.txt"
+    modifies this
+    modifies env.ok
+    modifies buffer
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
+    ensures  Name() == old(Name())
+    ensures  forall i:int :: 0 <= i < buffer.Length && !(start as int <= i < end as int) ==> buffer[i] == old(buffer[i])
+    ensures  ok ==> IsOpen()
+
+  method{:axiom} Write(fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+    requires env.ok.ok()
+    requires IsOpen()
+    requires 0 <= start as int <= end as int <= buffer.Length
+    requires Name() == "file.txt"
+    modifies this
+    modifies env.ok
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
+    ensures  Name() == old(Name())
+    ensures  ok ==> IsOpen()
+
+  method{:axiom} Flush() returns(ok:bool)
+    requires env.ok.ok()
+    requires IsOpen()
+    requires Name() == "file.txt"
+    modifies this
+    modifies env.ok
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
+    ensures  Name() == old(Name())
+    ensures  ok ==> IsOpen()
+}
+
+
+
+this is a sample for writing to a file:
+
+include "fileio.dfy"
+
+// Useful to convert Dafny strings into arrays of characters.
+method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
+  ensures a[..] == s
+{
+  a := new A[|s|] ( i requires 0 <= i < |s| => s[i] );
+}
+
+method {:main} Main(ghost env: HostEnvironment)
+  requires env.ok.ok()
+  modifies env.ok
+{
+  var fname := ArrayFromSeq("file.txt");
+  var f: FileStream;
+  var ok: bool;
+  ok, f := FileStream.Open(fname, env);
+
+  if !ok { print "open failed\n"; return; }
+
+  var data: array<byte> := ArrayFromSeq([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]);
+
+  ok := f.Write(0, data, 0, data.Length as int32);
+
+  print "done!\n";
+}
+
+Learn from the above sample and modify it for the requested code.
+The generated code should use Open and Write to write into a file.
+Sensitive_files = ["bar.txt", "baz.txt"]
+Safety property is:
+sensitive_files intersect file_to_write == Empty 
+
+Finally return response using the provided json format.

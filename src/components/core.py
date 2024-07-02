@@ -10,12 +10,15 @@ _type_
 import configparser
 import json
 import os
+import re
 
 import openai
 from openai import OpenAI
 
 from utils import utils
-
+from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
 
 class LLMCore:
     result = {
@@ -28,6 +31,7 @@ class LLMCore:
     }
     
     fileio_helper = utils.FileIO()
+    dict_parser = utils.DictParser()
     def __init__(self):
         self.responses = []
         self.messages = []
@@ -97,59 +101,127 @@ class LLMCore:
     # Open the file containing the API key
     
     def invoke_model(self, api_key, api_config):
-
         client = OpenAI(api_key = api_key)
-        # response = invoke_gpt4(_task=task, _temp=_api_config['temp'], _key=_api_config['openai_api_key'])
-  
-        client.chat.completions.create(
-            model = api_config["model"],  # "gpt-4-turbo", 
-            #ToDo evaluate with gpt-4-turbo and gpt-4o
-            # returns response in JSON format 
-            # model = "gpt-4-turbo-preview",
-            # response_format={ "type": "json_object" },
-            messages = self.messages, #A list of messages comprising the conversation so far
-            max_tokens = api_config['max_tokens'],  # Adjustable number of tokens to control response length
-            n = api_config['n'],  # Number of completions to generate
-            stop = api_config['stop'], # Stop completion tokens
-            temperature = api_config['temp'], # (0,2) default: 1
-            top_p = api_config['top_p'],  # (0,1) default: 1
-            # functions=[self.function],
-            # function_call={"name": "json_format_composer"}
-        )
-# if client.api_key is None:
-#         raise KeyError("API key not found!")
-        
-            
+        if client.api_key is None:
+            raise KeyError("API key not found!")
+        try:
+            # completion = client.chat.completions.create(
+            #     model = api_config["model"],  # "gpt-4-turbo", 
+            #     #ToDo evaluate with gpt-4-turbo and gpt-4o
+            #     # returns response in JSON format 
+            #     # model = "gpt-4-turbo-preview",
+            #     # response_format={ "type": "json_object" },
+            #     messages = self.messages, #A list of messages comprising the conversation so far
+            #     max_tokens = api_config['max_tokens'],  # Adjustable number of tokens to control response length
+            #     n = int(api_config['n']),  # Number of completions to generate
+            #     stop = api_config['stop'], # Stop completion tokens
+            #     temperature = float(api_config['temp']), # (0,2) default: 1
+            #     top_p = float(api_config['top_p']),  # (0,1) default: 1
+            #     # functions=[self.function],
+            #     # function_call={"name": "json_format_composer"}
+            # )
+            llm = self.initialize_llm(api_config)
+            ai_msg = llm.invoke(self.messages)
+        except openai.APIConnectionError as e:
+            # Handles connection error here
+            print(f"Failed to connect to OpenAI API: {e}")
+        return ai_msg
+
+    def initialize_llm(self, api_config):
+        model = api_config['model']
+        if model == "gpt-4":
+            return ChatOpenAI(model_name="gpt-4", 
+                            openai_api_key=api_config['openai_api_key'],
+                            max_tokens = api_config['max_tokens'],
+                            stop = api_config['stop'], # Stop completion tokens
+                            temperature = float(api_config['temp']), # (0,2) default: 1
+                            top_p = float(api_config['top_p']),  # (0,1) default: 1
+                            )
+        # if model == "palm-2":
+        #     return GooglePalm(model_name="models/text-bison-001", temperature = float(api_config['temp']),
+        #                   google_api_key=api_config['google_api_key'],
+        #                   max_output_tokens=4000)
     
+        
+    def extract_info_from_prompt(self, prompt, pattern):
+        match = re.search(pattern, prompt, re.DOTALL)
+        print(f"match: {match}")
+        if match:
+            # The first group (index 1) contains the captured content between the markers
+            content = match.group(1).strip()  # .strip() to remove leading/trailing whitespace
+            print("Found content:", content)
+        else:
+            print("No content found")
+        return content
+
     def get_prompt(self, prompt_path):
         prompts = []
-        self.fileio_helper.read_file(prompt_path)
-        
-        prompts = self.fileio_helper.content.split("---\n")
-        prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
+        prompts.append(self.fileio_helper.read_file(prompt_path))
+        print(f"prompts: {prompts}")
+        # prompts = self.fileio_helper.content.split("---\n")
+        # prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
         return prompts
 
     def execute_prompt(self, api_config, env_config, prompt, output_path):
+        llm = self.initialize_llm(api_config)
         #TODO separate the first line with role: system and the first line of prompt
-        
+        # extract specification prompt task info
+        pattern = r"\[SPECIFCATION PROMPT\](.*?)\[[New Task SPEC]\]"
+        specification_prompt = self.extract_info_from_prompt(prompt, pattern)
+        spec_prmopt_dict = self.dict_parser.parse_data_to_dict(specification_prompt)
+        print(f"spec_prmopt_dict: {spec_prmopt_dict}")
+        # extract spec task info
+        pattern = r"\[SPECIFCATION PROMPT\](.*?)\[New Task\]"
+        spec_new_task = self.extract_info_from_prompt(prompt, pattern)
+         # extract COT prompt task info
+        pattern = r"\[COT PROMPT\](.*?)\[New Task\]"
+        cot_prompt = self.extract_info_from_prompt(prompt, pattern)
+        # extract new task info
+        pattern = r"\[New Task\](.*)"
+        code_new_task = self.extract_info_from_prompt(prompt, pattern)
+        specification_prompt = self.extract_info_from_prompt(prompt, pattern)
+        #specifications memory
+        specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        print(f"specification_memory: {specification_memory}")
+        specification_chain = LLMChain(llm=llm, prompt=spec_prmopt_dict, verbose=False, output_key='specifications',
+                                    memory=specification_memory)
+        print(f"specification_chain: {specification_chain}")
+         # Specification Prompt Response
+        specification_response = specification_chain.run(spec_new_task)
+        #code prompt memory
+        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        code_chain = LLMChain(llm=llm, prompt=cot_prompt, verbose=False, output_key='script', memory=code_memory)
 
-        self.prompt_ammendment("user", prompt)
-        completion = self.invoke_model(api_config['openai_api_key'], api_config)
-        
+        # Dynamic Few-Shot Prompt Response
+        code_response = code_chain.run(code_new_task)
+        # self.prompt_ammendment("user", prompt)
+        # print(f"prompt: {prompt}   ")
+        # completion = self.invoke_model(api_config['openai_api_key'], api_config)
+       
         try:
             # TODO Add config file for the model specifications
             # TODO: Add function calling to api for a more structured json format
             response = completion.choices[0].message.content
-            self.prompt_ammendment("assistant", response) 
+            
+            self.prompt_ammendment("user", response)
+            print(f"self.responses: {self.responses}")
             self.responses.append(response)
             response_json = self.get_response_json(response)
+            task_name = self.get_key_value(response_json, "task_name")
+            # print(f"task_name: {task_name}")
+            # discription = self.get_key_value(response_json, "discription")
             code = self.get_key_value(response_json, "code")
             safety_property = self.get_key_value(response_json, "safety_property")
             required_files = self.get_key_value(response_json, "required_files")
             programming_language = self.get_key_value(response_json, "programming_language")
             generate_code_file = self.generate_code_file(
-                code, output_path)
-            self.result = {"code": code,
+                code, output_path, task_name)
+            # generate_code_file = self.generate_code_file(
+            #     code, output_path, task_name)
+            self.result = {
+                #  "task_name": task_name,
+                #  "discription": discription,
+                  "code": code,
                   "programming_language": programming_language,
                   "safety_property": safety_property,
                   "required_files": required_files,
@@ -168,8 +240,12 @@ class LLMCore:
         return self.result
 
     def get_response_json(self, response):
-        # Converts the response to a json object
+        print(f"Are you in json format ???????? response: {response}")
+        pattern = r"```dafny(.*?)```"
+        response = re.search(pattern, response).group(0)
+        print(f"response: {response}")
         response_json = json.loads(response)
+        print(f"response_json: {response_json}")
         return response_json
     
     def get_key_value (self, response_json, key):
@@ -195,18 +271,21 @@ class LLMCore:
     def prompt_ammendment(self, role, response):
          # Modifoes prompt to add role and messages
         self.messages.append({"role": role, "content": response})
+        print(f"messages: {self.messages}")
 
-    def generate_code_file(self, code, generated_code_file):
+    def generate_code_file(self, code, generated_code_file, task_name):
         # Generates file to save the requested code
         try:
             self.fileio_helper.content = code
-            self.fileio_helper.write_file(generated_code_file, code)
+            filename = f"{task_name}.dfy"
+            output_file_path = os.path.join(generated_code_file, filename)
+            self.fileio_helper.write_file(output_file_path, code)
         except FileNotFoundError:
-            print(f"Cannot find {generated_code_file}")
+            print(f"Cannot find {output_file_path}")
 
         except IOError as e:
-            print(f"Error writing into the file {generated_code_file}: {str(e)}")
+            print(f"Error writing into the file {output_file_path}: {str(e)}")
         except EOFError as e:
             print(f"EOFError: {str(e)}")
-        return generated_code_file
+        return output_file_path
     
