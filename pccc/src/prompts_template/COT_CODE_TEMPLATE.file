@@ -3,23 +3,23 @@ TASK:
 
 AI ASSISTANT:
 
-Step 1: Determine the method’s signature.
-In this case:
-    {{method_signature}}
+- Step 1: Determine the method’s signature.
+    In this case:
+        {method_signature}
 
-Step 2: Determine the preconditions.
-In this case:
-    {{preconditions}}
+- Step 2: Determine the preconditions.
+    In this case:
+        {preconditions}
 
-Step 3: Determine the postconditions.
-In this case:
-    {{postconditions}}
+- Step 3: Determine the postconditions.
+    In this case:
+        {postconditions}
 
-Step 4: Write the code, its formal specification, and the verification annotations that help the solver prove the postconditions.
-In this case:
+- Step 4: Write the code, its formal specification, and the verification annotations that help the solver prove the postconditions.
+    In this case:
 
-```dafny
+    ```dafny
 
-    {{code}}
+        {code}
 
-```
+    ```

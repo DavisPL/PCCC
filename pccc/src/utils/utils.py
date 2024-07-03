@@ -1,129 +1,133 @@
 import os
 import re
+import json
 
-
-class FileIO:
-    def __init__(self):
-        self.content = None
-
-    def read_file(self, file_path):
-        try:
-            with open(file_path, "r", encoding='utf-8') as f:
-                self.content = f.read()
-                f.close()
-                if os.stat(file_path).st_size == 0:
-                    raise ValueError("Prompt file is empty")
-        except FileNotFoundError:
-            print(f"Error: The file {file_path} does not exist.")
-        except IOError as e:
-            print(f"Error reading the file {file_path}: {str(e)}")
-        return self.content
-    
-    def write_file(self, file_path, string):
-        try:
-            with open(file_path, "w", encoding='utf-8') as f:
-                f.write(string)
-                f.close()
-        except FileNotFoundError:
-            print(f"Error: The file {file_path} does not exist.")
-        except IOError as e:
-            print(f"Error reading the file {file_path}: {str(e)}")
-
-    def append_file(self, file_path):
-        with open(file_path, "a", encoding='utf-8') as f:
-            f.write(f"\n---\n{self.content}")
+def read_file(file_path):
+    try:
+        with open(file_path, "r", encoding='utf-8') as f:
+            content = f.read()
             f.close()
+            if os.stat(file_path).st_size == 0:
+                raise ValueError("Prompt file is empty")
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} does not exist.")
+    except IOError as e:
+        print(f"Error reading the file {file_path}: {str(e)}")
+    return content
 
-    def read_lines(self, file_path):
-        # Read all the lines into a list
-        lines = None
-        try:
-            with open(file_path, 'r', encoding='utf-8') as file:
-                lines = file.readlines()
-        except FileNotFoundError:
-            print(f"Error: The file {file_path} does not exist.")
-        return lines
+def write_to_file(file_path, string):
+    try:
+        with open(file_path, "w", encoding='utf-8') as f:
+            f.write(string)
+            f.close()
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} does not exist.")
+    except IOError as e:
+        print(f"Error reading the file {file_path}: {str(e)}")
 
-    def write_lines(self, file_path, lines):
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                # Write the modified lines back to the file
-                file.writelines(lines)
-        except FileNotFoundError:
-            print(f"Error: The file {file_path} does not exist.")
+def append_file(file_path, content):
+    with open(file_path, "a", encoding='utf-8') as f:
+        f.write(f"\n---\n{content}")
+        f.close()
 
-
-class CodeInstrument:
-    def __init__(self):
-        pass
-
-    def spot_error_line(self, error, line):
-        pattern = r"\((.*?)\)"
-        matches = re.findall(pattern, error)
-        if matches:
-            print(f"The following matches were found: {matches}")
-        else:
-            print("No matches were found.")
-
-    def count_lines(self, file_path):
+def read_lines(file_path):
+    # Read all the lines into a list
+    lines = None
+    try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            # Count the number of lines
-            count = len(file.readlines())
+            lines = file.readlines()
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} does not exist.")
+    return lines
 
-        return count
-
-    def modify_line(self, file_path, line_number, new_text):
-        # Modify the specified line
-        file = FileIO()
-        lines = file.read_lines(file_path)
-        lines[line_number - 1] = '# ' + new_text + '\n'
-
-        file.write_lines(file_path, line_number)
+def write_lines(file_path, lines):
+    try:
+        with open(file_path, 'w', encoding='utf-8') as file:
+            # Write the modified lines back to the file
+            file.writelines(lines)
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} does not exist.")
 
 
-class PatternMatch:
-    def __init__(self) -> None:
-        pass
 
-    def match(self, pattern, string):
-        match = re.search(pattern, string)
-        if match:
-            print(
-                f"The pattern '{match.group(1)}' was found.")
-            return match.group(1)
+
+def pattern_match(pattern, string):
+    match = re.search(pattern, string)
+    if match:
+        print(
+            f"The pattern '{match.group(1)}' was found.")
+        return match.group(1)
+    else:
+        print("No match found.")
+    return None
+
+
+def parse_data_to_dict(data):
+    # Initialize an empty dictionary to store the data
+    parsed_data = {}
+
+    # Split the data by lines to process each line separately
+    lines = data.strip().split('\n')
+
+    # Variables to keep track of the current section we are parsing
+    current_section = None
+
+    for line in lines:
+        line = line.strip()
+        if line.endswith(':'):
+            # This is a section title
+            current_section = line[:-1]  # Remove the colon and set as current section
+            parsed_data[current_section] = []
         else:
-            print("No match found.")
-        return None
+            # This is content under the current section
+            if current_section:
+                parsed_data[current_section].append(line)
+
+    # Post-process to turn list into a single string if it makes sense
+    for key, value in parsed_data.items():
+        if len(value) == 1:
+            parsed_data[key] = value[0]
+
+    return parsed_data
 
 
-class DictParser:
-    def __init__(self):
-        pass
+def get_examples_db_task_id_des_pair(example_json):
+    list_of_examples = []
+    for t in example_json:
+        output_task = {
+            "task_id": example_json[t]["task_id"],
+            "task_description": example_json[t]["task_description"]
+        }
+        list_of_examples.append(output_task)
+    return list_of_examples
 
-    def parse_data_to_dict(self, data):
-        # Initialize an empty dictionary to store the data
-        parsed_data = {}
 
-        # Split the data by lines to process each line separately
-        lines = data.strip().split('\n')
+def get_examples_id_task_specification_pair(example_json):
+    list_of_examples = []
+    for t in example_json:
+        output_task = {
+            "task_id": example_json[t]["task_id"],
+            "task_description": example_json[t]["task_description"],
+            "method_signature": example_json[t]["specification"]["method_signature"],
+            "postconditions": example_json[t]["specification"]["postconditions"]
+        }
+        list_of_examples.append(output_task)
+    return list_of_examples
 
-        # Variables to keep track of the current section we are parsing
-        current_section = None
+def save_to_json(map, file_path):
+    json_string = json.dumps(map)
+    with open(file_path, "w") as text_file:
+        text_file.write(json_string)
 
-        for line in lines:
-            line = line.strip()
-            if line.endswith(':'):
-                # This is a section title
-                current_section = line[:-1]  # Remove the colon and set as current section
-                parsed_data[current_section] = []
-            else:
-                # This is content under the current section
-                if current_section:
-                    parsed_data[current_section].append(line)
 
-        # Post-process to turn list into a single string if it makes sense
-        for key, value in parsed_data.items():
-            if len(value) == 1:
-                parsed_data[key] = value[0]
+def load_json(file_path):
+    with open(file_path, 'r') as file:
+        tasks = json.load(file)
+    return tasks
 
-        return parsed_data
+def parse_specification_response(task, response):
+    signature = response.split("\n")[1]
+    post_condition = "\n".join(response.split("\n")[3:])
+    task['method_signature'] = signature.strip()
+    task['postconditions'] = post_condition.strip()
+    return task

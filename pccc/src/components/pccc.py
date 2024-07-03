@@ -1,9 +1,13 @@
 import pdb
 from typing import Optional, Union
-
+from utils import utils as utils
 from components import validator, vc_generator
+from components import task_selector as task_selectors
+from components import core
 import os
 import configparser
+from time import sleep
+import pprint
 
 # PCCC class is the main class that runs the code validator and vc_generator
 class PCCC:
@@ -12,8 +16,8 @@ class PCCC:
     def get_config(self):
         src_dir_path = os.path.dirname(os.getcwd())
         print(f"src_dir_path: {src_dir_path}")
-        # ToDo: change this before pushing to the repo
-        config_path = os.path.join(src_dir_path, 'dpl.config')
+        # ToDo: change this before pushing to the repo to get env.config from the root directory
+        config_path = os.path.join(src_dir_path, 'myenv.config')
         if not (os.path.exists(config_path)):
             print("env.config not found!!")
             return
@@ -33,29 +37,118 @@ class PCCC:
         env_config = dict()
         env_config["K_run"] = config.get('DEFAULT', 'K_run')
         env_config["cool_down_time"] = config.get('DEFAULT', 'cool_down_time')
-        env_config["prompt_path"] = config.get('DEFAULT', 'prompt_path')
+        env_config["task_path"] = config.get('DEFAULT', 'task_path')
         env_config["base_output_path"] = config.get('DEFAULT', 'base_output_path')
+        
+        env_config["example_db_json_path"] = config.get('FEWSHOT', 'example_db_json_path')
+        env_config["spec_shot_count"] = config.get('FEWSHOT', 'spec_shot_count')
+        env_config["code_shot_count"] = config.get('FEWSHOT', 'code_shot_count')
         return api_config, env_config
+    
+    def get_output_paths(self, task,  temp, K, model, base_path):
+        out_paths = dict()
+        print("\n Inside get_output_paths \n ")
+        print(f"task: {task}")
+        print(f"str(task['task_id']) {str(task['task_id'])}")
+        common_path = "task_id" + "_" + str(task['task_id']) + "-" + model + "-" + "temp_" + str(
+            temp) + "-" + "k_" + str(K)
+        out_paths["saved_path"] = os.path.join(base_path, common_path + ".json")
+        out_paths["dfy_src_path"] = os.path.join(base_path, common_path + ".dfy")
+        out_paths["verification_path"] = os.path.join(base_path, common_path + "_verification_log.txt")
+        print(f"out_paths: {out_paths}")
+        return out_paths
+    
+    def get_spec_code_prompts(self):
+        script_dir_path = os.path.dirname(os.getcwd())
+        print(f"script_dir_path: {script_dir_path}")
+        spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_SPEC_TEMPLATE.file')
+        code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_CODE_TEMPLATE.file')
+        if not (os.path.exists(spec_prompt_path) or os.path.exists(code_prompt_path)):
+            print("src/prompts_template/COT_SPEC_TEMPLATE.file or  src/prompts_template/COT_CODE_TEMPLATE.file!!")
+            return
+        spec_template = utils.read_file(spec_prompt_path)
+        code_template = utils.read_file(code_prompt_path)
+        return spec_template, code_template
+    
+    def execute_dynamic_few_shot_prompt(self, api_config, env_config):
+        # load example db
+        example_db_tasks = utils.load_json(env_config['example_db_json_path'])
+        # prepare all example db for embedding
+        examples_db_for_spec_prompt = utils.get_examples_db_task_id_des_pair(example_db_tasks)
+        examples_db_for_cot_prompt = utils.get_examples_id_task_specification_pair(example_db_tasks)
+        spec_prompt_template, code_prompt_template = self.get_spec_code_prompts()
+        # print("\n What samples are we using for the prompt? \n ")
+        # pprint.pprint(examples_db_for_spec_prompt)
+        # pprint.pprint(examples_db_for_spec_prompt)
+        # 228 task json path
+        all_response = []
+        tasks = utils.load_json(env_config['task_path'])
+        print(f"\n tasks: {tasks}")
+        model = api_config['model']
+        print(f"model: {model}")
+     
+
+        for t in tasks:
+            print(f"\n =================== \n t: {t}")
+            task = tasks[t]
+            print(f"\n What is task: {task}")
+            task_spec = {
+                "task_id": task['task_id'],
+                "task_description": task['task_description'],
+                "method_signature": task['method_signature']
+            }
+            print(f"task_spec: {task_spec}")
+            spec_example_selector = task_selectors.find_semantic_similar_tasks(
+            api_config['openai_api_key'], example_db_tasks = examples_db_for_spec_prompt,
+            number_of_similar_tasks = int(env_config['spec_shot_count']), target_task = task)
+            code_example_selector = task_selectors.find_semantic_similar_tasks(
+            api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
+            number_of_similar_tasks = int(env_config['code_shot_count']), target_task = task)
+            # print("\n spec_example_selector\n ")
+            # pprint.pprint(spec_example_selector)
+            # print("\n code_example_selector\n ")
+            # pprint.pprint(code_example_selector)
+            for run_count in range(1, int(env_config["K_run"]) + 1):
+                output_paths = self.get_output_paths(task = task_spec, temp = api_config["temp"],  K = run_count,
+                                             model = model,
+                                             base_path = env_config["base_output_path"])
+                print(f"output_paths: {output_paths}")
+                try:
+                    llm_core = core.Core()
+                    saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
+                                                    example_db_50_tasks=example_db_tasks,
+                                                    spec_example_selector=spec_example_selector,
+                                                    code_example_selector=code_example_selector,
+                                                    spec_prompt_template=spec_prompt_template,
+                                                    code_prompt_template=code_prompt_template)
+                    print(f"saved_response = {saved_response}")
+                except Exception as e:
+                    print("Error while processing => " + task['task_id'] + "in temperature =>" + str(
+                    api_config['temp']) + str(e))
+                    sleep(int(env_config['cool_down_time']))
         # Generate proof carrying code
     def generate_proof_with_code(self):
         api_config , env_config = self.get_config()
         print(api_config)
         print(env_config)
+        self.execute_dynamic_few_shot_prompt(api_config, env_config)
+        # self.get_output_paths()
         # The validator object is created to validate the code
         attempts = env_config["K_run"]
-        prompt = env_config["prompt_path"]
+        task_path = env_config["task_path"]
         output_path = env_config["base_output_path"]
         code_validator = validator.Validator()
         # The code_validator object is used to validate the code and get the safety property, code, and required files
         safety_property, code, req_files = code_validator.validate_code(
-            attempts, prompt, output_path, api_config, env_config
+            attempts, task_path, output_path, api_config, env_config
         )
         if safety_property is None:
             raise ValueError("PCCC cannot find the safety property!")
         elif code is None:
             raise ValueError("PCCC cannot find the code!")
         else:
-            self.exec_vc_gen(safety_property, code, req_files)
+            pass
+            # self.exec_vc_gen(safety_property, code, req_files)
 
     def exec_vc_gen(self, safety_property, code, req_files) -> None:
         vc_gen = vc_generator.VcGen()
