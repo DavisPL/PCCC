@@ -17,7 +17,7 @@ class PCCC:
         src_dir_path = os.path.dirname(os.getcwd())
         print(f"src_dir_path: {src_dir_path}")
         # ToDo: change this before pushing to the repo to get env.config from the root directory
-        config_path = os.path.join(src_dir_path, 'myenv.config')
+        config_path = os.path.join(src_dir_path, 'env.config')
         if not (os.path.exists(config_path)):
             print("env.config not found!!")
             return
