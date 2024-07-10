@@ -123,7 +123,8 @@ class Core:
               spec_example_selector,
               code_example_selector,
               spec_prompt_template,
-              code_prompt_template):
+              code_prompt_template,
+              K):
         print("\n inside invoke_llm")
         llm = self.initialize_llm(api_config)
         api_key = api_config['openai_api_key']
@@ -131,34 +132,90 @@ class Core:
         spec_shot_count = int(env_config["spec_shot_count"])
         code_shot_count = int(env_config["code_shot_count"])
         print(f" new_task: {new_task}") 
-        similar_tasks = spec_example_selector
-        print("inside run_chain \n ????????????????????????? \n")
-        print(f"similar_tasks = {similar_tasks}")
-        spec_examples_ids = []
-        for key, task_list in similar_tasks.items():
-            print(f"Key: {key}")
-            for task in task_list:
-                print(f"Task ID: {task['task_id']}")
-                print(f"Task Description: {task['task_description']}")
-                print()  # Add a blank line for better readability
-                spec_examples_ids.append(task['task_id'])
-        print(f"\n spec_examples_ids \n {spec_examples_ids}")
+        # similar_tasks = spec_example_selector
+        # print(f"similar_tasks = {similar_tasks}")
+        # Required for similarity_example_selector without lanchain
+        # spec_examples_ids = []
+        # for key, task_list in similar_tasks.items():
+        #     print(f"Key: {key}")
+        #     for task in task_list:
+        #         print(f"Task ID: {task['task_id']}")
+        #         print(f"Task Description: {task['task_description']}")
+        #         print()  # Add a blank line for better readability
+        #         spec_examples_ids.append(task['task_id'])
+        # print(f"\n spec_examples_ids \n {spec_examples_ids}")
+        similar_tasks = spec_example_selector.select_examples(new_task)
+        spec_examples_ids = [t['task_id'] for t in similar_tasks]
+        # print("f spec_examples_ids: {spec_examples_ids}")
         prompt_gen = prompt_generator.PromptGenerator()
        
         specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
                                                                                   example_db_50_tasks,
                                                                                   spec_prompt_template)
 
-        print(specification_prompt)
+        # print("\n Is specification_prompt correct ??????????????//////////////////////")
+        # print(specification_prompt)
         # Memory
         specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # print(f"\n ================================ \n ")
+        # print(f"specification_memory: {specification_memory} \n ")
         specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
                                     memory=specification_memory)
+        # print("\n specification_chain \n")
+        # pprint.pprint(specification_chain)
+        # print("new_task['task_description']", new_task['task_description'])
+        # Specification Prompt Response
         specification_response = specification_chain.run(new_task['task_description'])
 
         next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
-        print(f"\n !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
-        print(f"next_input_task_with_spec: {next_input_task_with_spec}")
+        
+        # print(f"next_input_task_with_spec: {next_input_task_with_spec}")
+        spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
+        # print(f"spec_similar_code_tasks = {spec_similar_code_tasks}")
+        code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
+        # print(f"\n code_examples_ids \n {code_examples_ids}")
+
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_50_tasks,code_prompt_template)
+        # print(f"\n ================================\n code_prompt")                                                            
+        # print(f"{code_prompt}")
+        # print(f"\n ================================") 
+        
+        # print(f"\n base_output_path {env_config["base_output_path"]} \n")
+        # prompt_path = os.path.join(env_config["base_output_path"],
+        #                         "dynamic-few-shot-prompt-" + str(K) + ".txt")
+        # try:
+        #     with open(prompt_path, "w", encoding='utf-8') as f:
+        #             f.write(code_prompt.get_prompts())
+        #             f.close()
+        # except FileNotFoundError:
+        #         print(f"Error: The file {prompt_path} does not exist.")
+        # except IOError as e:
+        #         print(f"Error reading the file {prompt_path}: {str(e)}")
+                
+        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
+        # print(f"\n code_chain: {code_chain} \n")
+        # Dynamic Few-Shot Prompt Response
+        code_response = code_chain.run(new_task['task_description'])
+        # print(f"\n code_response: {code_response} \n")
+        saved_map = {
+            "temperature": temperature,
+            "spec_example_shots": env_config["spec_shot_count"],
+            "code_example_shots": env_config["code_shot_count"],
+            "spec_examples_ids": spec_examples_ids,
+            "specification_response": specification_response,
+            "code_examples_ids": code_examples_ids,
+            "code_response": code_response
+        }
+        # print(f"\n saved_map: {saved_map} \n")
+        # try:
+        #     with open(prompt_path, "w", encoding='utf-8') as f:
+        #             f.write(code_prompt.get_prompts())
+        #             f.close()
+        # except FileNotFoundError:
+        #         print(f"Error: The file {prompt_path} does not exist.")
+        # except IOError as e:
+        #         print(f"Error reading the file {prompt_path}: {str(e)}")
         # Run the specification chain and get the response
         # specification_response = self.run_specification_chain(new_task['task_description'], specification_prompt, api_key, api_config)
         # next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
@@ -184,7 +241,9 @@ class Core:
         # except openai.APIConnectionError as e:
         #     # Handles connection error here
         #     print(f"Failed to connect to OpenAI API: {e}")
-        return
+        # print("=========================================")
+        # print(f"\n saved_map: {saved_map} \n")
+        return saved_map
     
     def get_response_from_model(self, prompt, api_key, api_config):
         client = OpenAI(api_key = api_key)

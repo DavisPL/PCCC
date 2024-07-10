@@ -1,6 +1,6 @@
 Task:
-    {task_description}
+    {{task_description}}
 Method Signature:
-    {method_signature}
+    {{method_signature}}
 Postconditions:
-    {postconditions}
+    {{postconditions}}

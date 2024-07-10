@@ -3,7 +3,6 @@ import sys
 
 from components import pccc
 
-
 def main():
     pccc_obj = pccc.PCCC()
     pccc_obj.generate_proof_with_code()

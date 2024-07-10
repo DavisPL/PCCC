@@ -15,7 +15,7 @@ def read_file(file_path):
         print(f"Error reading the file {file_path}: {str(e)}")
     return content
 
-def write_to_file(file_path, string):
+def write_to_file(string, file_path):
     try:
         with open(file_path, "w", encoding='utf-8') as f:
             f.write(string)

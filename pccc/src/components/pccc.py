@@ -1,9 +1,11 @@
 import pdb
 from typing import Optional, Union
 from utils import utils as utils
-from components import validator, vc_generator
-from components import task_selector as task_selectors
+from components import validator
+from components import vc_generator 
+from components import task_selector
 from components import core
+from components import dafny_verifier as verifier
 import os
 import configparser
 from time import sleep
@@ -57,6 +59,7 @@ class PCCC:
         out_paths["verification_path"] = os.path.join(base_path, common_path + "_verification_log.txt")
         print(f"out_paths: {out_paths}")
         return out_paths
+
     
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
@@ -69,6 +72,27 @@ class PCCC:
         spec_template = utils.read_file(spec_prompt_path)
         code_template = utils.read_file(code_prompt_path)
         return spec_template, code_template
+    
+    def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_bits, _saved_map):
+        print(f"\n Inside prepare_model_response \n")
+        print(f"id: { _task['task_id']}")
+        return {
+            "id": _task['task_id'],
+            "K": _K,
+            "temperature": _temp,
+            "task_id": _task['task_id'],
+            "task_description": _task['task_description'],
+            "model": _model,
+            "dafny_code": _dafny_code,
+            "isVerified": _isVerified,
+            "verification_bits": _verification_bits,
+            "spec_example_shots": _saved_map["spec_example_shots"],
+            "specification_response": _saved_map["specification_response"],
+            "code_example_shots": _saved_map["code_example_shots"],
+            "code_response": _saved_map["code_response"],
+            "code_examples_ids": _saved_map["code_examples_ids"],
+            "spec_examples_ids": _saved_map["spec_examples_ids"]
+        }
     
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
@@ -87,7 +111,12 @@ class PCCC:
         model = api_config['model']
         print(f"model: {model}")
      
-
+        spec_example_selector = task_selector.get_semantic_similarity_example_selector(
+        api_config['openai_api_key'], example_db_tasks = examples_db_for_spec_prompt,
+        number_of_similar_tasks = int(env_config['spec_shot_count']))
+        code_example_selector = task_selector.get_semantic_similarity_example_selector(
+        api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
+        number_of_similar_tasks = int(env_config['code_shot_count']))
         for t in tasks:
             print(f"\n =================== \n t: {t}")
             task = tasks[t]
@@ -98,12 +127,7 @@ class PCCC:
                 "method_signature": task['method_signature']
             }
             print(f"task_spec: {task_spec}")
-            spec_example_selector = task_selectors.find_semantic_similar_tasks(
-            api_config['openai_api_key'], example_db_tasks = examples_db_for_spec_prompt,
-            number_of_similar_tasks = int(env_config['spec_shot_count']), target_task = task)
-            code_example_selector = task_selectors.find_semantic_similar_tasks(
-            api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
-            number_of_similar_tasks = int(env_config['code_shot_count']), target_task = task)
+    
             # print("\n spec_example_selector\n ")
             # pprint.pprint(spec_example_selector)
             # print("\n code_example_selector\n ")
@@ -112,20 +136,45 @@ class PCCC:
                 output_paths = self.get_output_paths(task = task_spec, temp = api_config["temp"],  K = run_count,
                                              model = model,
                                              base_path = env_config["base_output_path"])
-                print(f"output_paths: {output_paths}")
+                print(f"\n output_paths: {output_paths} \n")
                 try:
+                    print(f"env_config: {env_config}")
                     llm_core = core.Core()
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
                                                     example_db_50_tasks=example_db_tasks,
                                                     spec_example_selector=spec_example_selector,
                                                     code_example_selector=code_example_selector,
                                                     spec_prompt_template=spec_prompt_template,
-                                                    code_prompt_template=code_prompt_template)
+                                                    code_prompt_template=code_prompt_template,
+                                                     K = run_count,)
                     print(f"saved_response = {saved_response}")
+                    isVerified, parsedCode = verifier.verify_dfy_src(saved_response['code_response'],
+                                                                    output_paths['dfy_src_path'],
+                                                                    output_paths['verification_path'])
+                    verification_bits = verifier.get_all_verification_bits_count(parsedCode)
+                    print(f"task_spec: {task_spec}")
+                    saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,
+                                                    _model=model, _dafny_code=parsedCode, _isVerified=isVerified,
+                                                    _verification_bits=verification_bits, _saved_map=saved_response)
+                    if isVerified:
+                        print(f"\n isVerified: {isVerified}")
+                        print(f"\n output_paths['saved_path']: {output_paths['saved_path']}")
+                        utils.save_to_json(saved_map, output_paths["saved_path"])
+                        all_response.append(saved_map)
+                        print("\n Task:" + task['task_id'] + " Verified @K=" + str(run_count) + ", saved, ignore next runs.")
+                        break
+                    if run_count == int(env_config["K_run"]):
+                        all_response.append(saved_map)
+                    utils.save_to_json(saved_map, output_paths["saved_path"])
+                    print("\n Task:" + task['task_id'] + " Not Verified, saved, continue next runs.")
                 except Exception as e:
                     print("Error while processing => " + task['task_id'] + "in temperature =>" + str(
                     api_config['temp']) + str(e))
-                    sleep(int(env_config['cool_down_time']))
+                sleep(int(env_config['cool_down_time']))
+        utils.save_to_json(all_response,
+                            os.path.join(env_config["base_output_path"],
+                                        "rq3-dynamic-few-shot-prompting-" + model + ".json"))
+
         # Generate proof carrying code
     def generate_proof_with_code(self):
         api_config , env_config = self.get_config()
@@ -137,19 +186,18 @@ class PCCC:
         attempts = env_config["K_run"]
         task_path = env_config["task_path"]
         output_path = env_config["base_output_path"]
-        code_validator = validator.Validator()
         # The code_validator object is used to validate the code and get the safety property, code, and required files
-        safety_property, code, req_files = code_validator.validate_code(
-            attempts, task_path, output_path, api_config, env_config
-        )
-        if safety_property is None:
-            raise ValueError("PCCC cannot find the safety property!")
-        elif code is None:
-            raise ValueError("PCCC cannot find the code!")
-        else:
-            pass
+        # code_validator = validator.Validator()
+        # safety_property, code, req_files = code_validator.validate_code(
+        #     attempts, task_path, output_path, api_config, env_config
+        # )
+        # if safety_property is None:
+        #     raise ValueError("PCCC cannot find the safety property!")
+        # elif code is None:
+        #     raise ValueError("PCCC cannot find the code!")
+        # else:
+        #     pass
             # self.exec_vc_gen(safety_property, code, req_files)
 
     def exec_vc_gen(self, safety_property, code, req_files) -> None:
-        vc_gen = vc_generator.VcGen()
-        vc_gen.get_safety_property(safety_property, code, req_files)
+        vc_generator.VcGen.get_safety_property(safety_property, code, req_files)
