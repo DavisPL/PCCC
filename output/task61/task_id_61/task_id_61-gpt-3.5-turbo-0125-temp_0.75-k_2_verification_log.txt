@@ -1,0 +1,11 @@
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-3.5-turbo-0125-temp_0.75-k_2.dfy(3,99): Error: a set comprehension with more than one bound variable must have a term expression
+  |
+3 |     ensures count == | set i: int, j: int | 0 <= i <= j <= |s| && IsSubstringSumEqualLength(s, i, j) |
+  |                                                                                                    ^
+
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-3.5-turbo-0125-temp_0.75-k_2.dfy(24,4): Error: invalid UnaryExpression
+   |
+24 |     for k := start to end
+   |     ^
+
+2 parse errors detected in task_id_61-gpt-3.5-turbo-0125-temp_0.75-k_2.dfy

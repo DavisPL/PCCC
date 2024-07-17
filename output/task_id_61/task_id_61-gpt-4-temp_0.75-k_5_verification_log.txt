@@ -1,0 +1,21 @@
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-4-temp_0.75-k_5.dfy(11,129): Error: a set comprehension with more than one bound variable must have a term expression
+   |
+11 |     ensures count == | set i, j : int | 0 <= i <= j < |s| && SumOfDigits(seq(j - i + 1, k => (s[i + k] as int) - 48)) == j - i + 1 |
+   |                                                                                                                                  ^
+
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-4-temp_0.75-k_5.dfy(14,10): Error: gets expected
+   |
+14 |     for i in 0 .. |s| {
+   |           ^
+
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-4-temp_0.75-k_5.dfy(14,15): Error: ident expected
+   |
+14 |     for i in 0 .. |s| {
+   |                ^
+
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-4-temp_0.75-k_5.dfy(14,13): Error: Expected 'to' or 'downto'
+   |
+14 |     for i in 0 .. |s| {
+   |              ^
+
+4 parse errors detected in task_id_61-gpt-4-temp_0.75-k_5.dfy

@@ -1,0 +1,6 @@
+/Users/pari/pcc-llms/pccc/output/task_id_61/task_id_61-gpt-3.5-turbo-0125-temp_0.75-k_4.dfy(34,4): Error: invalid UnaryExpression
+   |
+34 |     while i < |s|
+   |     ^
+
+1 parse errors detected in task_id_61-gpt-3.5-turbo-0125-temp_0.75-k_4.dfy

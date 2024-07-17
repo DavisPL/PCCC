@@ -1,0 +1,18 @@
+/Users/pari/pcc-llms/pccc/output/task_id_567-gpt-3.5-turbo-0125-temp_0.75-k_1.dfy(5,0): Error: a postcondition could not be proved on this return path
+  |
+5 | {
+  | ^
+
+/Users/pari/pcc-llms/pccc/output/task_id_567-gpt-3.5-turbo-0125-temp_0.75-k_1.dfy(3,12): Related location: this is the postcondition that could not be proved
+  |
+3 |     ensures sorted <==> forall i, j :: 0 <= i < j < a.Length ==> a[i] <= a[j]
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/pccc/output/task_id_567-gpt-3.5-turbo-0125-temp_0.75-k_1.dfy(9,25): Error: this invariant could not be proved to be maintained by the loop
+ Related message: loop invariant violation
+  |
+9 |         invariant sorted <==> forall k, l :: 0 <= k < l < i ==> a[k] <= a[l]
+  |                          ^^^^
+
+
+Dafny program verifier finished with 1 verified, 2 errors
