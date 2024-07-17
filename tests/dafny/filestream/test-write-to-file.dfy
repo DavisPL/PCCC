@@ -1,4 +1,4 @@
-include "fileio.dfy"
+include "/Users/pari/pcc-llms/tests/dafny/filestream/fileio_v1.dfy"
 
 // Useful to convert Dafny strings into arrays of characters.
 method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
