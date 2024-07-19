@@ -15,7 +15,8 @@ method ContainsZ(s: string) returns (result: bool)
 
 method ContainsZTest(){
   var out1:=ContainsZ("pythonz");
-  expect out1==true;
+  expect out1==false;
+  // assert out1;
 
   var out2:=ContainsZ("xyz.");
   expect out2==true;

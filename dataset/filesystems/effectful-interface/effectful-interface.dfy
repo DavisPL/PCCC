@@ -1,3 +1,4 @@
+include "/Users/pari/pcc-llms/dataset/filesystems/effectful-interface/interface-helper.dfy"
 newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
 newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
 newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
@@ -7,27 +8,56 @@ datatype access = access(accessType: seq<char>)
 type NonEmptySeq = x: seq<char> | |x| > 0 witness ['a']
 // newtype{:nativeType "char"} validPathChar = c:char | c
 // newtype{:nativeType "path"} path = c:char | 
-// TODO: Define a new datatype for path (os.path type is a string)
-// TODO: Add constant values for CWD and everytime get.cwd is called it should check the value be the same
-// ---------------   Constant values  ----------------
-const sensitivePaths := ["/usr", "/System", "/bin", "/sbin", "/var", "/usr/local"]
-const fileMaxLength := 255
-const dirMaxLength := 4096
-const currWDir := ["/Users/pari/pcc-llms/src/playground"]
-const nonSensitiveFiles := ["safeFile_1.txt", "safeFile_2.txt", "safeFile_3.txt", "bar.txt", "baz.txt"]
 
+//TODO: Should avoid data races (reading and writing data at the same time)
+
+// class OkState
+//   {
+//   // constructor{:axiom} () requires false // unconstructible during real execution
+//    constructor() {}
+//   function{:axiom} ok():bool reads this // reads the state of okState and returns a boolean
+// }
+// class OkState {
+//   var isOk: bool;
+
+//   constructor() {
+//     isOk := true;
+//   }
+
+//   method UpdateOk(newState: bool)
+//     modifies this
+//     ensures isOk == newState
+//   {
+//     isOk := newState;
+//   }
+
+//   predicate{:axiom} ok()
+//     reads this
+//   {
+//     isOk
+//   }
+// }
+// class HostEnvironment
+//   {
+//   var ok:OkState
+//   // constructor{:axiom} () requires false // non-constructive
+//   constructor() {
+//     ok := new OkState();
+//   }
+//   // ghost var ok:OkState // only for specificaions and verifications with no run-time effect
+//  }
 
 class OkState
   {
-  constructor{:axiom} () requires false // unconstructible during real execution
-  function{:axiom} ok():bool reads this // reads the state of okState and returns a boolean
+  constructor{:extern} () requires false
+  function{:extern} ok():bool reads this
 }
 
 class HostEnvironment
   {
-  constructor{:axiom} () requires false // non-constructive
-  ghost var ok:OkState // only for specificaions and verifications with no run-time effect
- }
+  constructor{:extern} () requires false
+  ghost var ok:OkState
+}
 
 
 
@@ -41,26 +71,6 @@ class FileStream
   // function {:axiom} Capabilities():(string, string) reads this
   // function{:axiom} Path():string reads this
 
-  // function{:axiom} FileIsValid():bool reads this
-  // function{:axiom} DirIsValid():bool reads this
-
-
-
-
-   
-
-      // predicate IsValidFileName(fileName: seq<char>) 
-      // {
-      //     // Check if the filename is not empty 
-      //     // Check if the filename length is within the specified range
-      //     0 < |fileName| <= fileMaxLength &&
-      //     // Check if the filename contains only allowed characters (e.g., letters, digits, underscores, hyphens, periods)
-      //     forall c :: 0 <= c < |fileName| ==> IsValidCharacter(fileName[c]) &&
-      //     // Check if the filename does not start or end with a period (.)
-      //     fileName[0] != '.' && fileName[|fileName| - 1] != '.' &&
-      //     // Check if the filename is not one of the reserved names
-      //     !(fileName in {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"})
-      // }
 
   predicate hasPathTraversal(path: seq<char>)
   {
@@ -72,16 +82,19 @@ class FileStream
 
   // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
     // static method{:axiom} Open(name:seq<char>, ghost env:HostEnvironment)
-  static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment)
+  static method{:axiom} Open(name:seq<char>, ghost env:HostEnvironment)
     returns(ok:bool, f:FileStream)
-    // CannotAccessSensitiveFiles(l: ["bar.txt", "baz.txt"], access: ["bar.txt", "baz.txt"])
-    requires name[..] in nonSensitiveFiles
+    requires name[..] in nonSensitiveFilesList
+    requires name[..] !in sensitivePaths
+    requires forall i :: 0 <= i < |name| ==> validate_file_char(name[i])
+    // filetype validation should be done here
     // requires access[..] in ["read", "write"]
     // requires capabilities in [("bar.txt", "write")]
     requires env.ok.ok()
     modifies env.ok
     ensures  env.ok.ok() == ok
     ensures  ok ==> fresh(f) && f.env == env && f.IsOpen() && f.Name() == name[..]
+    ensures forall i :: 0 <= i < |name| ==> validate_file_char(name[i]) && alpha_numeric(name[0]) && alpha_numeric(name[|name| - 1])
 
   // predicate isSubstring(p: path)
   // ensures forall i | i in sensitivePaths :: 0 < i < path.length
@@ -95,7 +108,7 @@ class FileStream
   //   requires < |p.data|
 
   method{:axiom} Close() returns(ok:bool)
-    requires Name() in nonSensitiveFiles
+    requires Name() in nonSensitiveFilesList
     // requires Access() in ["read", "write"]
     // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     requires env.ok.ok()
@@ -109,7 +122,9 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    requires Name() in nonSensitiveFiles
+    requires Name() in nonSensitiveFilesList
+    requires Name() in nonSensitiveFilesList
+    requires Name() !in sensitivePaths
     // requires Access() in ["read", "write"]
     // requires Capabilities() in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     modifies env.ok
@@ -120,13 +135,19 @@ class FileStream
     ensures  forall i:int :: 0 <= i < buffer.Length && !(start as int <= i < end as int) ==> buffer[i] == old(buffer[i])
     ensures  ok ==> IsOpen()
 
-  method{:axiom} Write(fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  method{:axiom} Write(fileName: seq<char>, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
   // method{:axiom} Write(fileOffset:nat32, buffer:seq<byte>, start:int32, end:int32) returns(ok:bool)
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
     // requires 0 <= start as int <= end as int <= |buffer|
-    requires Name() in nonSensitiveFiles
+    requires Name() in nonSensitiveFilesList
+    requires 0 < |fileName| <= fileMaxLength
+    requires 0 < |fileName| - 4 <= 10 //checks file type exists 
+    //ToDo: validation file type format is required .txt, .pdf, .docx
+    requires IsNonsensitiveFile(fileName, nonSensitiveFilesList)
+    requires ValidateNonsensitiveFileFunc(fileName, nonSensitiveFilesList)
+    requires IsValidFileType(fileName[(|fileName| - 4)..], invalidFileTypes)
     // requires Access() in ["read", "write"]
     // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     modifies this
@@ -147,78 +168,30 @@ class FileStream
     ensures  ok ==> IsOpen()
 
 
-  predicate IsAlphaNumeric(c: char)
-  {
-      (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
-  }
-  
-  predicate IsValidFileCharacter(c: char)
-  {
-      IsAlphaNumeric(c) || c in {'_', '.', '-'}
-  }
-
-  method IsValidCharacter(c: char) returns (valid: bool)
-    ensures valid == (IsAlphaNumeric(c) || c in {'_', '.', '-'})
-
   method{:axiom} IsValidDirectoryName(dirName: seq<char>) // should not be axioms
     // Check if the directory name is not empty
     requires 0 < |dirName| <= dirMaxLength 
     // Check if each character in the directory name is a valid character
-    ensures forall i :: 0 <= i < |dirName| ==> IsValidFileCharacter(dirName[i])  
+    ensures forall i :: 0 <= i < |dirName| ==> validate_file_char(dirName[i])  
     
 
-  // method{:axiom} IsValidFileName(fileName: seq<char>) 
-  //     // Check if the filename is not empty 
-  //     // Check if the filename length is within the specified range
-  //   ensures  0 < |fileName| <= fileMaxLength
-  //     // Check if the filename contains only allowed characters (e.g., letters, digits, underscores, hyphens, periods)
-  //   ensures forall c :: 0 <= c < |fileName| ==> (IsAlphaNumeric(fileName[c])  || c in {'_', '.', '-'}) &&
-  //   // Check if the filename does not start or end with a period (.)
-  //   fileName[0] != '.' && fileName[|fileName| - 1] != '.' &&
-  //   // Check if the filename is not one of the reserved names
-  //   !(fileName in {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"})
-
   method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<char>)
-    //predicate for IsFileValid
-    //predicate for IsPathValid
-    //predicate for IsPathSensitive --> can swap with different implementations
-    requires path[..] in currWDir
+    // requires path[..] in currWDir
+    requires file in nonSensitiveFilesList
     requires path !in sensitivePaths
-    requires file[..] in nonSensitiveFiles 
-    // requires IsValidFileName(file) == true
+    requires ValidateFileName(file)
+    requires IsValidFileType(file[(|file| - 4)..], invalidFileTypes)
+    requires |path| > 0 // ToDo: Use a function for path validation
     requires env.ok.ok()
-    requires !hasPathTraversal(path)
-    requires !hasPathTraversal(file)
     requires IsOpen()
     modifies this
     modifies env.ok
     ensures  env == old(env)
     ensures  env.ok.ok() == ok
-    ensures !hasPathTraversal(result)
     ensures |result| <= |path| + |file|
-    ensures  ok ==> IsOpen()
-
-  // method{:axiom} IsFilenameValid(filename: seq<char>) returns (ok: bool)
-  // requires env.ok.ok()
-  // requires IsOpen()
-  // requires forall i :: 0 <= i < |filename| ==> ((filename[i] >= 'a' && filename[i] <= 'z') ||
-  //  (filename[i] >= 'A' && filename[i] <= 'Z') || (filename[i] >= '0' && filename[i] <= '9') ||
-  //   filename[i] == '_' || filename[i] == '.' || filename[i] == '-')
-  // modifies this
-  // modifies env.ok
-  // ensures  env == old(env)
-  // ensures  env.ok.ok() == ok
-  // ensures  Name() == old(Name())
-  // ensures  ok ==> IsOpen()
-
-  // method{:axiom} GetCWD(dirname: seq<char>) returns (ok: bool)
-  // requires env.ok.ok()
-  // requires IsOpen()
-  // ensures dirname == old(dirname)
-  // ensures  env == old(env)
-  // ensures  env.ok.ok() == ok
-  // ensures  Name() == old(Name())
-  // ensures  ok ==> IsOpen()
+    ensures result == path + file
+    ensures result ==  ConcatStrings(path, file)
+    ensures  ok ==> IsOpen() && !(HasConsecutiveSameChars(path) && HasConsecutivePeriods(file))
 
   method{:axiom} GetCWD(currDir: seq<char>) returns (ok: bool)
   modifies this
@@ -229,15 +202,15 @@ class FileStream
   ensures  env == old(env)
   ensures  env.ok.ok() == ok
   ensures  Name() == old(Name())
-  ensures  ok ==> IsOpen()
 
   method{:axiom} rmdir (dirname: seq<char>) returns (ok:bool)
     modifies this
     modifies env.ok
     requires env.ok.ok()
     requires dirname !in sensitivePaths
-
-
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
+    ensures  Name() == old(Name())
 
 // TODO: How to link axioms to python functions
 // TODO: Basically Join is similar to concatenation of two string
