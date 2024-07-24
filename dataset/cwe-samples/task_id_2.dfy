@@ -1,5 +1,13 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+
+function GetFileName(): string
+{
+    // This method should return the filename
+    "public-key.txt"
+}
+
 method SafeWrite(fname: seq<char>)
+requires fname == GetFileName()
 {
     var fname := "safeFile-1.txt";
     var f: FileStream;
