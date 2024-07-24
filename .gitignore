@@ -1,4 +1,4 @@
-pcc-venv/
+pccc-venv/
 .vscode/
 ./src/api_keys
 .env
