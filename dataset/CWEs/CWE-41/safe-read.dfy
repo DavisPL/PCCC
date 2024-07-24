@@ -1,7 +1,9 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
-method SafeWrite(fname: seq<char>)
-// Prevents CWE-434 
-// Prevent upload or transfer of dangerous file types
+// No ghost variables
+// method safeWrite (fname: seq<char>)
+method SafeRead(env: HostEnvironment, fname: seq<char>)
+// Prevents user from reading sensitive files or files without permission
+// Read with checking user permissions for reading the file
 
 {
     var fname := "safeFile-1.txt";
@@ -22,14 +24,10 @@ method SafeWrite(fname: seq<char>)
     var f: FileStream;
     var ok: bool;
     ok, f := FileStream.Open(fname);
-
-    // Try commenting out the following line to see that you are forced to handle errors!
+    var user := "admin";
     if !ok { print "open failed\n"; return; }
-    // This is "hello world!" in ascii.
-    // The library requires the data to be an array of bytes, but Dafny has no char->byte conversions :(
-    var data: array<byte> := ArrayFromSeq([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]);
-    // Replace write with upload
-    ok := f.Write(fname, 0, data, 0, data.Length as int32);
-    print "Safe write operation!\n";
+    var data: array<byte> := new byte[100];
+    ok := f.Read(fname, 0, data, 0, data.Length as int32);
+    print "Safe Read operation!\n";
 
 }
