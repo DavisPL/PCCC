@@ -40,6 +40,8 @@ method FindFirstRepeatedCharTest(){
 
   var found3, out3 :=FindFirstRepeatedChar("123123");
   expect out3=='1';
+  var found4, out4 :=FindFirstRepeatedChar("../etc/passwd");
+  expect out4=='/';
 
 }
 

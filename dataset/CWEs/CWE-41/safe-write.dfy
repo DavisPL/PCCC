@@ -1,16 +1,11 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/effectful-interface/effectful-interface.dfy"
+include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 // No ghost variables
 // method safeWrite (fname: seq<char>)
-method{:main} Main(ghost env: HostEnvironment, fname: seq<char>)
+method SafeWrite(env: HostEnvironment, fname: seq<char>)
 // Prevents CWE-434 
 // Prevent upload or transfer of dangerous file types
   requires env.ok.ok()
   modifies env.ok
-//   requires ValidateFileName(fname)
-//   requires IsValidFileType(fname[(|fname|-4)..], invalidFileTypes)
-//   requires ValidateNonsensitiveFileFunc(fname, nonSensitiveFilesList)
-//   requires !ContainsSequence(fname, invalidFileTypes)
-//   requires validate_nonsensitive_file(fname, nonSensitiveFilesList)
 
 {
     var fname := "safeFile-1.txt";
@@ -20,14 +15,14 @@ method{:main} Main(ghost env: HostEnvironment, fname: seq<char>)
     // var fname := "sensitive_data.txt";
     // Test case 4: Invalid file name
     // var fname := "invalid<>file.txt";
-    var ftype := fname[(|fname|-4)..];
-    var isValidFile := ValidateFileName(fname);
-    // assert isValidFile;
-    var nonSensitive := ValidateNonsensitiveFileFunc(fname, nonSensitiveFilesList);
-    // assert nonSensitive;
-    var validFileType := IsValidFileType(fname[(|fname|-4)..], invalidFileTypes);
-    // assert validFileType;
-    if isValidFile && nonSensitive && validFileType {
+    // var ftype := fname[(|fname|-4)..];
+    // var isValidFile := ValidateFileName(fname);
+    // // assert isValidFile;
+    // var nonSensitive := ValidateNonsensitiveFileFunc(fname, nonSensitiveFilesList);
+    // // assert nonSensitive;
+    // var validFileType := IsValidFileType(fname[(|fname|-4)..], invalidFileTypes);
+    // // assert validFileType;
+    // if isValidFile && nonSensitive && validFileType {
         var f: FileStream;
         var ok: bool;
         ok, f := FileStream.Open(fname, env);
@@ -41,9 +36,9 @@ method{:main} Main(ghost env: HostEnvironment, fname: seq<char>)
         // Replace write with upload
         ok := f.Write(fname, 0, data, 0, data.Length as int32);
         print "Safe write operation!\n";
-    } else {
-        print "Unsafe write operation! \n";
-        // return;
-    }
+    // } else {
+    //     print "Unsafe write operation! \n";
+    //     // return;
+    // }
 
 }

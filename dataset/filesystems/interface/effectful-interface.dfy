@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/effectful-interface/interface-helper.dfy"
+include "/Users/pari/pcc-llms/dataset/filesystems/interface/interface-helper.dfy"
 newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
 newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
 newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
@@ -63,7 +63,7 @@ class HostEnvironment
 
 class FileStream
   {
-  ghost var env:HostEnvironment
+  var env:HostEnvironment
   function{:axiom} Name():string reads this
   function{:axiom} IsOpen():bool reads this
   constructor{:axiom} () requires false
@@ -72,21 +72,12 @@ class FileStream
   // function{:axiom} Path():string reads this
 
 
-  predicate hasPathTraversal(path: seq<char>)
-  {
-    forall i :: 0 <= i < |path| ==> (((i < |path| - 1 && ((path[i] == '.' && path[i + 1] == '.') 
-    || (path[i] == '/' && path[i + 1] == '/'))) 
-    || (i < |path| - 2 && path[i] == '.' && path[i + 1] == '.' && path[i + 2] == '/')))
-  }
-
-
   // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
-    // static method{:axiom} Open(name:seq<char>, ghost env:HostEnvironment)
-  static method{:axiom} Open(name:seq<char>, ghost env:HostEnvironment)
+  static method{:axiom} Open(name:seq<char>, env:HostEnvironment)
     returns(ok:bool, f:FileStream)
     requires name[..] in nonSensitiveFilesList
     requires name[..] !in sensitivePaths
-    requires forall i :: 0 <= i < |name| ==> validate_file_char(name[i])
+    requires validate_file(name)
     // filetype validation should be done here
     // requires access[..] in ["read", "write"]
     // requires capabilities in [("bar.txt", "write")]
@@ -94,18 +85,8 @@ class FileStream
     modifies env.ok
     ensures  env.ok.ok() == ok
     ensures  ok ==> fresh(f) && f.env == env && f.IsOpen() && f.Name() == name[..]
-    ensures forall i :: 0 <= i < |name| ==> validate_file_char(name[i]) && alpha_numeric(name[0]) && alpha_numeric(name[|name| - 1])
+    ensures f.IsOpen() <==> validate_file(name)
 
-  // predicate isSubstring(p: path)
-  // ensures forall i | i in sensitivePaths :: 0 < i < path.length
-  // ensures exists substring :: substring in sensitivePaths && exists i :: 0 < i < (path.length - i) && forall j :: 0 <= j < |i| ==> 
-  // {
-  //   forall d | d in sensitivePaths :: d 
-  // }
-  // A function that checks if any input path is valid
-  // function{:axiom} validatePath(p:path, ghost env:HostEnvironment): bool
-  //   requires p.data[..] !in sensitivePaths
-  //   requires < |p.data|
 
   method{:axiom} Close() returns(ok:bool)
     requires Name() in nonSensitiveFilesList
@@ -122,7 +103,6 @@ class FileStream
     requires env.ok.ok()
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
-    requires Name() in nonSensitiveFilesList
     requires Name() in nonSensitiveFilesList
     requires Name() !in sensitivePaths
     // requires Access() in ["read", "write"]
@@ -145,9 +125,9 @@ class FileStream
     requires 0 < |fileName| <= fileMaxLength
     requires 0 < |fileName| - 4 <= 10 //checks file type exists 
     //ToDo: validation file type format is required .txt, .pdf, .docx
-    requires IsNonsensitiveFile(fileName, nonSensitiveFilesList)
-    requires ValidateNonsensitiveFileFunc(fileName, nonSensitiveFilesList)
-    requires IsValidFileType(fileName[(|fileName| - 4)..], invalidFileTypes)
+    requires contains_sequence(nonSensitiveFilesList, fileName)
+    requires fileName !in sensitivePaths
+    requires fileName[(|fileName| - 4)..] !in invalidFileTypes
     // requires Access() in ["read", "write"]
     // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
     modifies this
@@ -175,23 +155,26 @@ class FileStream
     ensures forall i :: 0 <= i < |dirName| ==> validate_file_char(dirName[i])  
     
 
-  method{:axiom} Join(path:seq<char>, file:seq<char>) returns(ok:bool, result:seq<char>)
-    // requires path[..] in currWDir
-    requires file in nonSensitiveFilesList
+  method{:axiom} Join(path:seq<char>, fileName:seq<char>) returns(ok:bool, result:seq<char>)
+    requires 0 < |fileName| <= fileMaxLength
+    requires 0 < |path| <= dirMaxLength - fileMaxLength
+    requires contains_sequence(nonSensitiveFilesList, fileName)
     requires path !in sensitivePaths
-    requires ValidateFileName(file)
-    requires IsValidFileType(file[(|file| - 4)..], invalidFileTypes)
+    requires path in currWDir && validate_dir_name(path)
+    requires fileName in nonSensitiveFilesList && Name() in nonSensitiveFilesList
+    requires fileName[(|fileName| - 4)..] !in invalidFileTypes
     requires |path| > 0 // ToDo: Use a function for path validation
     requires env.ok.ok()
+    requires has_absolute_path(path) && path[..] !in sensitivePaths
     requires IsOpen()
     modifies this
     modifies env.ok
-    ensures  env == old(env)
+    ensures  env != old(env)
     ensures  env.ok.ok() == ok
-    ensures |result| <= |path| + |file|
-    ensures result == path + file
-    ensures result ==  ConcatStrings(path, file)
-    ensures  ok ==> IsOpen() && !(HasConsecutiveSameChars(path) && HasConsecutivePeriods(file))
+    ensures  Name() == old(Name())
+    ensures result == path_join(path, fileName)
+    ensures has_absolute_path(result) && result[..] !in sensitivePaths
+    ensures  ok ==> path_join(path, fileName) == result && has_absolute_path(result) && result[..] !in sensitivePaths
 
   method{:axiom} GetCWD(currDir: seq<char>) returns (ok: bool)
   modifies this

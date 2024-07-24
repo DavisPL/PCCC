@@ -2,7 +2,7 @@ include "/Users/pari/pcc-llms/dataset/filesystems/file-io-lib.dfy"
 
 
 
-method WriteWithoutPathTraversal(ghost env: HostEnvironment)
+method WriteWithoutPathTraversal(env: HostEnvironment)
   requires env.ok.ok()
   modifies env.ok
 {
@@ -13,7 +13,7 @@ method WriteWithoutPathTraversal(ghost env: HostEnvironment)
   var ok: bool;
   var okToJoin:bool;
   var res: seq<char>;
-  var IsValidFile := ValidateFileName(fileName);
+  var IsValidFile := validate_file(fileName);
   if !IsValidFile 
   { print "Invalid file name\n"; return; }
   else {

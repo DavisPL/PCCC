@@ -6,9 +6,9 @@ const validDirCharacters := {'_', '.', '-', '/'}
 
 // Constants for sensitive paths and files
 const invalidFileTypes :=  [".php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-const sensitivePaths := ["/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/Users/pari/pcc-llms/dataset/filesystems"]
+const sensitivePaths := ["/usr", "/System", "/bin", "/sbin", "/var", "/usr/local"]
 const currWDir := ["/Users/pari/pcc-llms/src/playground"]
-const nonSensitiveFilesList := ["safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
+const nonSensitiveFilesList := ["public-key.txt", "safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
 // TODO: Define a new datatype for path (os.path type is a string)
 // TODO: Add constant values for CWD and everytime get.cwd is called it should check the value be the same
 
@@ -54,9 +54,9 @@ ensures result <==> (exists i :: 0 <= i < |nonSensitiveFilesList| && fileName ==
 
 
 
-function string_concat(s: seq<char>): seq<char>
+function string_slice(s: seq<char>): seq<char>
 {
-  if |s| == 0 then "" else ([s[|s| - 1]] + string_concat(s[..(|s| - 1)]))
+  if |s| == 0 then "" else ([s[|s| - 1]] + string_slice(s[..(|s| - 1)]))
 }
 
 lemma StringSliceLemma(s: seq<char>)
@@ -67,15 +67,46 @@ ensures forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]]
     assert forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]];
 }
 
-
-lemma StringConcatLemma(s: seq<char>)
-    requires 0 <= |s|
-    ensures forall i :: (0 <= i < |s|) ==> s[..(i + 1)] == s[..i] + [s[i]]
+function concat(s1: seq<char>, s2: seq<char>): seq<char>
+requires 0 <= |s1| + |s2| && 0 < |s1| <= dirMaxLength - fileMaxLength && 0 < |s2| <= fileMaxLength
+ensures |concat(s1, s2)| == |s1| + |s2| && concat(s1, s2) == s1 + s2 && |s1| + |s2| <= dirMaxLength 
 {
-  if |s| == 0 {
-  } else {
-    StringSliceLemma(s);
-  }
+  s1 + s2
+}
+
+function path_join(s1: seq<char>, s2: seq<char>): seq<char>
+requires 0 <= |s1| + |s2| && 0 < |s1| <= dirMaxLength - fileMaxLength - 1 && 0 < |s2| <= fileMaxLength
+ensures |concat(concat(s1, "/"), s2)| == |s1| + |s2| + 1 && concat(concat(s1, "/"), s2) == s1 + "/" + s2 && |s1| + |s2| <= dirMaxLength 
+{
+  if s1[|s1| - 1] == '/' then  concat(s1, s2) else concat(concat(s1, "/"), s2)
+}
+
+
+predicate has_path_traversal(s: seq<char>)
+ensures has_path_traversal(s) <==> exists i :: 0 <= i < |s| && is_traversal_pattern(s, i)
+{
+    exists i :: 0 <= i < |s| && is_traversal_pattern(s, i)
+}
+
+predicate is_traversal_pattern(s: seq<char>, i: int)
+requires 0 <= i < |s|
+{
+    (i + 2 < |s| && s[i] == '.' && s[i+1] == '.' && (s[i+2] == '/' || s[i+2] == '\\')) ||
+    (i + 5 < |s| && s[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
+    (i + 8 < |s| && s[i..i+9] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e']) ||
+    (i > 0 && s[i-1] == '/' && i + 2 < |s| && s[i] == '.' && s[i+1] == '.' && s[i+2] == '.')
+}
+
+predicate is_dangerous_path(s: seq<char>)
+ensures is_dangerous_path(s) <==> has_path_traversal(s) || has_absolute_path(s)
+{
+    has_path_traversal(s) || has_absolute_path(s)
+}
+
+predicate has_absolute_path(s: seq<char>)
+ensures has_absolute_path(s) <==> |s| > 0 && (s[0] == '/' || (|s| > 1 && s[1] == ':'))
+{
+    |s| > 0 && (s[0] == '/' || (|s| > 1 && s[1] == ':'))
 }
 
 
