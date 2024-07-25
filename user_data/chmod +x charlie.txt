@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# This is the outer script (let's call it run_inner_script.sh)
+
+# Define the inner script as a heredoc
+read -r -d '' INNER_SCRIPT << EOM
+echo "This is the inner script"
+echo "It can contain multiple commands"
+ls -l
+date
+echo "Inner script finished"
+EOM
+
+# Function to run the inner script
+run_inner_script() {
+    echo "Executing inner script..."
+    eval "$INNER_SCRIPT"
+    echo "Inner script execution completed"
+}
+
+# Run the inner script
+run_inner_script

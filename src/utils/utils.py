@@ -1,6 +1,7 @@
+import json
 import os
 import re
-import json
+
 
 def read_file(file_path):
     try:
@@ -104,15 +105,36 @@ def get_examples_db_task_id_des_pair(example_json):
 
 def get_examples_id_task_specification_pair(example_json):
     list_of_examples = []
-    for t in example_json:
+    for task in example_json:
+        print(f"example_json[task]: {example_json[task]}")
         output_task = {
-            "task_id": example_json[t]["task_id"],
-            "task_description": example_json[t]["task_description"],
-            "method_signature": example_json[t]["specification"]["method_signature"],
-            "postconditions": example_json[t]["specification"]["postconditions"]
+            "task_id": example_json[task]["task_id"],
+            "task_description": example_json[task]["task_description"],
+            "method_signature": example_json[task]["method_signature"],
+            "verifier_methods": example_json[task]["verifier_methods"],
+            "input_generators_signature": example_json[task]["input_generators_signature"],
         }
         list_of_examples.append(output_task)
     return list_of_examples
+    #  For cwe_examples.json
+    # list_of_examples = []
+    # for task_id, task_info in example_json.items():
+    #     output_task = {
+    #         "task_id": task_info["task_id"],
+    #         "task_description": task_info["task_description"],
+    #         "method_signature": task_info["method_signature"],
+    #         "verifier_methods": []
+    #     }
+    #     print(f"task_info: {task_info}")    
+    #     if "verifier_methods" in task_info and isinstance(task_info["verifier_methods"], list):
+    #         print(task_info["verifier_methods"])
+    #         for method in task_info["verifier_methods"]:
+    #             output_task["verifier_methods"].append({
+    #                 "method_signature": method["method_signature"],
+    #                 "method_description": method["method_description"]
+    #             })
+    #     list_of_examples.append(output_task)
+    # return list_of_examples
 
 def save_to_json(map, file_path):
     json_string = json.dumps(map)

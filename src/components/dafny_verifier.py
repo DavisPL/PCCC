@@ -74,6 +74,8 @@ def get_all_verification_bits_count(code):
     obj['assert_count'] = count_assert(code)
     return obj
 
+def get_verification_info(error):
+    pass
 
 def get_verification_bits_count(path):
     # code = utility.read_file(path)
@@ -136,6 +138,36 @@ def verify_dfy_src(response, dfy_source_path, verification_path):
     verification, errors, cmd_output = get_dafny_verification_result(dfy_source_path)
     utils.write_to_file(cmd_output, verification_path)
     if errors == 0:
-        return True, code
-    return False, code
+        return True, code, cmd_output
+    return False, code, cmd_output
     # return true/false
+
+def find_match(error):
+    # Pattern to find the line that error occurs and the corresponding error
+    pattern = r'\(([^),]+),[^)]*\):\s*Error:(.+)'
+    # Finding matches for error lines
+    matches = re.findall(pattern, error)
+    error_res = [(match[0], match[1].strip()) for match in matches]
+    return error_res
+
+def add_comment_to_line(line, comment, code):
+    # Convert the line number string to an integer
+    # Attaches any exceptions to the related line
+    # Returns the modified code with the comment added
+    try:
+        err_line = int(line)
+    except ValueError:
+        print(f"Unable to convert the line number string to an integer\n, {ValueError}")
+
+
+    # Split the text into lines
+    lines = code.split('\n')
+    # Insert the comment at the specified line number
+    lines[err_line - 1] += "  # " + comment  # Adjust for 0-based index
+    # Join the lines back together
+    modified_text = '\n'.join(lines)
+    return modified_text
+
+def get_code_with_error(response, error_code):
+    code = parse_code(response)
+    return code

@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/files-helper.dfy"
+include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 method TestAlphaNumeric()
 {
     var c1 := 'a';
@@ -55,7 +55,7 @@ method TestValidateFileChar()
     assert !validate_file_char(c13);
 }
 
-method TestValidateFileName()
+method Testvalidate_file()
 {
     var c1 := 'a';
     assert validate_file_char(c1);
@@ -91,29 +91,29 @@ method TestValidateFileName()
 {
   // Valid file names
   var s1 := "file.txt";
-  var v1 := ValidateFileName("file.txt");
+  var v1 := validate_file("file.txt");
   if v1 {
     assert alpha_numeric(s1[0]);
     assert alpha_numeric(s1[|s1| - 1]);
     assert forall i :: 1 <= i < |s1| - 1  ==> validate_file_char(s1[i]);
   }
-  var s2 := ValidateFileName("File1");
+  var s2 := validate_file("File1");
   assert s2;
-  var s3 := ValidateFileName("longFileNameWithNumbers-2736.txt");
+  var s3 := validate_file("longFileNameWithNumbers-2736.txt");
   assert s3;
 
     // Invalid file names
-    // var s4 := ValidateFileName("file name");
+    // var s4 := validate_file("file name");
     // assert s4;
-    //   var s5 := ValidateFileName(".file");
+    //   var s5 := validate_file(".file");
     //   assert s5;
-    //   var s6 := ValidateFileName("file.");
+    //   var s6 := validate_file("file.");
     //   assert s6;
-    // var s7 := ValidateFileName("file name");
+    // var s7 := validate_file("file name");
     // assert !s7;
-    // var s9 := ValidateFileName("file_name");
+    // var s9 := validate_file("file_name");
     // assert s9;
-    var s8 := ValidateFileName("file-name");
+    var s8 := validate_file("file-name");
     assert s8;
 }
 
@@ -163,10 +163,24 @@ method ConvertionsTest(){
   assert bytes == [97, 98, 99, 65];
 }
 
+method ConcatTest() {
+  var s1: seq<char> := ['a', 'b', 'c'];
+  var s2: seq<char> := ['d', 'e', 'f'];
+  var s3 := concat(s1, s2);
+  assert s3 == ['a', 'b', 'c', 'd', 'e', 'f'];
+  assert |s3| == 6;
+  var s4: seq<char> := "/Users/pari/pcc-llms/src/playground/";
+  var s5: seq<char> := "safeFile-1.txt";
+  var s6 := concat(s4, s5);
+  assert s6 == "/Users/pari/pcc-llms/src/playground/safeFile-1.txt";
+
+}
+
 method Main(){
   ContainsSequenceTest();
-  TestValidateFileName();
+  Testvalidate_file();
   TestValidateFileChar();
   TestAlphaNumeric();
   ConvertionsTest();
+  ConcatTest();
 }

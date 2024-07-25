@@ -10,23 +10,23 @@ _type_
 import configparser
 import json
 import os
+import pprint
 import re
 
+import numpy as np
 import openai
-from openai import OpenAI
-
-from utils import utils as utils
-from components import prompt_generator
+import torch
 from langchain.chains import LLMChain
-from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.callbacks.manager import get_openai_callback
-import pprint
+from langchain_openai import ChatOpenAI
+from openai import OpenAI
 from sentence_transformers import SentenceTransformer
-import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from transformers import AutoTokenizer, AutoModel
-import torch
+from transformers import AutoModel, AutoTokenizer
+
+from components import prompt_generator
+from utils import utils as utils
 
 
 class Core:
@@ -158,10 +158,10 @@ class Core:
         #         spec_examples_ids.append(task['task_id'])
         # print(f"\n spec_examples_ids \n {spec_examples_ids}")
         similar_tasks = spec_example_selector.select_examples(new_task)
+        print(f"similar_tasks = {similar_tasks}")
         spec_examples_ids = [t['task_id'] for t in similar_tasks]
-        # print("f spec_examples_ids: {spec_examples_ids}")
+        print(f" spec_examples_ids: {spec_examples_ids[0]}")
         prompt_gen = prompt_generator.PromptGenerator()
-       
         specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
                                                                                   example_db_50_tasks,
                                                                                   spec_prompt_template)
@@ -170,30 +170,32 @@ class Core:
         # print(specification_prompt)
         # Memory
         specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
-        # print(f"\n ================================ \n ")
+        print(f"\n ================================ \n ")
+        print(f"\n specification_memory \n {specification_memory}")
         specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
                                     memory=specification_memory)
         print(f"\n ================================ \n ")
         print("\n specification_chain \n")
         pprint.pprint(specification_chain)
-        # print("new_task['task_description']", new_task['task_description'])
+        print("\n new_task['task_description'] \n", new_task['task_description'])
         # Specification Prompt Response
         with get_openai_callback() as cb_spec:
             specification_response = specification_chain.run(new_task['task_description'])
-        print(f'Spent a total of {cb_spec.total_tokens} tokens for specification')
+        print(f'\n Spent a total of {cb_spec.total_tokens} tokens for verification \n')
 
         next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
         
-        # print(f"next_input_task_with_spec: {next_input_task_with_spec}")
+        print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
         spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
-        # print(f"spec_similar_code_tasks = {spec_similar_code_tasks}")
+        print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
-        # print(f"\n code_examples_ids \n {code_examples_ids}")
+        print(f"\n code_examples_ids \n {code_examples_ids}")
 
         code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_50_tasks,code_prompt_template)
-        # print(f"\n ================================\n code_prompt")                                                            
-        # print(f"{code_prompt}")
-        # print(f"\n ================================") 
+        
+        print(f"\n ================================\n code_prompt")                                                            
+        print(f"{code_prompt}")
+        print(f"\n ================================") 
         
         # print(f"\n base_output_path {env_config["base_output_path"]} \n")
         # prompt_path = os.path.join(env_config["base_output_path"],
