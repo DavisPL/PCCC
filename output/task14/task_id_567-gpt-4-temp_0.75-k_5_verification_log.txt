@@ -1,7 +1,0 @@
-/Users/pari/pcc-llms/pccc/output/task_id_567-gpt-4-temp_0.75-k_5.dfy(6,13): Error: lower bound must not exceed upper bound
-  |
-6 |     for i := 0 to a.Length - 1
-  |              ^
-
-
-Dafny program verifier finished with 1 verified, 1 error
