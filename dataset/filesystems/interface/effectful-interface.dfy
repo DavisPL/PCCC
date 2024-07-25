@@ -1,8 +1,4 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/interface-helper.dfy"
-newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
-newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
-newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
-newtype{:nativeType "int"} maxPath = i:int | 0 <= i < 256
 // datatype path = path(length: int, data: seq<char>) //datatype image = image(width: int, height: int, data: seq<byte>)
 // datatype access = access(accessType: seq<char>)
 type NonEmptySeq = x: seq<char> | |x| > 0 witness ['a']
@@ -103,24 +99,32 @@ class FileStream
     }
   }
 
-
+  
   // static method{:axiom} Open(name:array<char>, ghost env:HostEnvironment, access:array<char>)
-  static method{:axiom} Open(name: path)
+  static method{:axiom} Open(name: seq<char>)
     returns(ok:bool, f:FileStream)
     requires name[..] in nonSensitiveFilesList
     requires name[..] !in sensitivePaths
-    requires validate_file(name)
-    ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
-    ensures f.IsOpen() <==> validate_file(name)
+    requires validate_dir_name(name)
+    ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..] && validate_dir_name(name)
+
+  static method{:axiom} OpenPath(p: path)
+    returns(ok:bool, f:FileStream)
+    requires |p| <= dirMaxLength
+    requires p[..] !in sensitivePaths
+    requires validate_dir_name(p)
+    ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == p[..]
+    ensures f.IsOpen() <==> validate_dir_name(p)
 
 
   method{:axiom} Close() returns(ok:bool)
-    requires Name() in nonSensitiveFilesList
+    requires Name() in nonSensitiveFilesList || Name() !in sensitivePaths
     // requires Access() in ["read", "write"]
     // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
-    requires env.ok.ok()
+    // requires env.ok.ok()
     requires IsOpen()
     modifies this
+    ensures !IsOpen()
 
   method{:axiom} Read(f: file, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
     // modifies this`locks
@@ -128,10 +132,10 @@ class FileStream
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
     requires 0 < |f| <= fileMaxLength
-    requires 0 < |f| - 4 <= 10 //checks file type exists 
+    // requires 0 < |f| - 4 <= 10 //checks file type exists 
     //ToDo: validation file type format is required .txt, .pdf, .docx
     requires contains_sequence(nonSensitiveFilesList, f)
-    requires f !in sensitivePaths
+    requires (f in nonSensitiveFilesList) || (f !in sensitivePaths)
     requires f[(|f| - 4)..] !in invalidFileTypes
     // requires Access() in ["read", "write"]
     // requires Capabilities() in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
@@ -147,12 +151,10 @@ class FileStream
     requires IsOpen()
     requires 0 <= start as int <= end as int <= buffer.Length
     // requires 0 <= start as int <= end as int <= |buffer|
-    requires f in nonSensitiveFilesList
-    requires 0 < |f| <= fileMaxLength
-    requires 0 < |f| - 4 <= 10 //checks file type exists 
-    //ToDo: validation file type format is required .txt, .pdf, .docx
-    requires contains_sequence(nonSensitiveFilesList, f)
+    requires f in nonSensitiveFilesList || contains_sequence(nonSensitiveFilesList, f)
     requires f !in sensitivePaths
+    requires 0 < |f| <= fileMaxLength
+    //ToDo: validation file type format is required .txt, .pdf, .docx
     requires f[(|f| - 4)..] !in invalidFileTypes
     // requires Access() in ["read", "write"]
     // requires Capabilities in [("bar.txt", ["read, write"]), ("baz.txt", ["read"])]
@@ -168,13 +170,12 @@ class FileStream
 
   method{:axiom} Join(p: path, f: file) returns(ok:bool, result: path)
     requires 0 < |f| <= fileMaxLength
-    requires 0 < |p| <= dirMaxLength - fileMaxLength - 1
+    requires 0 < |p| < dirMaxLength && 0 < |p| + |f| < dirMaxLength
     requires contains_sequence(nonSensitiveFilesList, f)
     requires p !in sensitivePaths
     requires validate_dir_name(p)
     requires f in nonSensitiveFilesList && Name() in nonSensitiveFilesList
     requires f[(|f| - 4)..] !in invalidFileTypes
-    requires |p| > 0 // ToDo: Use a function for path validation
     requires has_absolute_path(p) && p[..] !in sensitivePaths
     requires IsOpen()
     modifies this
@@ -191,7 +192,7 @@ class FileStream
     ensures cwd in fs.Keys && fs[cwd].Directory?
   
 
-  method{:axiom} remove (dir: path) returns (success: bool)
+  method{:axiom} removeDir (dir: path) returns (success: bool)
     requires |dir| <= dirMaxLength  // The path must be valid
     requires dir !in sensitivePaths
     modifies this
@@ -199,13 +200,47 @@ class FileStream
     requires validate_dir_name(dir)  // The path must point to a directory
     requires isDirectory(dir)
     requires forall p | p in fs.Keys :: !isPrefix(dir, p) || p == dir  // The directory must be empty
-    modifies this
     ensures old(dir in fs.Keys) && !success ==>
               fs == old(fs)  // If removal fails, the file system is unchanged
     ensures success ==>
               fs == map p | p in old(fs.Keys) && p != dir :: old(fs[p])  // If successful, dir is removed
     ensures old(dir in fs.Keys) ==> success  // If the directory existed, removal should succeed
     ensures  Name() == old(Name())
+
+ method{:axiom} FileExists(p: path) returns (fileFound: bool)
+    requires |p| <= dirMaxLength
+    requires p !in sensitivePaths
+    requires validate_dir_name(p)
+    requires IsOpen()
+    ensures fileFound <==> p in fs.Keys
+  {
+    fileFound := p in fs.Keys;
+  }
+
+  // Helper method to check if a path exists and is a file
+  method{:axiom} IsFile(p: path) returns (isFile: bool)
+    requires |p| <= dirMaxLength
+    requires p !in sensitivePaths
+    requires validate_dir_name(p)
+    requires IsOpen()
+    ensures isFile ==> p in fs.Keys && fs[p].File?
+    ensures !isFile ==> p !in fs.Keys || fs[p].Directory?
+  {
+    if p in fs.Keys && fs[p].File? {
+      isFile := true;
+    } else {
+      isFile := false;
+    }
+  }
+
+  method{:axiom} GetFileSize() returns(ok:bool, size:int32)
+      requires env.ok.ok()
+      requires IsOpen()
+      modifies env.ok
+      ensures env == old(env)
+      ensures env.ok.ok() == ok
+      ensures ok ==> size >= 0
+      ensures !ok ==> size == -1
 
   //     // Method to change the current working directory
   // method changeDirectory(newDir: path) returns (success: bool)

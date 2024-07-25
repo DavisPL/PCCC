@@ -1,11 +1,12 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
-function GetFilePath(): string
+
+function GetPath(): string
 {
-    "/user-data/public-key.txt"
+    "~/id_rsa.pub"
 }
 
-method ReadFile(fPath: seq<char>)
-requires fPath == GetFilePath()
+method LoadRsaKey(fPath: seq<char>)
+requires fPath == GetPath()
 {
     var f: FileStream;
     var ok: bool;
@@ -13,8 +14,6 @@ requires fPath == GetFilePath()
     if !ok { print "open failed\n"; return; }
     var data: array<byte> := new byte[100];
     ok := f.Read(fPath, 0, data, 0, data.Length as int32);
-    print "Safe Read operation!\n";
-}
+    print "Read public key!\n";
 
-// Prevents user from reading sensitive files or files without permission
-// Read with checking user permissions for reading the file
+}

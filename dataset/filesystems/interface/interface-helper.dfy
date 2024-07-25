@@ -1,22 +1,31 @@
 type path = seq<char>
 type file = seq<char>
 type fileType = seq<char>
-const dirMaxLength :int  := 4096
+const dirMaxLength :int  := 255
 const fileMaxLength :int := 255
 const fileMinLength :int := 4
 const validFileCharacters := {'.', '-'}
-const validDirCharacters := {'_', '.', '-', '/'}
+const validDirCharacters := {'~','_', '.', '-', '/'}
+
+newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
+newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
+newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
+newtype{:nativeType "int"} maxPath = i:int | 0 <= i < 256
 
 // Constants for sensitive paths and files
 const invalidFileTypes :=  [".php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-const sensitivePaths := ["/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets"]
+const sensitivePaths := ["~/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets"]
 const currWDir := ["/Users/pari/pcc-llms/src/playground"]
-const nonSensitiveFilesList : seq<seq<char>> := ["public-key.txt", "safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
+const nonSensitiveFilesList : seq<seq<char>> := ["~/id_rsa.pub","/user-data/shared-data.txt",
+"/user-data/public-info.txt", "/user-data/public-key.txt","shared-data.txt","public-info.txt", 
+"/company-docs/instructions.txt", "/company-docs/public-info.txt", "/company-docs/employee-handbook.txt", "company-docs/annual-report.txt",
+"public-key.txt", "safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
  // Set of allowed file extensions
 const allowedExtensionsForRead: seq<string> := ["txt", "pdf", "docx"]
+const allowedExtensionsForWrite: seq<string> := ["txt", "docx"]
 datatype Permission = Read | Write | Execute
 type User = seq<char>
-
+datatype PathOrFile = Path(p: path) | File(f: file)
 predicate alpha_numeric(c: char)
 
 {
@@ -72,16 +81,18 @@ ensures forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]]
 }
 
 function concat(s1: seq<char>, s2: seq<char>): seq<char>
-requires 0 <= |s1| + |s2| && 0 < |s1| <= dirMaxLength - fileMaxLength && 0 < |s2| <= fileMaxLength
+requires 0 <= |s1| + |s2| <= dirMaxLength && 0 < |s1| < dirMaxLength && 0 < |s2| <= fileMaxLength
 ensures |concat(s1, s2)| == |s1| + |s2| && concat(s1, s2) == s1 + s2 && |s1| + |s2| <= dirMaxLength 
 {
   s1 + s2
 }
 
 function path_join(p: path, f: file): seq<char>
-requires 0 <= |p| + |f| && 0 < |p| <= dirMaxLength - fileMaxLength - 1 && 0 < |f| <= fileMaxLength
+requires 0 <= |p| + |f| < dirMaxLength && 0 < |p| < dirMaxLength && 0 < |f| <= fileMaxLength
+ensures |path_join(p, f )| <= dirMaxLength
 ensures |concat(concat(p, "/"), f)| == |p| + |f| + 1 && 
         concat(concat(p, "/"), f) == p + "/" + f && |p| + |f| <= dirMaxLength 
+ensures (path_join(p, f) == concat(p, f) || path_join(p, f) == concat(concat(p, "/"), f))
 {
   if p[|p| - 1] == '/' then  concat(p, f) else concat(concat(p, "/"), f)
 }
@@ -318,12 +329,26 @@ method ComputeNumberToString(n: nat) returns (r: string)
 
 }
 
-function char_to_byte(c: char): int 
+function char_to_int(c: char): int 
 // Convert a character to a byte
 {
   c as int
 }
 
+function char_to_byte(c: char): byte
+// Convert a character to a byte
+{
+    var i := char_to_int(c);
+    if 0 <= i < 0x100 then i as byte else 0 as byte
+}
+
+function StringToBytes(s: string): seq<byte>
+{
+    if |s| == 0 then
+        []
+    else
+        [char_to_byte(s[0])] + StringToBytes(s[1..])
+}
 
 method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
 // Convert a string to a sequence of bytes<int>
@@ -338,7 +363,7 @@ method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
     invariant |bytesSeq| == i  // Ensure that the length of bytesSeq matches the number of iterations
     invariant forall j: int :: 0 <= j < i ==> bytesSeq[j] == s[j] as int  // Each element up to i matches the string's character.
   {
-    bytesSeq := bytesSeq + [char_to_byte(s[i])];
+    bytesSeq := bytesSeq + [char_to_int(s[i])];
     i := i + 1;  // Increment the index to move to the next character.
   }
 

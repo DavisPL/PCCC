@@ -7,15 +7,20 @@ Step 1: Determine the method’s signature.
 In this case:
     {{method_signature}}
 
-Step 2: Determine the preconditions.
+Step 2: Determine the safety properties.
 In this case:
-    {{preconditions}}
+        {{safety_properties}}
 
-Step 3: Determine the postconditions.
+Step 3: Determine the input generators.
 In this case:
-    {{postconditions}}
+    {{input_generators_signature}}
 
-Step 4: Write the code, its formal specification, and the verification annotations that help the solver prove the postconditions.
+step 4: Your code should satisfy these verifier methods
+In this case:
+
+    {{verifier_methods}}
+
+Step 5: Write the code and use verifier methods that help the solver prove the its inner verification conditions.
 In this case:
 
 ```dafny

@@ -1,15 +1,15 @@
+import configparser
+import os
 import pdb
+import pprint
+from time import sleep
 from typing import Optional, Union
-from utils import utils as utils
-from components import validator
-from components import vc_generator 
-from components import task_selector
+
 from components import core
 from components import dafny_verifier as verifier
-import os
-import configparser
-from time import sleep
-import pprint
+from components import task_selector, validator, vc_generator
+from utils import utils as utils
+
 
 # PCCC class is the main class that runs the code validator and vc_generator
 class PCCC:
@@ -20,6 +20,7 @@ class PCCC:
         print(f"src_dir_path: {src_dir_path}")
         # ToDo: change this before pushing to the repo to get env.config from the root directory
         config_path = os.path.join(src_dir_path, 'dpl.config')
+        print(f"config_path: {config_path}")
         if not (os.path.exists(config_path)):
             print(f"Given Config Path: {config_path}")
             print("env.config not found!!")
@@ -68,16 +69,16 @@ class PCCC:
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
         print(f"script_dir_path: {script_dir_path}")
-        spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_SPEC_TEMPLATE.file')
-        code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_CODE_TEMPLATE.file')
+        spec_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_SPEC_TEMPLATE.file')
+        code_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_CODE_TEMPLATE.file')
         if not (os.path.exists(spec_prompt_path) or os.path.exists(code_prompt_path)):
-            print("src/prompts_template/COT_SPEC_TEMPLATE.file or  src/prompts_template/COT_CODE_TEMPLATE.file!!")
+            print("src/my_prompts_template/COT_SPEC_TEMPLATE.file or  src/my_prompts_template/COT_CODE_TEMPLATE.file!!")
             return
         spec_template = utils.read_file(spec_prompt_path)
         code_template = utils.read_file(code_prompt_path)
         return spec_template, code_template
     
-    def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_bits, _saved_map):
+    def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_info, _saved_map):
         print(f"\n Inside prepare_model_response \n")
         print(f"id: { _task['task_id']}")
         return {
@@ -89,7 +90,7 @@ class PCCC:
             "model": _model,
             "dafny_code": _dafny_code,
             "isVerified": _isVerified,
-            "verification_bits": _verification_bits,
+            "verification_info": _verification_info,
             "spec_example_shots": _saved_map["spec_example_shots"],
             "specification_response": _saved_map["specification_response"],
             "code_example_shots": _saved_map["code_example_shots"],
@@ -101,6 +102,7 @@ class PCCC:
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
         example_db_tasks = utils.load_json(env_config['example_db_json_path'])
+        print(f"example_db_tasks: {example_db_tasks}")
         # prepare all example db for embedding
         examples_db_for_spec_prompt = utils.get_examples_db_task_id_des_pair(example_db_tasks)
         examples_db_for_cot_prompt = utils.get_examples_id_task_specification_pair(example_db_tasks)
@@ -114,7 +116,8 @@ class PCCC:
         print(f"\n tasks: {tasks}")
         model = api_config['model']
         print(f"model: {model}")
-     
+        # formatted_examples_db_for_spec_prompt = utils.convert_json_for_langchain(examples_db_for_spec_prompt)
+        # print(f"formatted_examples_db_for_spec_prompt: {examples_db_for_spec_prompt}")
         spec_example_selector = task_selector.get_semantic_similarity_example_selector(
         api_config['openai_api_key'], example_db_tasks = examples_db_for_spec_prompt,
         number_of_similar_tasks = int(env_config['spec_shot_count']))
@@ -144,6 +147,7 @@ class PCCC:
                 try:
                     print(f"env_config: {env_config}")
                     llm_core = core.Core()
+                    
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
                                                     example_db_50_tasks=example_db_tasks,
                                                     spec_example_selector=spec_example_selector,
@@ -152,14 +156,19 @@ class PCCC:
                                                     code_prompt_template=code_prompt_template,
                                                      K = run_count,)
                     print(f"saved_response = {saved_response}")
-                    isVerified, parsedCode = verifier.verify_dfy_src(saved_response['code_response'],
+                    isVerified, parsedCode, errors = verifier.verify_dfy_src(saved_response['code_response'],
                                                                     output_paths['dfy_src_path'],
                                                                     output_paths['verification_path'])
-                    verification_bits = verifier.get_all_verification_bits_count(parsedCode)
+                    # verification_info = verifier.get_verification_info(errors)
+                    print(f"errors: {errors}")
+                     # Find the line number and error message
+                    error_message = verifier.find_match(errors)
+                    print(f"error_message: {error_message}")
+                    # code_with_error = verifier.get_code_with_error(parsedCode, errors)
                     print(f"task_spec: {task_spec}")
                     saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,
                                                     _model=model, _dafny_code=parsedCode, _isVerified=isVerified,
-                                                    _verification_bits=verification_bits, _saved_map=saved_response)
+                                                    _verification_info=task["safety_properties"], _saved_map=saved_response)
                     if isVerified:
                         print(f"\n isVerified: {isVerified}")
                         print(f"\n output_paths['saved_path']: {output_paths['saved_path']}")

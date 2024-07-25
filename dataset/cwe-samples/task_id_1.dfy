@@ -3,16 +3,16 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
 function GetFileName(): string
 {
     // This method should return the filename
-    "public-key.txt"
+    "public-info.txt"
 }
 
 function GetPath(): string
 {
     // This method should return the path
-    "/documents"
+    "/user-data/"
 }
 
-method SafeJoin(path: seq<char>,  fname: seq<char>) returns (jointPath: path)
+method JoinFileToPath(path: seq<char>,  fname: seq<char>) returns (jointPath: path)
 requires path == GetPath()
 requires fname == GetFileName()
 {
@@ -22,4 +22,12 @@ requires fname == GetFileName()
   if !ok { print "open failed\n"; return "";}
   var joinIsOk:bool;
   joinIsOk, jointPath := f.Join(path, fname);
+}
+
+method{:main} Main()
+{
+  var path := GetPath();
+  var fname := GetFileName();
+  var jointPath := JoinFileToPath(path, fname);
+  print jointPath;
 }

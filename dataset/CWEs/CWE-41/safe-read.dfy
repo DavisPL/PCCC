@@ -29,5 +29,5 @@ method SafeRead(env: HostEnvironment, fname: seq<char>)
     var data: array<byte> := new byte[100];
     ok := f.Read(fname, 0, data, 0, data.Length as int32);
     print "Safe Read operation!\n";
-
+    // var closed := f.Close();
 }
