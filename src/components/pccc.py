@@ -18,8 +18,7 @@ class PCCC:
     def get_config(self):
         src_dir_path = os.path.dirname(os.getcwd())
         print(f"src_dir_path: {src_dir_path}")
-        # ToDo: change this before pushing to the repo to get env.config from the root directory
-        config_path = os.path.join(src_dir_path, 'dpl.config')
+        config_path = os.path.join(src_dir_path, 'env.config')
         print(f"config_path: {config_path}")
         if not (os.path.exists(config_path)):
             print(f"Given Config Path: {config_path}")
@@ -69,8 +68,8 @@ class PCCC:
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
         print(f"script_dir_path: {script_dir_path}")
-        spec_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_SPEC_TEMPLATE.file')
-        code_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_CODE_TEMPLATE.file')
+        spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_SPEC_TEMPLATE.file')
+        code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_CODE_TEMPLATE.file')
         if not (os.path.exists(spec_prompt_path) or os.path.exists(code_prompt_path)):
             print("src/my_prompts_template/COT_SPEC_TEMPLATE.file or  src/my_prompts_template/COT_CODE_TEMPLATE.file!!")
             return
