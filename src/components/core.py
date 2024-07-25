@@ -7,19 +7,29 @@ Returns
 _type_
     _description_
 """
+import configparser
 import json
 import os
+import pprint
+import re
 
+import numpy as np
 import openai
-from dotenv import load_dotenv
+import torch
+from langchain.chains import LLMChain
+from langchain.memory import ConversationBufferMemory
+from langchain_community.callbacks.manager import get_openai_callback
+from langchain_openai import ChatOpenAI
 from openai import OpenAI
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+from transformers import AutoModel, AutoTokenizer
 
-from utils import utils
+from components import prompt_generator
+from utils import utils as utils
 
 
-class LLMCore:
-    load_dotenv()
-    client = OpenAI(api_key = os.environ.get("OPENAI_API_KEY"))
+class Core:
     result = {
         "code": None,
         "programming_language": None,
@@ -28,12 +38,12 @@ class LLMCore:
         "generate_code_file": None,
         
     }
-    if client.api_key is None:
-            raise KeyError("API key not found!")
-    fileio_helper = utils.FileIO()
-    def __init__(self):
+
+    def __init__(self, max_history_length=1000):
         self.responses = []
         self.messages = []
+        self.conversation_history = []
+        self.max_history_length = max_history_length
         # self.function = {
         #     "name": "json_format_composer",
         #     "description": "A function that takes in a list of arguments related to a \
@@ -92,55 +102,297 @@ class LLMCore:
         # }
         # self.sample_response = openai.openai_object.OpenAIObject()
 
-    # def get_sample_response(self, sample):
-    #     self.sample_response["role"] =
-    # def get_json_format(self, function):
-    #     if function:
-    #         self.function = function
-    # Open the file containing the API key
+        # def get_sample_response(self, sample):
+        #     self.sample_response["role"] =
+        # def get_json_format(self, function):
+        #     if function:
+        #         self.function = function
+        # Open the file containing the API key
+    
+    def count_tokens(chain, query):
+        with get_openai_callback() as cb:
+            result = chain.run(query)
+            print(f'Spent a total of {cb.total_tokens} tokens')
+
+        return result, cb.total_tokens
+    
+    def initialize_llm(self, api_config):
+        model = api_config['model']
+        print(f"\n model: {model} \n")
+        if model == "gpt-4":
+            return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
+                            openai_api_key=api_config['openai_api_key'])
+        if model == "gpt-3.5-turbo-0125":
+            return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
+                            openai_api_key=api_config['openai_api_key'])
+        # if model == "palm-2":
+        #     return GooglePalm(model_name="models/text-bison-001", temperature=_api_config['temp'],
+        #                     google_api_key=_api_config['google_api_key'],
+        #                     max_output_tokens=4000)
+    
+    def invoke_llm(self, api_config, env_config, new_task,
+              example_db_50_tasks,
+              spec_example_selector,
+              code_example_selector,
+              spec_prompt_template,
+              code_prompt_template,
+              K):
+        print("\n inside invoke_llm")
+        llm = self.initialize_llm(api_config)
+        api_key = api_config['openai_api_key']
+        temperature = api_config['temp']
+        spec_shot_count = int(env_config["spec_shot_count"])
+        code_shot_count = int(env_config["code_shot_count"])
+        print(f" new_task: {new_task}") 
+     
+        # similar_tasks = spec_example_selector
+        # print(f"similar_tasks = {similar_tasks}")
+        # Required for similarity_example_selector without lanchain
+        # spec_examples_ids = []
+        # for key, task_list in similar_tasks.items():
+        #     print(f"Key: {key}")
+        #     for task in task_list:
+        #         print(f"Task ID: {task['task_id']}")
+        #         print(f"Task Description: {task['task_description']}")
+        #         print()  # Add a blank line for better readability
+        #         spec_examples_ids.append(task['task_id'])
+        # print(f"\n spec_examples_ids \n {spec_examples_ids}")
+        similar_tasks = spec_example_selector.select_examples(new_task)
+        print(f"similar_tasks = {similar_tasks}")
+        spec_examples_ids = [t['task_id'] for t in similar_tasks]
+        print(f" spec_examples_ids: {spec_examples_ids[0]}")
+        prompt_gen = prompt_generator.PromptGenerator()
+        specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
+                                                                                  example_db_50_tasks,
+                                                                                  spec_prompt_template)
+
+        # print("\n Is specification_prompt correct ??????????????//////////////////////")
+        # print(specification_prompt)
+        # Memory
+        specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        print(f"\n ================================ \n ")
+        print(f"\n specification_memory \n {specification_memory}")
+        specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
+                                    memory=specification_memory)
+        print(f"\n ================================ \n ")
+        print("\n specification_chain \n")
+        pprint.pprint(specification_chain)
+        print("\n new_task['task_description'] \n", new_task['task_description'])
+        # Specification Prompt Response
+        with get_openai_callback() as cb_spec:
+            specification_response = specification_chain.run(new_task['task_description'])
+        print(f'\n Spent a total of {cb_spec.total_tokens} tokens for verification \n')
+
+        next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
+        
+        print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
+        spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
+        print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
+        code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
+        print(f"\n code_examples_ids \n {code_examples_ids}")
+
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_50_tasks,code_prompt_template)
+        
+        print(f"\n ================================\n code_prompt")                                                            
+        print(f"{code_prompt}")
+        print(f"\n ================================") 
+        
+        # print(f"\n base_output_path {env_config["base_output_path"]} \n")
+        # prompt_path = os.path.join(env_config["base_output_path"],
+        #                         "dynamic-few-shot-prompt-" + str(K) + ".txt")
+        # try:
+        #     with open(prompt_path, "w", encoding='utf-8') as f:
+        #             f.write(code_prompt.get_prompts())
+        #             f.close()
+        # except FileNotFoundError:
+        #         print(f"Error: The file {prompt_path} does not exist.")
+        # except IOError as e:
+        #         print(f"Error reading the file {prompt_path}: {str(e)}")
+                
+        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
+        # print(f"\n code_chain: {code_chain} \n")
+        # Dynamic Few-Shot Prompt Response
+        with get_openai_callback() as cb_code:
+            code_response = code_chain.run(new_task['task_description'])
+            print(f'Spent a total of {cb_code.total_tokens} tokens for code')
+        # print(f"\n code_response: {code_response} \n")
+        saved_map = {
+            "temperature": temperature,
+            "spec_example_shots": env_config["spec_shot_count"],
+            "code_example_shots": env_config["code_shot_count"],
+            "spec_examples_ids": spec_examples_ids,
+            "specification_response": specification_response,
+            "code_examples_ids": code_examples_ids,
+            "code_response": code_response
+        }
+        # print(f"\n saved_map: {saved_map} \n")
+        # try:
+        #     with open(prompt_path, "w", encoding='utf-8') as f:
+        #             f.write(code_prompt.get_prompts())
+        #             f.close()
+        # except FileNotFoundError:
+        #         print(f"Error: The file {prompt_path} does not exist.")
+        # except IOError as e:
+        #         print(f"Error reading the file {prompt_path}: {str(e)}")
+        # Run the specification chain and get the response
+        # specification_response = self.run_specification_chain(new_task['task_description'], specification_prompt, api_key, api_config)
+        # next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
+        # print(f"\n !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n")
+        # print(f"next_input_task_with_spec: {next_input_task_with_spec}")
+        # print(f"\n <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< \n")
+        # print(f"spec_similar_code_tasks: {code_example_selector}")
+        # if client.api_key is None:
+        #     raise KeyError("API key not found!")
+        # try:
+        #     ai_msg = "hey"
+        # #     completion = client.chat.completions.create(
+        # #         model = api_config["model"],  # "gpt-4-turbo", 
+        # #         #ToDo evaluate with gpt-4-turbo and gpt-4o
+        # #         messages = self.messages, #A list of messages comprising the conversation so far
+        # #         max_tokens = api_config['max_tokens'],  # Adjustable number of tokens to control response length
+        # #         n = int(api_config['n']),  # Number of completions to generate
+        # #         stop = api_config['stop'], # Stop completion tokens
+        # #         temperature = float(api_config['temp']), # (0,2) default: 1
+        # #         top_p = float(api_config['top_p']),  # (0,1) default: 1
+        # #     )
+        # #     ai_msg = completion.choices[0].message.content.strip()
+        # except openai.APIConnectionError as e:
+        #     # Handles connection error here
+        #     print(f"Failed to connect to OpenAI API: {e}")
+        # print("=========================================")
+        # print(f"\n saved_map: {saved_map} \n")
+        return saved_map
+    
+    def get_response_from_model(self, prompt, api_key, api_config):
+        client = OpenAI(api_key = api_key)
+        if client.api_key is None:
+            raise KeyError("API key not found!")
+        try:
+            response = client.chat.completions.create(
+                model = api_config["model"],  # "gpt-4-turbo", 
+                #ToDo evaluate with gpt-4-turbo and gpt-4o
+                messages = prompt, #A list of messages comprising the conversation so far
+                max_tokens = api_config['max_tokens'],  # Adjustable number of tokens to control response length
+                n = 2000,  # Number of completions to generate
+                temperature = float(api_config['temp']), # (0,2) default: 1
+            )
+        except openai.APIConnectionError as e:
+            # Handles connection error here
+            print(f"Failed to connect to OpenAI API: {e}")
+        return response.choices[0].message.content.strip()
+    
+    
+    # Function to update conversation history
+    def update_conversation_history(self, role, content):
+        self.conversation_history.append({"role": role, "content": content})
+        # Truncate conversation history to keep only the most recent exchanges
+        if len(self.conversation_history) > self.max_history_length:
+            self.conversation_history = self.conversation_history[-self.max_history_length:]
+
+    # Function to construct the prompt with RAG
+    def construct_prompt_with_rag(self, task_description, specification_prompt):
+        # Combine specification_prompt with conversation history and task description
+        prompt = [
+            {"role": "system", "content": specification_prompt}
+        ]
+        prompt.extend(self.conversation_history)
+        prompt.append({"role": "user", "content": task_description})
+        return prompt
+
+    # Function to run the equivalent of the specification chain
+    def run_specification_chain(self, task_description, specification_prompt, api_key, api_config):
+        # Get the constructed prompt with RAG
+        prompt = self.construct_prompt_with_rag(task_description, specification_prompt)
+        
+        # Get the response from the OpenAI API
+        model_response = self.get_response_from_model(prompt, api_key, api_config)
+        
+        # Update conversation history with the new task description and model's response
+        self.update_conversation_history("user", task_description)
+        self.update_conversation_history("assistant", model_response)
+        
+        return model_response
+
+        
+    def extract_info_from_prompt(self, prompt, pattern):
+        match = re.search(pattern, prompt, re.DOTALL)
+        print(f"match: {match}")
+        if match:
+            # The first group (index 1) contains the captured content between the markers
+            content = match.group(1).strip()  # .strip() to remove leading/trailing whitespace
+            print("Found content:", content)
+        else:
+            print("No content found")
+        return content
 
     def get_prompt(self, prompt_path):
         prompts = []
-        self.fileio_helper.read_file(prompt_path)
-        
-        prompts = self.fileio_helper.content.split("---\n")
-        prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
+        prompts.append(utils.read_file(prompt_path))
+        print(f"prompts: {prompts}")
+        # prompts = utils.content.split("---\n")
+        # prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
         return prompts
 
-    def request_code(self, prompt, generated_code_file):
-        # TODO Get model specifications from config in the function args
+    def execute_prompt(self, api_config, env_config, prompt, output_path):
         #TODO separate the first line with role: system and the first line of prompt
+        # extract specification prompt task info
+        pattern = r"\[SPECIFCATION PROMPT\](.*?)\[[New Task SPEC]\]"
+        specification_prompt = self.extract_info_from_prompt(prompt, pattern)
+        spec_prmopt_dict = utils.parse_data_to_dict(specification_prompt)
+        print(f"spec_prmopt_dict: {spec_prmopt_dict}")
+        # extract spec task info
+        pattern = r"\[SPECIFCATION PROMPT\](.*?)\[New Task\]"
+        spec_new_task = self.extract_info_from_prompt(prompt, pattern)
+         # extract COT prompt task info
+        pattern = r"\[COT PROMPT\](.*?)\[New Task\]"
+        cot_prompt = self.extract_info_from_prompt(prompt, pattern)
+        # extract new task info
+        pattern = r"\[New Task\](.*)"
+        code_new_task = self.extract_info_from_prompt(prompt, pattern)
+        specification_prompt = self.extract_info_from_prompt(prompt, pattern)
+        #specifications memory
+        specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # print(f"specification_memory: {specification_memory}")
+        # specification_chain = LLMChain(llm=llm, prompt=spec_prmopt_dict, verbose=False, output_key='specifications',
+                                    # memory=specification_memory)
+        # print(f"specification_chain: {specification_chain}")
+         # Specification Prompt Response
+        # specification_response = specification_chain.run(spec_new_task)
+        #code prompt memory
+        # code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # code_chain = LLMChain(llm=llm, prompt=cot_prompt, verbose=False, output_key='script', memory=code_memory)
 
-        self.prompt_ammendment("user", prompt)
-        completion = self.client.chat.completions.create(
-            model = "gpt-4-turbo", 
-            #ToDo evaluate with gpt-4-turbo and gpt-4o
-            # returns response in JSON format 
-            # model = "gpt-4-turbo-preview",
-            # response_format={ "type": "json_object" },
-            messages = self.messages, #A list of messages comprising the conversation so far
-            max_tokens = 4096,  # Adjustable number of tokens to control response length
-            n = 1,  # Number of completions to generate
-            stop = None, # Stop completion tokens
-            temperature = 0.5, # (0,2) default: 1
-            top_p = 0.9,  # (0,1) default: 1
-            # functions=[self.function],
-            # function_call={"name": "json_format_composer"}
-        )
+        # Dynamic Few-Shot Prompt Response
+        # code_response = code_chain.run(code_new_task)
+        # self.prompt_ammendment("user", prompt)
+        # print(f"prompt: {prompt}   ")
+        completion = self.invoke_model(api_config['openai_api_key'], api_config)
+       
         try:
             # TODO Add config file for the model specifications
             # TODO: Add function calling to api for a more structured json format
             response = completion.choices[0].message.content
-            self.prompt_ammendment("assistant", response) 
+            
+            self.prompt_ammendment("user", response)
+            print(f"self.responses: {self.responses}")
             self.responses.append(response)
             response_json = self.get_response_json(response)
+            task_name = self.get_key_value(response_json, "task_name")
+            # print(f"task_name: {task_name}")
+            # discription = self.get_key_value(response_json, "discription")
             code = self.get_key_value(response_json, "code")
             safety_property = self.get_key_value(response_json, "safety_property")
             required_files = self.get_key_value(response_json, "required_files")
             programming_language = self.get_key_value(response_json, "programming_language")
             generate_code_file = self.generate_code_file(
-                code, generated_code_file)
-            self.result = {"code": code,
+                code, output_path, task_name)
+            # generate_code_file = self.generate_code_file(
+            #     code, output_path, task_name)
+            self.result = {
+                #  "task_name": task_name,
+                #  "discription": discription,
+                  "code": code,
                   "programming_language": programming_language,
                   "safety_property": safety_property,
                   "required_files": required_files,
@@ -159,8 +411,12 @@ class LLMCore:
         return self.result
 
     def get_response_json(self, response):
-        # Converts the response to a json object
+        print(f"Are you in json format ???????? response: {response}")
+        pattern = r"```dafny(.*?)```"
+        response = re.search(pattern, response).group(0)
+        print(f"response: {response}")
         response_json = json.loads(response)
+        print(f"response_json: {response_json}")
         return response_json
     
     def get_key_value (self, response_json, key):
@@ -186,18 +442,21 @@ class LLMCore:
     def prompt_ammendment(self, role, response):
          # Modifoes prompt to add role and messages
         self.messages.append({"role": role, "content": response})
+        print(f"messages: {self.messages}")
 
-    def generate_code_file(self, code, generated_code_file):
+    def generate_code_file(self, code, generated_code_file, task_name):
         # Generates file to save the requested code
         try:
-            self.fileio_helper.content = code
-            self.fileio_helper.write_file(generated_code_file, code)
+            # utils.content = code
+            filename = f"{task_name}.dfy"
+            output_file_path = os.path.join(generated_code_file, filename)
+            utils.write_to_file(output_file_path, code)
         except FileNotFoundError:
-            print(f"Cannot find {generated_code_file}")
+            print(f"Cannot find {output_file_path}")
 
         except IOError as e:
-            print(f"Error writing into the file {generated_code_file}: {str(e)}")
+            print(f"Error writing into the file {output_file_path}: {str(e)}")
         except EOFError as e:
             print(f"EOFError: {str(e)}")
-        return generated_code_file
+        return output_file_path
     

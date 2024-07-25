@@ -1,3 +1,18 @@
+
+.Python
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ib64
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+.venv
+.pccc-venv
+.mypy_cache/
+pccc-venv/
+ENV/
+pccc-venv.bak/
 pccc-venv/
 .vscode/
 ./src/api_keys
@@ -13,5 +28,10 @@ pccc-venv/
 *.exe
 *.pdb
 *.json
-.DS_Store
+**/.DS_Store
+*.vscode
+*.vscode/
+*.vscode/*
+LICENSE
+makefile
 

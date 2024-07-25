@@ -11,7 +11,7 @@ import subprocess
 import time
 import typing
 
-from components import core
+from components import core as llm_core
 
 
 class Validator:
@@ -65,44 +65,41 @@ class Validator:
 
     def validate_code(
         # Get the prompt, generated code file path, and the number of attempts
-        # prompt: str, generated_code_fil e: str, attempts: int
+        # prompt: str, generated_code_fil e: str, attempts: int, api_config: dict, env_config: dict
         # Return the safety property, code, and required files
-        self, attempts: int, prompt_path: str, generated_code_file: str
+        self, attempts: int, prompt_path: str, output_path: str, api_config: dict, env_config: dict
     ):
-        llm_core = core.LLMCore()
+     
         # code_instrument = utils.CodeInstrument()
 
         prompt = llm_core.get_prompt(prompt_path).pop()
 
-        for _ in range(attempts):
-            # for prompt in prompts:
-            llm_response = llm_core.request_code(
-                prompt, generated_code_file)
-            compiler_type = llm_response["programming_language"]
-            compiler_type = "Dafny"
-            error_message = self.compile_code(
-                generated_code_file, compiler_type)
+        # for _ in range(int(attempts)):
+        #     llm_response = llm_core.execute_prompt(
+        #         api_config, env_config, prompt, output_path)
+        #     compiler_type = llm_response["programming_language"]
+        #     compiler_type = "Dafny"
+        #     error_message = self.compile_code(
+        #         output_path, compiler_type)
 
-            if error_message is None:
-                return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]
-            else:
-                # Find the line number and error message
-                errors = self.find_match(error_message)
-                # Get the code from the response
-                modified_code = llm_response['code']
-                # Add comments to the lines where the errors occur
-                for line, error in errors:
-                    # Add a comment to the line where the error occurs
-                    modified_code = self.add_comment_to_line(
-                        line, error, modified_code)
-                # Add the error message to the modified prompt
-                modified_prompt = f"{modified_code} \n\n Compiler Error:\n{error_message}"
-                llm_core.prompt_ammendment("user", modified_prompt)
-                # Replaces the modified prompt with a prompt that each error is attached to the related line
-                # TODO: Use utils instrument class here
-                # Adds a delay to avoid hitting the API rate limit too quickly
-                time.sleep(
-                    5
-                )
-        raise ValueError(
-            f"Compilation of the generated code after {attempts} attempts was not successful!")
+        #     if error_message is None:
+        #         return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]
+        #     else:
+        #         # Find the line number and error message
+        #         errors = self.find_match(error_message)
+        #         # Get the code from the response
+        #         modified_code = llm_response['code']
+        #         # Add comments to the lines where the errors occur
+        #         for line, error in errors:
+        #             # Add a comment to the line where the error occurs
+        #             modified_code = self.add_comment_to_line(
+        #                 line, error, modified_code)
+        #         # Add the error message to the modified prompt
+        #         modified_prompt = f"{modified_code} \n\n Compiler Error:\n{error_message}"
+        #         llm_core.prompt_ammendment("user", modified_prompt)
+        #         # Replaces the modified prompt with a prompt that each error is attached to the related line
+        #         # TODO: Use utils instrument class here
+        #         # Adds a delay to avoid hitting the API rate limit too quickly
+        #         time.sleep(int(env_config['cool_down_time']))
+        # raise ValueError(
+        #     f"Compilation of the generated code after {attempts} attempts was not successful!")

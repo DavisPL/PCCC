@@ -1,0 +1,51 @@
+You are an expert Dafny programmer, and here is your task:
+
+Act as a code assistant and assist me in completing the given task. provide your response as a JSON object with the following keys:
+"task_name": Choose two to three words for the task_name
+"description": explanations about the code,
+"code": The generated code. The code string is now a single line with \n inserted where the newlines should be.
+Ensure that the entire code value is enclosed in double quotes.
+Any internal double quotes in the code (if present) would need to be escaped with a backslash (\"), but this isn't necessary in your provided code.
+"programming_language": The programming language used to write the code
+"required_files": Path to required libraries or files to complete the task
+"safety_property": The given safety property
+"comments": any extra explanation goes here
+
+programming_language: Dafny
+required_files: []
+ 
+safety_property: []
+
+Your task is to generate the requested code in Dafny. Take the following method as an example of incremeting values in an array.
+postconditions are indicated using ensures 
+preconditions should be indicated using requires
+method IncrementArray(a: array<int>)
+  modifies a
+  ensures forall i :: 0 <= i < a.Length ==> a[i] == old(a[i]) + 1
+{
+  var n := 0;
+  while n != a.Length
+    invariant 0 <= n <= a.Length
+    invariant forall i :: 0 <= i < n ==> a[i] == old(a[i]) + 1
+    invariant forall i :: n <= i < a.Length ==> a[i] == old(a[i])
+
+  {
+    a[n] := a[n] + 1;
+    assert forall i :: 0 <= i < n ==> a[i] == old(a[i]) + 1;
+    assert a[n] == old(a[n]) + 1; // error
+    assert forall i :: 0 <= i < n + 1 ==> a[i] == old(a[i]) + 1;
+    n := n + 1;
+  }
+}
+
+
+
+Then, Generate a Dafny code that include a method which is called CopyArray. This method copies the elements of one array which is 
+listed in the modifies clause into another one.
+Finally, generates the response in a valid requested JSON format
+
+
+When you provide an answer, please explain the reasoning and assumptions behind your selection of software frameworks. 
+If possible, use specific examples or evidence with associated code samples to support your answer of why the framework is the best selection for
+the task. Moreover, please address any potential ambiguities or limitations in your answer, in order to provide a more complete and accurate 
+response

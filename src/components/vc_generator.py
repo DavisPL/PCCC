@@ -1,11 +1,10 @@
 
 import re
 
-from utils import utils
+from utils import utils as utils
 
 
 class VcGen:
-    fileio_helper = utils.FileIO()
 
     def __init__(self):
         print("VC generator is activated")
