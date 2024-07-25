@@ -8,7 +8,7 @@ To install required packages use the following command
 pip install -r /path/to/requirements.txt
 ```
 ## Cinfiguration
-Use the env.config file to add your desired configurations to make Prooformer tool work.
+Use the env.config file to add your desired configurations to work with PCCC.
 ## How does it work?
 
 ```
