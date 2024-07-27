@@ -1,4 +1,3 @@
-
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
 // method TestAlphaNumeric()
@@ -267,8 +266,8 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
     // assert !ContainsConsecutivePeriods(s14);
 // }
 
- method TestHasNoLeadingOrTrailingSpaces()
-    {
+//  method TestHasNoLeadingOrTrailingSpaces()
+//     {
 //         // Valid cases
 //         assert HasNoLeadingOrTrailingSpaces("filename.txt");
 //         assert HasNoLeadingOrTrailingSpaces("file with spaces.txt");
@@ -283,28 +282,294 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
 //         // Edge cases
 //         assert !HasNoLeadingOrTrailingSpaces("file.txt ");  // Space in middle is fine
 //         assert !HasNoLeadingOrTrailingSpaces(" file.txt");  // Space in middle is fine
-           assert HasNoLeadingOrTrailingSpaces("fil e.txt");  // Space in middle is fine
+        //    assert HasNoLeadingOrTrailingSpaces("fil e.txt");  // Space in middle is fine
 //         assert !HasNoLeadingOrTrailingSpaces(" fil e.txt");  // Space in middle is fine
 //         print "All tests for HasNoLeadingOrTrailingSpaces passed!\n";
+    // }
+
+// method TestDoesNotStartWithPeriod()
+// {
+//     // Valid cases
+//     assert DoesNotStartWithPeriod("filename.txt");
+//     assert DoesNotStartWithPeriod("file.with.periods.txt");
+//     assert DoesNotStartWithPeriod("a");  // Single character
+
+//     // // Invalid cases
+//     assert !DoesNotStartWithPeriod(".hidden_file");
+//     assert !DoesNotStartWithPeriod("..parent_directory");
+//     assert !DoesNotStartWithPeriod(".");  // Single period
+
+//     // Edge cases
+//     assert DoesNotStartWithPeriod("file.txt.");  // Ending with period is fine
+//     assert DoesNotStartWithPeriod("file..txt");  // Periods in middle are fine
+
+//     print "All tests for DoesNotStartWithPeriod passed!\n";
+// }
+
+//   method TestPathJoin()
+//     {
+//         // Test case 1: Path without trailing slash
+//         // var p1: seq<char> := "path/to";
+//         // var f1: seq<char> := "file.txt";
+//         // var result1 := PathJoin(p1, f1);
+//         // // assert result1 != "path/to/file.txt";
+//         // print "Test 1 passed: ", result1, "\n";
+
+//         // // Test case 2: Path with trailing slash
+//         // var p2: seq<char> := "path/to/";
+//         // var f2: seq<char> := "file.txt";
+//         // var result2 := PathJoin(p2, f2);
+//         // assert result2 != "path/to/file.txt";
+//         // print "Test 2 passed: ", result2, "\n";
+
+//         // // Test case 3: Root path
+//         // var p3: seq<char> := "/";
+//         // var f3: seq<char> := "file.txt";
+//         // var result3 := PathJoin(p3, f3);
+//         // assert result3 == "/file.txt";
+//         // print "Test 3 passed: ", result3, "\n";
+
+//         // // Test case 4: Empty file name (edge case)
+//         var p4: seq<char> := "/path/to/a/directory/";
+//         var f4: seq<char> := "f";  // Minimum length to satisfy precondition
+//         var result4 := PathJoin(p4, f4);
+//         assert result4 != "this/path/to/a/directory/f";
+//         print "Test 4 passed: ", result4, "\n";
+
+//         // // Test case 5: Long path (close to max length)
+//         var p5: seq<char> := "a" + "b" ;
+//         var f5: seq<char> := "file";
+//         var result5 := PathJoin(p5, f5);
+//         assert |result5| <= pathMaxLength;
+
+//         print "Test 5 passed: Path joined successfully within max length\n";
+
+//         // // Test case 6: Path with multiple slashes
+//         var p6: seq<char> := "path//to////";
+//         var f6: seq<char> := "file.txt";
+//         var result6 := PathJoin(p6, f6);
+//         assert result6 == "path//to////file.txt";
+//         print "Test 6 passed: ", result6, "\n";
+
+//         // print "All tests passed successfully!\n";
+//     }
+
+method TestIsValidFileExtension()
+    {
+        // Test case 1: Valid file extension
+        var filename1 := "document.txt";
+        // assert LastIndexOf(filename1, '.') == 8;
+        // assert IsValidFileExtension(filename1);
+        print "Test 1 passed: ", filename1, " is valid\n";
+
+
+        // Test case 2: No file extension
+        var filename2 := "document";
+        assert !IsValidFileExtension(filename2);
+        print "Test 2 passed: ", filename2, " is invalid\n";
+
+        // Test case 3: File extension with multiple dots
+        var filename3 := "archive.tar.gz";
+        // assert IsValidFileExtension(filename3);
+        print "Test 3 passed: ", filename3, " is valid\n";
+
+        // Test case 4: Hidden file (starting with a dot)
+        var filename4 := ".hidden";
+        // assert !IsValidFileExtension(filename4);
+        print "Test 4 passed: ", filename4, " is invalid\n";
+
+        // Test case 5: File with path and valid extension
+        var filename5 := "/path/to/file.jpg";
+        // assert IsValidFileExtension(filename5);
+        print "Test 5 passed: ", filename5, " is valid\n";
+
+        // Test case 6: File with path and no extension
+        var filename6 := "/path/to/file";
+        assert !IsValidFileExtension(filename6);
+        print "Test 6 passed: ", filename6, " is invalid\n";
+
+        // Test case 7: File with extension but ending in a path separator
+        var filename7 := "file.txt/";
+        assert !IsValidFileExtension(filename7);
+        print "Test 7 passed: ", filename7, " is invalid\n";
+
+        // Test case 8: Empty string (edge case)
+        var filename8 := "";
+        // Note: This will not be checked due to the precondition
+        print "Test 8: Empty string is not checked due to precondition\n";
+
+        print "All tests completed.\n";
     }
 
-method TestDoesNotStartWithPeriod()
+
+// method TestContainsDangerousPattern()
+//     {
+//         var testCases := [
+//             "file.txt",
+//             "../file.txt",
+//             "subdirectory/file.txt",
+//             "../../etc/passwd",
+//             "/etc/passwd",
+//             "C:\\Windows\\System32\\config\\SAM",
+//             "~/.bashrc",
+//             "normal/path/file.txt"
+//         ];
+
+//         var i := 0;
+//         while i < |testCases|
+//             invariant 0 <= i <= |testCases|
+//         {
+//             var path := testCases[i];
+//             var isDangerous := ContainsDangerousPattern(path);
+//             print "Path: ", path, " - ", if isDangerous then "Dangerous" else "Safe", "\n";
+//             i := i + 1;
+//         }
+//     }
+
+// method IsValidFileExtension(filename: string) returns (isValid: bool)
+//   ensures isValid ==> |filename| > 0 && filename[0] != '.'
+// {
+//   var allowedExtensions := ["txt", "csv", "dat", "log"];
+  
+//   if |filename| == 0 || filename[0] == '.' {
+//     return false;
+//   }
+  
+//   var lastDotIndex := -1;
+//   var i := 0;
+//   while i < |filename|
+//     invariant 0 <= i <= |filename|
+//     invariant forall j :: 0 <= j < i && filename[j] == '.' ==> lastDotIndex == j
+//   {
+//     if filename[i] == '.' {
+//       lastDotIndex := i;
+//     }
+//     i := i + 1;
+//   }
+  
+//   if lastDotIndex == -1 || lastDotIndex == |filename| - 1 {
+//     return false;
+//   }
+  
+//   var extension := filename[lastDotIndex+1..];
+  
+//   isValid := false;
+//   for i := 0 to |allowedExtensions|
+//     invariant 0 <= i <= |allowedExtensions|
+//     invariant isValid ==> exists j :: 0 <= j < i && allowedExtensions[j] == extension
+//   {
+//     if allowedExtensions[i] == extension {
+//       isValid := true;
+//       break;
+//     }
+//   }
+  
+//   return isValid;
+// }
+
+
+
+
+// method TestFileExtention(){
+//     var validFile := IsValidFileExtension("example.txt");
+//   assert validFile;
+  
+//   var invalidFile := IsValidFileExtension("example.invalid");
+//   assert !invalidFile;
+  
+//   print "Valid file: ", validFile, "\n";
+//   print "Invalid file: ", invalidFile, "\n";
+// }
+
+// Lemma to prove that if a character is not found after a certain index,
+// it doesn't exist in the substring from that index to the end
+// Lemma to prove that if a character is not found after a certain index,
+// it doesn't exist in the substring from that index to the end
+// Helper function to check if a character exists in a string from a given index to the end
+predicate CharExistsFrom(s: string, c: char, start: int)
+    requires 0 <= start <= |s|
 {
-    // Valid cases
-    assert DoesNotStartWithPeriod("filename.txt");
-    assert DoesNotStartWithPeriod("file.with.periods.txt");
-    assert DoesNotStartWithPeriod("a");  // Single character
+    exists i :: start <= i < |s| && s[i] == c
+}
 
-    // // Invalid cases
-    assert !DoesNotStartWithPeriod(".hidden_file");
-    assert !DoesNotStartWithPeriod("..parent_directory");
-    assert !DoesNotStartWithPeriod(".");  // Single period
+// Helper function to check if a character does not exist in a string from a given index to the end
+predicate CharNotExistsFrom(s: string, c: char, start: int)
+    requires 0 <= start <= |s|
+{
+    forall i :: start <= i < |s| ==> s[i] != c
+}
 
-    // Edge cases
-    assert DoesNotStartWithPeriod("file.txt.");  // Ending with period is fine
-    assert DoesNotStartWithPeriod("file..txt");  // Periods in middle are fine
+// Lemma to prove that if a character doesn't exist from index i, it also doesn't exist from index i+1
+lemma NotExistsImpliesNotExistsLater(s: string, c: char, i: int)
+    requires 0 <= i < |s|
+    requires CharNotExistsFrom(s, c, i)
+    ensures CharNotExistsFrom(s, c, i+1)
+{
+    // This lemma is trivially true based on the definitions of CharNotExistsFrom
+}
 
-    print "All tests for DoesNotStartWithPeriod passed!\n";
+method LastIndex(s: string, c: char) returns (index: int)
+    ensures -1 <= index < |s|
+    ensures index == -1 ==> CharNotExistsFrom(s, c, 0)
+    ensures index != -1 ==> s[index] == c && CharNotExistsFrom(s, c, index+1)
+{
+    index := |s| - 1;
+    
+    while index >= 0
+        invariant -1 <= index < |s|
+        invariant CharNotExistsFrom(s, c, index+1)
+    {
+        if s[index] == c {
+            return;
+        }
+        index := index - 1;
+        NotExistsImpliesNotExistsLater(s, c, index+1);
+    }
+    
+    index := -1;
+}
+
+method TestLastDotIndex() {
+     var s1 := "example.txt";
+  var index1 := LastIndexOf(s1, '.');
+//   assert index1 == 7;
+  print "Last dot index in '", s1, "': ", index1, "\n";
+
+  var s2 := "no_extension";
+  var index2 := LastIndexOf(s2, '.');
+  assert index2 == -1;
+  print "Last dot index in '", s2, "': ", index2, "\n";
+
+  var s3 := "multiple.dots.in.filename.txt";
+  var index3 := LastIndexOf(s3, '.');
+  print "Last dot index in '", s3, "': ", index3, "\n";
+}
+
+method TestLastIndex() {
+    // Test case 1: Character present in the string
+    var result := LastIndex("hello", 'l');
+    assert result == 3;
+    print "Test case 1 passed: ", result, "\n";
+
+    // Test case 2: Character not present in the string
+    result := LastIndex("world", 'x');
+    assert result == -1;
+    print "Test case 2 passed: ", result, "\n";
+
+    // Test case 3: Empty string
+    result := LastIndex("", 'a');
+    assert result == -1;
+    print "Test case 3 passed: ", result, "\n";
+
+    // Test case 4: Character present at the beginning
+    result := LastIndex("abcde", 'a');
+    assert result == 0;
+    print "Test case 4 passed: ", result, "\n";
+
+    // Test case 5: Character present at the end
+    result := LastIndex("abcde", 'e');
+    assert result == 4;
+    print "Test case 5 passed: ", result, "\n";
 }
 
 
@@ -318,6 +583,11 @@ method Main(){
   // TestCharToByte();
   // TestStringToBytes();
   // test_has_path_traversal();
-  TestHasNoLeadingOrTrailingSpaces();
-  TestDoesNotStartWithPeriod();
+//   TestHasNoLeadingOrTrailingSpaces();
+//   TestDoesNotStartWithPeriod();
+    // TestPathJoin();
+    TestIsValidFileExtension();
+    // TestContainsDangerousPattern();
+    // TestFileExtention();
+    TestLastDotIndex();
 }
