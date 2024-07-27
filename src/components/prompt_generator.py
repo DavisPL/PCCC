@@ -215,4 +215,3 @@ class PromptGenerator:
 #                 parsed_output[field_name] = None
         
 #         return parsed_output
-
