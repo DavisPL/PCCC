@@ -1,21 +1,20 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-function GetPath(): string
-{
-    "~/id_rsa.pub"
-}
-
-method LoadRsaKey(fPath: seq<char>)
-requires fPath == GetPath()
+method LoadUserData(path: path, userName: string) returns (data: array<byte>)
+requires !IsDangerousPath(path)
+requires IsValidFileExtension(path)
+requires IsValidPathName(path)
+requires NonEmptyString(userName)
+requires !IsDangerousPath(userName)
+requires HasAbsolutePath(path)
+ensures ByteContentLengthIsValid(data)
 {
     var f: FileStream;
     var ok: bool;
-    ok, f := FileStream.Open(fPath);
-    if !ok { print "open failed\n"; return; }
-    var data: array<byte> := new byte[100];
-    var pathTraversal := f.NoPathTraversal(fPath);
-    var isAbsolutePath := f.IsAbsolutePath(fPath);
-    ok := f.Read(fPath, 0, data, 0, data.Length as int32);
-    print "Read public key!\n";
+    ok, f := FileStream.Open(path);
+    if !ok { print "open failed\n"; return new byte[0]; }
+    data := new byte[100];
+    ok := f.Read(path, 0, data, 0, data.Length as int32);
+    print "User data loaded!\n";
 
 }

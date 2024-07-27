@@ -1,58 +1,44 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-function GetSourceFileName(): string
-{
-    "/user-data/public-key.txt"
-}
-
-function GetDistFileName(): string
-{
-    "/user-data/public-info.txt"
-}
-
-method WriteToFile(dstFile: path, data: array<byte>)
-  requires dstFile == GetDistFileName()
+method WriteToFile(path: path, data: array<byte>)
+requires !IsDangerousPath(path)
+requires IsValidPathName(path)
+requires HasValidPathLength(path)
+requires IsValidFileExtension(path)
+requires ByteContentLengthIsValid(data)
 {
   var f: FileStream;
   var ok: bool;
-  ok, f := FileStream.Open(dstFile);
+  ok, f := FileStream.Open(path);
   if !ok { 
     print "open failed\n"; 
     return;
   } 
-    // Handle the int32 constraint
-    var dataLength: int32;
-    if data.Length <= 0x7fffffff {
-        dataLength := data.Length as int32;
-    } else {
-        print "Data too large for int32\n";
-        return;
-    }
-    var pathTraversal := f.NoPathTraversal(dstFile);
-    var isAbsolutePath := f.IsAbsolutePath(dstFile);
-    ok := f.Write(dstFile, 0, data, 0, dataLength);
-    if !ok {
-        print "write failed\n";
-    } else {
-        print "Safe write operation!\n";
-    }
+  ok := f.Write(path, 0, data, 0, data.Length as int32);
+  if !ok {
+      print "write failed\n";
+  } else {
+      print "Safe write operation!\n";
+  }
 }
 
-method ReadFile(fname: path) returns (data: array<byte>)
-  requires fname == GetSourceFileName()
+method ReadFile(path: path) returns (data: array<byte>)
+  requires !IsDangerousPath(path)
+  requires IsValidPathName(path)
+  requires NonEmptyString(path)
+  requires IsValidFileExtension(path)
+  ensures ByteContentLengthIsValid(data)
 {
   var f: FileStream;
   var ok: bool;
-  ok, f := FileStream.Open(fname);
+  ok, f := FileStream.Open(path);
   if !ok { 
     print "open failed\n"; 
     return new byte[0]; 
   }
   data := new byte[100];
   var dataLength: int32 := 100; 
-  var pathTraversal := f.NoPathTraversal(fname);
-  var isAbsolutePath := f.IsAbsolutePath(fname);
-  ok := f.Read(fname, 0, data, 0, dataLength);
+  ok := f.Read(path, 0, data, 0, dataLength);
   if !ok {
     print "read failed\n";
     data := new byte[0]; 
@@ -62,24 +48,26 @@ method ReadFile(fname: path) returns (data: array<byte>)
 }
 
 method Copy(srcFile: seq<char>, dstFile: seq<char>)
-  requires srcFile == GetSourceFileName()
-  requires dstFile == GetDistFileName()
+requires IsValidPathName(srcFile)
+requires IsValidPathName(dstFile)
+requires NonEmptyString(srcFile)
+requires NonEmptyString(dstFile)
+requires IsValidFileExtension(srcFile)
+requires IsValidFileExtension(dstFile)
+requires !IsDangerousPath(srcFile)
+requires !IsDangerousPath(dstFile)
+requires HasValidPathLength(srcFile)
+requires HasValidPathLength(dstFile)
 {
   var data := ReadFile(srcFile);
-  if data.Length == 0 {
-    print "Copy failed: couldn't read source file\n";
-    return;
-  }
-  if data.Length > 0x7fffffff {
-    print "Copy failed: file too large (exceeds int32 maximum)\n";
-    return;
-  }
-  WriteToFile(dstFile, data);
+  // if ByteContentLengthIsValid(data) {
+    WriteToFile(dstFile, data);
+  // }
 }
 
-method Main()
+method testSafeWrite()
 {
-  var srcFile := GetSourceFileName();
-  var dstFile := GetDistFileName();
+  var srcFile: seq<char> := "/usr/data/file.txt";
+  var dstFile: seq<char> := "/filecopy.txt";
   Copy(srcFile, dstFile);
 }
