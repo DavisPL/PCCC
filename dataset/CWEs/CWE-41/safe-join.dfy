@@ -1,13 +1,14 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
 method SafeJoin(env: HostEnvironment, path: seq<char>,  fname: seq<char>)
-  requires env.ok.ok()
-  modifies env.ok
+  requires IsNonEmpty(fname)
+  requires !is_dangerous_path(fname)
+  requires !has_path_traversal(fname)
 {
   var fname := "public-key.txt";
   var f: FileStream;
   var ok: bool;
-  ok, f := FileStream.Open(fname, env);
+  ok, f := FileStream.Open(fname);
   if !ok { print "open failed\n"; return;}
   var path := "/Users/pari/pcc-llms/src/playground";
   var joinIsOk:bool;
@@ -22,3 +23,4 @@ method SafeJoin(env: HostEnvironment, path: seq<char>,  fname: seq<char>)
   // assert j2 == j;
   // assert jointPath == "/Users/pari/pcc-llms/src/playground/safeFile-1.txt";
 }
+
