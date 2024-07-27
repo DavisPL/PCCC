@@ -28,7 +28,8 @@ method WriteToFile(dstFile: path, data: array<byte>)
         print "Data too large for int32\n";
         return;
     }
-
+    var pathTraversal := f.NoPathTraversal(dstFile);
+    var isAbsolutePath := f.IsAbsolutePath(dstFile);
     ok := f.Write(dstFile, 0, data, 0, dataLength);
     if !ok {
         print "write failed\n";
@@ -45,14 +46,16 @@ method ReadFile(fname: path) returns (data: array<byte>)
   ok, f := FileStream.Open(fname);
   if !ok { 
     print "open failed\n"; 
-    return new byte[0];  // Return empty array on failure
+    return new byte[0]; 
   }
   data := new byte[100];
-  var dataLength: int32 := 100;  // Ensure this is within int32 range
+  var dataLength: int32 := 100; 
+  var pathTraversal := f.NoPathTraversal(fname);
+  var isAbsolutePath := f.IsAbsolutePath(fname);
   ok := f.Read(fname, 0, data, 0, dataLength);
   if !ok {
     print "read failed\n";
-    data := new byte[0];  // Return empty array on failure
+    data := new byte[0]; 
   } else {
     print "Safe Read operation!\n";
   }
@@ -80,4 +83,3 @@ method Main()
   var dstFile := GetDistFileName();
   Copy(srcFile, dstFile);
 }
-

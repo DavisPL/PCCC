@@ -4,72 +4,80 @@ type fileType = seq<char>
 const dirMaxLength :int  := 255
 const fileMaxLength :int := 255
 const fileMinLength :int := 4
-const validFileCharacters := {'.', '-'}
-const validDirCharacters := {'~','_', '.', '-', '/'}
+const validFileCharacters := {'-', '_', '.', '(', ')', ' ', '%'}
+const validDirCharacters := {'~','-', '_', '.', '(', ')', ' ', '%'}
 
 newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
 newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
 newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
 newtype{:nativeType "int"} maxPath = i:int | 0 <= i < 256
+newtype nat64 = i:int | 0 <= i < 0x10000000000000000
 
 // Constants for sensitive paths and files
-const invalidFileTypes :=  [".php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
+const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
 const sensitivePaths := ["~/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets"]
 const currWDir := ["/Users/pari/pcc-llms/src/playground"]
-const nonSensitiveFilesList : seq<seq<char>> := ["~/id_rsa.pub","/user-data/shared-data.txt",
-"/user-data/public-info.txt", "/user-data/public-key.txt","shared-data.txt","public-info.txt", 
-"/company-docs/instructions.txt", "/company-docs/public-info.txt", "/company-docs/employee-handbook.txt", "company-docs/annual-report.txt",
-"public-key.txt", "safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
+// const SensitiveFilesList : seq<seq<char>> := ["~/id_rsa.pub","/user-data/shared-data.txt",
+// "/user-data/public-info.txt", "/user-data/public-key.txt","shared-data.txt","public-info.txt", 
+// "/company-docs/instructions.txt", "/company-docs/public-info.txt", "/company-docs/employee-handbook.txt", "company-docs/annual-report.txt",
+// "public-key.txt", "safeFile-1.txt", "safeFile-2.txt", "safeFile-3.txt", "bar.txt", "baz.txt"]
  // Set of allowed file extensions
 const allowedExtensionsForRead: seq<string> := ["txt", "pdf", "docx"]
 const allowedExtensionsForWrite: seq<string> := ["txt", "docx"]
 datatype Permission = Read | Write | Execute
 type User = seq<char>
 datatype PathOrFile = Path(p: path) | File(f: file)
-predicate alpha_numeric(c: char)
+
+predicate AlphaNumeric(c: char)
 
 {
     (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
 }
 
 
-predicate validate_char(c: char)
-ensures validate_char(c) <==> alpha_numeric(c) || c in validDirCharacters
+predicate IsValidChar(c: char)
+ensures IsValidChar(c) <==> AlphaNumeric(c) || c in validDirCharacters
 {
-    alpha_numeric(c) || c in validDirCharacters
+    AlphaNumeric(c) || c in validDirCharacters
 
 }
 
-predicate validate_file_char(c: char)
-ensures validate_file_char(c) <==> alpha_numeric(c) || c in validFileCharacters
+predicate IsValidFileChar(c: char)
+ensures IsValidFileChar(c) <==> AlphaNumeric(c) || c in validFileCharacters
 {
-    alpha_numeric(c) || c in validFileCharacters
+    AlphaNumeric(c) || c in validFileCharacters
 }
 
-predicate validate_dir_char(c: char)
-ensures validate_dir_char(c) <==> alpha_numeric(c) || c in validDirCharacters
+ function is_valid_file(filename: string): bool
 {
-    alpha_numeric(c) || c in validDirCharacters
+    forall i :: 0 <= i < |filename| ==> IsValidFileChar(filename[i])
 }
 
-method ValidateNonsensitiveFile(fileName: file, nonSensitiveFilesList: seq<path>) returns (result: bool)
-requires 0 < |fileName| <= fileMaxLength
-ensures result <==> (exists i :: 0 <= i < |nonSensitiveFilesList| && fileName == nonSensitiveFilesList[i]) || fileName in nonSensitiveFilesList
+predicate IsValidDirChar(c: char)
+ensures IsValidDirChar(c) <==> AlphaNumeric(c) || c in validDirCharacters
 {
-  var res := ContainsSequence(nonSensitiveFilesList, fileName);
+    AlphaNumeric(c) || c in validDirCharacters
+}
 
-    if res {
-        result := true;
-    } else {
-        result := false;
-    }
+  // Function to check if filename has leading or trailing spaces
+function HasNoLeadingOrTrailingSpaces(filename: string): bool
+requires |filename| > 0
+{
+    StringSliceLemma(filename);
+    filename[0] != ' ' && filename[|filename|-1] != ' '
+}
+
+  // Function to check if filename starts with a period
+function DoesNotStartWithPeriod(filename: string): bool
+requires |filename| > 0
+{
+    filename[0] != '.'
 }
 
 
-
-function string_slice(s: seq<char>): seq<char>
+function StringSlice(s: seq<char>): seq<char>
 {
-  if |s| == 0 then "" else ([s[|s| - 1]] + string_slice(s[..(|s| - 1)]))
+  if |s| == 0 then "" else ([s[|s| - 1]] + StringSlice(s[..(|s| - 1)]))
 }
 
 lemma StringSliceLemma(s: seq<char>)
@@ -80,69 +88,41 @@ ensures forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]]
     assert forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]];
 }
 
-function concat(s1: seq<char>, s2: seq<char>): seq<char>
+function Concat(s1: seq<char>, s2: seq<char>): seq<char>
 requires 0 <= |s1| + |s2| <= dirMaxLength && 0 < |s1| < dirMaxLength && 0 < |s2| <= fileMaxLength
-ensures |concat(s1, s2)| == |s1| + |s2| && concat(s1, s2) == s1 + s2 && |s1| + |s2| <= dirMaxLength 
+ensures |Concat(s1, s2)| == |s1| + |s2| && Concat(s1, s2) == s1 + s2 && |s1| + |s2| <= dirMaxLength 
 {
   s1 + s2
 }
 
-function path_join(p: path, f: file): seq<char>
+function PathJoin(p: path, f: file): seq<char>
 requires 0 <= |p| + |f| < dirMaxLength && 0 < |p| < dirMaxLength && 0 < |f| <= fileMaxLength
-ensures |path_join(p, f )| <= dirMaxLength
-ensures |concat(concat(p, "/"), f)| == |p| + |f| + 1 && 
-        concat(concat(p, "/"), f) == p + "/" + f && |p| + |f| <= dirMaxLength 
-ensures (path_join(p, f) == concat(p, f) || path_join(p, f) == concat(concat(p, "/"), f))
+ensures |PathJoin(p, f )| <= dirMaxLength
+ensures |Concat(Concat(p, "/"), f)| == |p| + |f| + 1 && 
+        Concat(Concat(p, "/"), f) == p + "/" + f && |p| + |f| <= dirMaxLength 
+ensures (PathJoin(p, f) == Concat(p, f) || PathJoin(p, f) == Concat(Concat(p, "/"), f))
 {
-  if p[|p| - 1] == '/' then  concat(p, f) else concat(concat(p, "/"), f)
+  if p[|p| - 1] == '/' then  Concat(p, f) else Concat(Concat(p, "/"), f)
 }
 
 
-predicate has_path_traversal(p: path)
-ensures has_path_traversal(p) <==> exists i :: 0 <= i < |p| && is_traversal_pattern(p, i)
+predicate IsDangerousPath(p: path)
+ensures IsDangerousPath(p) ==> ContainsConsecutivePeriods(p) || !HasAbsolutePath(p)
 {
-    exists i :: 0 <= i < |p| && is_traversal_pattern(p, i)
+    ContainsConsecutivePeriods(p) || !HasAbsolutePath(p)
 }
 
-predicate is_traversal_pattern(p: path, i: int)
-requires 0 <= i < |p|
+predicate HasAbsolutePath(p: path)
+ensures HasAbsolutePath(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && IsValidChar(p[2])))
 {
-    (i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && (p[i+2] == '/' || p[i+2] == '\\')) ||
-    (i + 5 < |p| && p[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
-    (i + 8 < |p| && p[i..i+9] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e']) ||
-    (i > 0 && p[i-1] == '/' && i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && p[i+2] == '.')
+    |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && IsValidChar(p[2])))
 }
-
-predicate is_dangerous_path(p: path)
-ensures is_dangerous_path(p) <==> has_path_traversal(p) || has_absolute_path(p)
-{
-    has_path_traversal(p) || has_absolute_path(p)
-}
-
-predicate has_absolute_path(p: path)
-ensures has_absolute_path(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':'))
-{
-    |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':'))
-}
-
-
-
-predicate validate_file(f: file)
-requires 0 <= |f| <= fileMaxLength
-ensures validate_file(f) <==> (forall i :: 0 <= i < |f|  ==> validate_file_char(f[i])
-         && alpha_numeric(f[0]) && alpha_numeric(f[|f| - 1]))
-{
-  forall i :: 0 <= i < |f| ==> validate_file_char(f[i]) && alpha_numeric(f[0]) && alpha_numeric(f[|f| - 1])
-
-}
-
-
 
 predicate validate_dir_name(p: path)
 requires 0 <= |p| <= dirMaxLength
-  ensures validate_dir_name(p) <==> forall i :: 0 <= i < |p| ==> validate_char(p[i])
+  ensures validate_dir_name(p) <==> forall i :: 0 <= i < |p| ==> IsValidChar(p[i])
 {
-  forall i :: 0 <= i < |p| ==> validate_char(p[i])
+  forall i :: 0 <= i < |p| ==> IsValidChar(p[i])
 }
 
 predicate validate_file_type(f: file)
@@ -174,19 +154,10 @@ function getFileExtension(filename: file): string
       filename[lastDotIndex + 1..]
 }
 
-//  predicate hasPathPermission(path: path, user: User, perm: Permission)
-//  ensures hasPathPermission(path, user, perm) <==> path in permissions.Keys && user in permissions[path].Keys && perm in permissions[path][user]
-//   {
-//     && path in permissions.Keys
-//     && user in permissions[path].Keys
-//     && perm in permissions[path][user]
-//   }
-
-
 method ValidateFileType(t: fileType) returns (result: bool)
 requires 0 <= |t| <= 4
 {
-  var res := ContainsSequence(nonSensitiveFilesList, t);
+  var res := ContainsSequence(sensitivePaths, t);
   if !res {
     result := true;
   } else {
@@ -283,23 +254,23 @@ method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)
   a := new A[|s|] ( i requires 0 <= i < |s| => s[i] );
 }
 
-function digit_to_char(n: nat): char
+function DigitToChar(n: nat): char
 // Compute the character representation of a digit
   requires 0  <= n <=  9
-  ensures '0' <= digit_to_char(n) <= '9'
+  ensures '0' <= DigitToChar(n) <= '9'
 {
   '0' + n as char // `as` is the type-casting operator
 }
 
-function number_to_string(n: nat): string
+function NumberToString(n: nat): string
 // Convert a number to its string representation
-  ensures forall i :: 0 <= i < |number_to_string(n)| ==> '0' <= number_to_string(n)[i] <= '9'
+  ensures forall i :: 0 <= i < |NumberToString(n)| ==> '0' <= NumberToString(n)[i] <= '9'
 {
   if n < 10
   // Base case: A nat on [0, 10) is just one character long.
-  then [digit_to_char(n)]
+  then [DigitToChar(n)]
   // Inductive case: Compute all but the last character, then append the final one at the end
-  else number_to_string(n/10) + [digit_to_char(n % 10)]
+  else NumberToString(n/10) + [DigitToChar(n % 10)]
 }
 
 
@@ -307,38 +278,38 @@ method ComputeDigitToChar(n: nat) returns (result: char)
 // Compute the character representation of a digit
   requires 0  <= n <=  9
   ensures '0' <= result <= '9'
-  ensures result == digit_to_char(n)
+  ensures result == DigitToChar(n)
 {
   return '0' + n as char;
 }
 
 method ComputeNumberToString(n: nat) returns (r: string)
 // Compute the string representation of a number
-  ensures r == number_to_string(n)
+  ensures r == NumberToString(n)
 {
   if n < 10 {
-    var digit_to_char := ComputeDigitToChar(n);
-    r := [digit_to_char];
+    var DigitToChar := ComputeDigitToChar(n);
+    r := [DigitToChar];
   }
 
   else {
     var numToChar := ComputeNumberToString(n/10);
-    var digit_to_char := ComputeDigitToChar(n % 10);
-    r := numToChar + [digit_to_char];
+    var DigitToChar := ComputeDigitToChar(n % 10);
+    r := numToChar + [DigitToChar];
   }
 
 }
 
-function char_to_int(c: char): int 
+function CharToInt(c: char): int 
 // Convert a character to a byte
 {
   c as int
 }
 
-function char_to_byte(c: char): byte
+function CharToByte(c: char): byte
 // Convert a character to a byte
 {
-    var i := char_to_int(c);
+    var i := CharToInt(c);
     if 0 <= i < 0x100 then i as byte else 0 as byte
 }
 
@@ -347,7 +318,7 @@ function StringToBytes(s: string): seq<byte>
     if |s| == 0 then
         []
     else
-        [char_to_byte(s[0])] + StringToBytes(s[1..])
+        [CharToByte(s[0])] + StringToBytes(s[1..])
 }
 
 method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
@@ -363,24 +334,24 @@ method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
     invariant |bytesSeq| == i  // Ensure that the length of bytesSeq matches the number of iterations
     invariant forall j: int :: 0 <= j < i ==> bytesSeq[j] == s[j] as int  // Each element up to i matches the string's character.
   {
-    bytesSeq := bytesSeq + [char_to_int(s[i])];
+    bytesSeq := bytesSeq + [CharToInt(s[i])];
     i := i + 1;  // Increment the index to move to the next character.
   }
 
 }
 
-function contains_sequence(list: seq<seq<char>>, sub: seq<char>): bool
-  ensures contains_sequence(list, sub) <==> (exists i :: 0 <= i < |list| && sub == list[i])
+function ListContainsString(list: seq<seq<char>>, sub: seq<char>): bool
+  ensures ListContainsString(list, sub) <==> (exists i :: 0 <= i < |list| && sub == list[i])
 {
   if |list| == 0 then
     false
   else if sub == list[0] then
     true
   else
-    contains_sequence(list[1..], sub)
+    ListContainsString(list[1..], sub)
 }
 
-function contains_char(s: string, c: char): bool
+function ContainsChar(s: string, c: char): bool
   requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
 {
   exists i :: 0 <= i < |s| && s[i] == c
@@ -390,14 +361,14 @@ lemma CharAtIndexImpliesContainsC(s: string, c: char, index: int)
   requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
   requires 0 <= index < |s|
   requires s[index] == c
-  ensures contains_char(s, c)
+  ensures ContainsChar(s, c)
 {
   // The body can be empty; Dafny can prove this automatically
 }
 
 method ContainsCharMethod(s: string, c: char) returns (result: bool)
   requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
-  ensures result == contains_char(s, c)
+  ensures result == ContainsChar(s, c)
 {
   result := false;
   var i := 0;
@@ -413,23 +384,184 @@ method ContainsCharMethod(s: string, c: char) returns (result: bool)
     i := i + 1;
   }
 }
-// method GetFileType(fileName: seq<char>) returns (fileType: seq<char>)
-// requires 0 < |fileName| <= fileMaxLength
-// ensures 0 <= |fileType| <= 3
-// ensures 0 <= |fileType| < 4
-// ensures forall j :: 0 <= j < |fileType| ==> validate_file_char(fileType[j])
+
+
+// Check 1: Path is not empty
+predicate IsNonEmpty(path: string)
+  ensures IsNonEmpty(path) ==> |path| > 0
+{
+   |path| > 0
+}
+
+// Check 3: Path does not contain reserved names
+method HasNoReservedNames(path: string) returns (isValid: bool)
+{
+  var reservedNames := ["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4"];
+  var upperPath := ToUppercase(path);
+  for i := 0 to |reservedNames|
+  {
+    var startsWithReserved := StartsWith(upperPath, reservedNames[i]+ ".");
+    if upperPath == reservedNames[i] || startsWithReserved {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Helper method: Check if string starts with prefix
+method StartsWith(s: string, prefix: string) returns (result: bool)
+  requires |prefix| > 0
+  ensures result <==> |s| >= |prefix| && s[..|prefix|] == prefix
+{
+  if |s| < |prefix| {
+    return false;
+  }
+
+  var i := 0;
+  while i < |prefix|
+    invariant 0 <= i <= |prefix|
+    invariant forall k :: 0 <= k < i ==> s[k] == prefix[k]
+  {
+    if s[i] != prefix[i] {
+      return false;
+    }
+    i := i + 1;
+  }
+
+  return true;
+}
+
+
+
+function ContainsConsecutivePeriods(s: seq<char>): bool
+    decreases s
+{
+   StringSliceLemma(s);
+    if |s| < 2 then
+        false
+    else if s[0] == '.' && s[1] == '.' then
+        true
+    else
+        ContainsConsecutivePeriods(s[1..])
+
+}
+
+
+
+function ContainsEncodedPeriods(s: seq<char>): bool
+    decreases s
+{
+    StringSliceLemma(s);
+    if |s| < 3 then
+        false
+    else if s[0] == '%' && s[1] == '2' && s[2] == 'e' then
+        true
+    else
+        ContainsEncodedPeriods(s[1..])
+
+}
+
+
+
+
+
+
+
+
+// method ContainsConsecutiveDotLemma(s: seq<char>)
+// requires |s| > 0
+// requires exists i :: 0 <= i < |s| - 1 && is_dot(s[i]) && is_dot(s[i + 1]) ==> s[i] == s[i + 1]
 // {
-//   fileType := [];
-//   var i := |fileName| - 1;
-//   while i > 0
-//     invariant 0 <= i <= |fileName|
-//     invariant 0 <= |fileType| < 4
-//     invariant forall j :: 0 <= j < |fileType| ==> validate_file_char(fileType[j])
+// }
+
+//  predicate hasPathPermission(path: path, user: User, perm: Permission)
+//  ensures hasPathPermission(path, user, perm) <==> path in permissions.Keys && user in permissions[path].Keys && perm in permissions[path][user]
 //   {
-//     if fileName[i] == '.' {
-//       break;
-//     }
-//     fileType := [fileName[i]] + fileType;
-//     i := i - 1;
+//     && path in permissions.Keys
+//     && user in permissions[path].Keys
+//     && perm in permissions[path][user]
 //   }
+
+// predicate has_traversal_pattern(p: path, i: int)
+// requires 0 <= i < |p|
+// {
+//     (i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && (p[i+2] == '/' || p[i+2] == '\\')) ||
+//     (i + 5 < |p| && p[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
+//     (i + 8 < |p| && p[i..i+9] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e']) ||
+//     (i > 0 && p[i-1] == '/' && i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && p[i+2] == '.')
+// }
+
+
+// function decode_percent(s: seq<char>, i: int): (char, int)
+//     requires i + 2 < |s|
+//     requires forall j:: i+2 < j < |s| ==> s[j] == '%'
+// {
+//     var hex := s[i+1..i+3];
+//     if hex == "2e" || hex == "2E" then
+//         ('.', i + 3)
+//     else
+//         (s[i], i + 1)
+// }
+
+
+// predicate has_path_traversal(p: path)
+// ensures exists i :: 0 <= i < |p| ==> has_traversal_pattern(p, i)
+// {
+//     exists i :: 0 <= i < |p| && has_traversal_pattern(p, i)
+// }
+
+
+// predicate str_AlphaNumeric(s: seq<char>)
+// ensures forall i :: 0 <= i < |s| ==> AlphaNumeric(s[i])
+// {
+//     forall i :: 0 <= i < |s| ==> AlphaNumeric(s[i])
+// }
+
+// predicate validate_file(f: file)
+// requires 0 <= |f| <= fileMaxLength
+// ensures forall i :: 0 <= i < |f|  ==> IsValidFileChar(f[i])
+//          && AlphaNumeric(f[0]) && AlphaNumeric(f[|f| - 1])
+// {
+//   forall i :: 0 <= i < |f| ==> IsValidFileChar(f[i]) && AlphaNumeric(f[0]) && AlphaNumeric(f[|f| - 1])
+
+// }
+
+
+// function is_separator(c: char): bool
+// {
+//     c == '/' || c == '\\'
+// }
+
+// function is_dot(c: char): bool
+// {
+//     c == '.' || c == '%' // '%' could be the start of an encoded dot
+// }
+
+
+
+
+// predicate is_dot_dot(p: path, i: int)
+//     requires 0 <= i < |p|
+// {
+//     i + 1 < |p| && p[i] == '.' && p[i+1] == '.'
+// }
+
+// predicate is_percent_encoded_dot_dot(p: path, i: int)
+//     requires 0 <= i < |p|
+// {
+//     (i + 5 < |p| && p[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
+//     (i + 11 < |p| && p[i..i+12] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e'])
+// }
+
+// predicate has_traversal_pattern(p: path, i: int)
+//     requires 0 <= i < |p|
+// {
+//     (is_dot_dot(p, i) && (i == 0 || is_separator(p[i-1])) && (i + 2 == |p| || is_separator(p[i+2]))) ||
+//     (is_percent_encoded_dot_dot(p, i) && (i == 0 || is_separator(p[i-1])) && (i + 6 == |p| || is_separator(p[i+6]))) ||
+//     (i > 0 && is_separator(p[i-1]) && i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && p[i+2] == '.')
+// }
+
+// function has_dot_dot(s: seq<char>): bool
+// {
+//     exists i :: 0 <= i < |s| - 1 && s[i] == '.' && s[i + 1] == '.' && (i + 2 == |s| || is_separator(s[i + 2]))
 // }
