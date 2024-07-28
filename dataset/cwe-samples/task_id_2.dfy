@@ -3,7 +3,6 @@ method SaveToFile(path: seq<char>, userData: seq<char>)
 requires !IsDangerousPath(path)
 requires HasValidPathLength(path)
 requires NonEmptyString(path)
-requires !IsDangerousPath(path)
 requires StrContentLengthIsValid(userData)
 requires HasAbsolutePath(path)
 requires IsValidPathName(path)
@@ -14,10 +13,10 @@ requires IsValidFileExtension(path)
     var f: FileStream;
     var ok: bool;
     var data: array<byte> := ArrayFromSeq(StringToBytes(userData));
-    ok, f := FileStream.Open(path);
+    ok, f := FileStream.SafeOpenAPI(path);
     if !ok { print "open failed\n"; return; }
     if ( data.Length == 0 ) { print "Empty data\n"; return; }
-    ok := f.Write(path, 0, data, 0, data.Length as int32);
+    ok := f.SafeWriteAPI(path, 0, data, 0, data.Length as int32);
     print "Safe write operation!\n";
 
 }
