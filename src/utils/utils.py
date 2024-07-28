@@ -111,8 +111,9 @@ def get_examples_id_task_specification_pair(example_json):
             "task_id": example_json[task]["task_id"],
             "task_description": example_json[task]["task_description"],
             "method_signature": example_json[task]["method_signature"],
-            "verifier_methods": example_json[task]["verifier_methods"],
-            "input_generators_signature": example_json[task]["input_generators_signature"],
+            "safety_properties": example_json[task]["safety_properties"],
+            "verification_methods_signature": example_json[task]["spec"]["verification_methods_signature"],
+            "verification_conditions": example_json[task]["spec"]["verification_conditions"],
         }
         list_of_examples.append(output_task)
     return list_of_examples
@@ -149,7 +150,29 @@ def load_json(file_path):
 
 def parse_specification_response(task, response):
     signature = response.split("\n")[1]
-    post_condition = "\n".join(response.split("\n")[3:])
+    print("------------------------------")
+    print(f"signature:\n {signature} \n")
+    print(f"response:\n {response}\n")
+    safety_properties = "\n".join(response.split("\n")[3:])
+    print(f"safety_properties:\n {safety_properties} \n")
     task['method_signature'] = signature.strip()
-    task['postconditions'] = post_condition.strip()
+    print(f"task['method_signature']:\n {task['method_signature']} \n")
+    task['safety_properties'] = safety_properties.strip()
     return task
+
+    
+def prepend_include_to_code(response, interface_path): 
+    print(f"\\n\n\n\n\n\n inside prepend_include_to_code")
+    # Use regex to find Dafny code blocks
+    pattern = r'```dafny\n(.*?)```'
+    dafny_blocks = re.findall(pattern, response, re.DOTALL)
+    for block in dafny_blocks:
+        print(f" ----------------------------- \n\n\n")
+        print(f"block: {block}")
+        modified_block = f'include "{interface_path}"\n\n{block.strip()}'
+        
+        response = response.replace(f'```dafny\n{block}```', 
+                                                      f'```dafny\n{modified_block}\n```')
+        
+    print(f" included \n\n\n\n\n\ {response}")
+    return response

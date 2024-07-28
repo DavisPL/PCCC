@@ -8,6 +8,7 @@ requires NonEmptyString(userName)
 requires !IsDangerousPath(userName)
 requires HasAbsolutePath(path)
 ensures ByteContentLengthIsValid(data)
+
 {
     var f: FileStream;
     var ok: bool;
