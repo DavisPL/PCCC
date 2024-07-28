@@ -13,11 +13,11 @@ ensures HasValidPathLength(jointPath)
 {
   var f: FileStream;
   var ok: bool;
-  ok, f := FileStream.Open(fname);
+  ok, f := FileStream.SafeOpenAPI(fname);
   if !ok { print "open failed\n"; return "";}
   var joinIsOk:bool;
 
-  jointPath := f.Join(path, fname);
+  jointPath := f.SafeJoinAPI(path, fname);
 }
 
 method testAppend()
