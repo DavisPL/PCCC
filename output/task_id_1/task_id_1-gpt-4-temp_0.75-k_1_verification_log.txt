@@ -1,0 +1,37 @@
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(12,0): Error: a postcondition could not be proved on this return path
+   |
+12 | {
+   | ^
+
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(10,12): Related location: this is the postcondition that could not be proved
+   |
+10 |     ensures HasValidPathLength(jointPath)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/dataset/filesystems/interface/interface-helper.dfy(98,7): Related location: this proposition could not be proved
+   |
+98 |    0 < |p| < pathMaxLength
+   |        ^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(12,0): Error: a postcondition could not be proved on this return path
+   |
+12 | {
+   | ^
+
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(11,12): Related location: this is the postcondition that could not be proved
+   |
+11 |     ensures jointPath == path + fname
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(13,17): Error: function precondition could not be proved
+   |
+13 |     jointPath := PathJoin(path, fname);
+   |                  ^^^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/dataset/filesystems/interface/interface-helper.dfy(163,13): Related location: this proposition could not be proved
+    |
+163 | requires 0 < |p| + |f| <= pathMaxLength - 1 && 0 <= |p| && 0 < |f| 
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Dafny program verifier finished with 0 verified, 3 errors

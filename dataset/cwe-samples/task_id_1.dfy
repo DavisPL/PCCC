@@ -7,10 +7,9 @@ requires IsValidPathName(path)
 requires IsValidFileName(fname)
 requires HasValidFileLength(fname)
 requires HasValidPathLength(path)
-requires 0 < GetPathLength(PathOrFile.Path(path))
 requires HasValidPathLength(path + fname)
-ensures PathJoin(path, fname) == jointPath  || jointPath == ""
-ensures HasValidPathLength(jointPath) || 0 <= |jointPath|
+requires PathJoin(path, fname) == path + fname
+ensures HasValidPathLength(jointPath)
 {
   var f: FileStream;
   var ok: bool;

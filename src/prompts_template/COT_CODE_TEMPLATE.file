@@ -3,21 +3,24 @@ TASK:
 
 AI ASSISTANT:
 
-Step 1: Determine the method’s signature.
+Step 1: Determine the preconditions.
 In this case:
-    {{method_signature}}
+    {{verification_conditions}}
 
 Step 2: Determine the safety properties.
 In this case:
     {{safety_properties}}
 
 
-step 3: Determine the verification methods signatures
+step 3: Determine the verification methods signatures.
 In this case:
+    {{verification_methods_signature}}
 
-    {{verifier_methods}}
+step4: Determine FileIO methods signatures
+    {{fileIO_methods_signature}}
 
-Step 4: Write the code and use verification methods that help the solver prove the internally implemented verification conditions.
+
+Step 5: Write the code and use verification methods that help the solver prove the internally implemented verification conditions.
 In this case:
 
 ```dafny

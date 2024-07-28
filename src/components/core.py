@@ -109,7 +109,7 @@ class Core:
         #         self.function = function
         # Open the file containing the API key
     
-    def count_tokens(chain, query):
+    def count_tokens(self, chain, query):
         with get_openai_callback() as cb:
             result = chain.run(query)
             print(f'Spent a total of {cb.total_tokens} tokens')
@@ -143,10 +143,9 @@ class Core:
         temperature = api_config['temp']
         spec_shot_count = int(env_config["spec_shot_count"])
         code_shot_count = int(env_config["code_shot_count"])
-        print(f" new_task: {new_task}") 
+        print(f" new_task:\n {new_task}\n\n") 
      
-        # similar_tasks = spec_example_selector
-        # print(f"similar_tasks = {similar_tasks}")
+
         # Required for similarity_example_selector without lanchain
         # spec_examples_ids = []
         # for key, task_list in similar_tasks.items():
@@ -158,14 +157,16 @@ class Core:
         #         spec_examples_ids.append(task['task_id'])
         # print(f"\n spec_examples_ids \n {spec_examples_ids}")
         similar_tasks = spec_example_selector.select_examples(new_task)
-        print(f"similar_tasks = {similar_tasks}")
+        print(f"\n similar_tasks =\n  {similar_tasks}\n\n ")
         spec_examples_ids = [t['task_id'] for t in similar_tasks]
         print(f" spec_examples_ids: {spec_examples_ids[0]}")
+
         prompt_gen = prompt_generator.PromptGenerator()
         specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
                                                                                   example_db_50_tasks,
                                                                                   spec_prompt_template)
 
+     
         # print("\n Is specification_prompt correct ??????????????//////////////////////")
         # print(specification_prompt)
         # Memory
@@ -182,10 +183,11 @@ class Core:
         with get_openai_callback() as cb_spec:
             specification_response = specification_chain.run(new_task['task_description'])
         print(f'\n Spent a total of {cb_spec.total_tokens} tokens for verification \n')
-
+        print(f"\n specification_response: \n {specification_response} \n")
         next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
         
         print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
+        exit()
         spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
         print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
