@@ -18,7 +18,8 @@ class PCCC:
     def get_config(self):
         src_dir_path = os.path.dirname(os.getcwd())
         print(f"src_dir_path: {src_dir_path}")
-        config_path = os.path.join(src_dir_path, 'env.config')
+        # ToDo: change this before pushing to the repo to get env.config from the root directory
+        config_path = os.path.join(src_dir_path, 'dpl.config')
         print(f"config_path: {config_path}")
         if not (os.path.exists(config_path)):
             print(f"Given Config Path: {config_path}")
