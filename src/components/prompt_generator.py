@@ -10,12 +10,12 @@ class PromptGenerator:
         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db)
         print(f"examples: \n {examples}")
         example_prompt_template = PromptTemplate(
-            input_variables=["task_description","method_signature", "input_generators_signature", "safety_properties", "verifier_methods", "code"],
+            input_variables=["task_description","method_signature", "safety_properties","fileIO_methods_signature", "verification_methods_signature", "code"],
             template_format='jinja2',
             template=prompt_template
         )
         prompt = FewShotPromptTemplate(
-            prefix="SYSTEM:\nYou are an expert AI assistant that writes codes in Dafny. You are very good at writing correct code in Dafny using  the given verifier methods signatures. You can use input generators signatures to create a file or path. You should generate a code that satisfies given safety properties provided to you. You are not allowed to modify provided signatures.\n\n",
+            prefix="SYSTEM:\nYou are an expert code assistant that implements codes in Dafny. You use FileIO APIs from an imlemented library. Your should generate a code with preconditions/postconditions that satisfies given safety properties for filesystem. You are not allowed to modify given method signatures.\n\n",
             examples=examples,
             example_prompt=example_prompt_template,
             suffix='''TASK:\n{{task}}\n\nAI ASSISTANT:\n\n''',
@@ -33,10 +33,11 @@ class PromptGenerator:
             obj = examples_db[id]
             new_obj['code'] = obj['code']
             new_obj['task_description'] = obj['task_description']
-            new_obj['input_generators_signature'] = obj['input_generators_signature']
             new_obj['method_signature'] = obj['method_signature']
             new_obj['safety_properties'] = obj['safety_properties']
-            new_obj['verifier_methods'] = obj['verifier_methods']
+            new_obj['verification_conditions'] = obj['spec']['verification_conditions']
+            # new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
+            # new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
     
             similar_examples.append(new_obj)
             print(f"simmilar_examples: {similar_examples}")
@@ -48,13 +49,15 @@ class PromptGenerator:
         examples = self.get_similar_tasks_based_on_task_description(examples_task_ids, examples_db)
         print(f"\n \n =========================== \n\n examples: \n\n {examples} \n\n")
         example_prompt_template = PromptTemplate(
-            input_variables=["task_description", "method_signature", "safety_properties"],
+            # input_variables=["task_description", "method_signature", "safety_properties"],
+            input_variables=["safety_properties", "verification_conditions", "'verification_methods_signature"],
             template_format='jinja2',
             template=prompt_template,
 
         )
         print(f"\n\n example_prompt_template: \n\n {example_prompt_template} \n\n")
         prompt = FewShotPromptTemplate(
+            prefix="SYSTEM:\n Your task is to  that implements verification conditions in Dafny.Your task is to map safety properties to verification conditions. You can use a list ofgiven methods signatures that is provided.\n\n",
             examples=examples,
             example_prompt=example_prompt_template,
             suffix='''Task:\n{{task}}\n''',
@@ -74,8 +77,8 @@ class PromptGenerator:
             obj = examples_db[id]
             new_obj['task_description'] = obj['task_description']
             new_obj['method_signature'] = obj['method_signature']
-            # new_obj['input_generators_signature'] = obj['input_generators_signature']
-            # new_obj['verifier_methods'] = obj['verifier_methods']
+            new_obj['verification_conditions'] = obj['spec']['verification_conditions']
+            new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
             new_obj['safety_properties'] = obj['safety_properties']
             similar_examples.append(new_obj)
       
@@ -84,8 +87,8 @@ class PromptGenerator:
 
     def get_specification_output_parser(self):
         response_schemas = [
-            ResponseSchema(name="method_signature", description="Method Signature"),
-            ResponseSchema(name="verifier_methods", description="Verifier Methods"),
+            ResponseSchema(name="verification_methods_signature", description="Verification Method Signature"),
+            ResponseSchema(name="task_description", description="task_description"),
             ResponseSchema(name="safety_properties", description="Safety Properties"),
         ]
         specifications_parser = StructuredOutputParser.from_response_schemas(response_schemas)

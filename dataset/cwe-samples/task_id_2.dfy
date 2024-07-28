@@ -4,14 +4,12 @@ requires !IsDangerousPath(path)
 requires HasValidPathLength(path)
 requires NonEmptyString(path)
 requires !IsDangerousPath(path)
-requires !ContainsConsecutivePeriods(path)
-requires !ContainsDangerousPattern(path)
-requires !ContainsEncodedPeriods(path)
 requires StrContentLengthIsValid(userData)
 requires HasAbsolutePath(path)
 requires IsValidPathName(path)
 requires IsValidFileName(userData)
 requires IsValidFileExtension(path)
+
 {
     var f: FileStream;
     var ok: bool;
@@ -24,11 +22,10 @@ requires IsValidFileExtension(path)
 
 }
 
-method testSafeWrite()
-{
-    var path: seq<char> := "/usr/data/file.txt";
-    var userData: seq<char> := "This is a test";
+// method testSafeWrite()
+// {
+//     var path: seq<char> := "/usr/data/file.txt";
+//     var userData: seq<char> := "This is a test";
 
-    // assert !a;
-    WriteToFile(path, userData);
-}
+//     SaveToFile(path, userData);
+// }

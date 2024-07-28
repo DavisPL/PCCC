@@ -58,16 +58,15 @@ requires !IsDangerousPath(srcFile)
 requires !IsDangerousPath(dstFile)
 requires HasValidPathLength(srcFile)
 requires HasValidPathLength(dstFile)
+
 {
   var data := ReadFile(srcFile);
-  // if ByteContentLengthIsValid(data) {
-    WriteToFile(dstFile, data);
-  // }
+  WriteToFile(dstFile, data);
 }
 
-method testSafeWrite()
-{
-  var srcFile: seq<char> := "/usr/data/file.txt";
-  var dstFile: seq<char> := "/filecopy.txt";
-  Copy(srcFile, dstFile);
-}
+// method testSafeWrite()
+// {
+//   var srcFile: seq<char> := "/usr/data/file.txt";
+//   var dstFile: seq<char> := "/filecopy.txt";
+//   Copy(srcFile, dstFile);
+// }

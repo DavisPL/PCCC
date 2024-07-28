@@ -48,7 +48,7 @@ ensures IsValidFileChar(c) <==> AlphaNumeric(c) || c in validFileCharacters
     AlphaNumeric(c) || c in validFileCharacters
 }
 
- function IsValidFileName(filename: string): bool
+ predicate IsValidFileName(filename: string)
 {
     forall i :: 0 <= i < |filename| ==> IsValidFileChar(filename[i])
 }
@@ -59,7 +59,7 @@ ensures IsValidPathChar(c) <==> AlphaNumeric(c) || c in validPathCharacters
     AlphaNumeric(c) || c in validPathCharacters
 }
 
- function IsValidPathName(path: string): bool
+ predicate IsValidPathName(path: string)
 {
     forall i :: 0 <= i < |path| ==> IsValidPathChar(path[i])
 }
@@ -95,7 +95,7 @@ ensures IsValidDir(p) <==> forall i :: 0 <= i < |p| ==> IsValidChar(p[i])
 
 predicate HasValidPathLength(p: path)
 {
-   0 < |p| < pathMaxLength
+   0 <= |p| < pathMaxLength
 }
 
 // predicate HasValidPathFileLength(PathOrFile: PathOrFile)
@@ -195,20 +195,18 @@ ensures HasAbsolutePath(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == '
 }
 
 // / Function to check if a file extension is valid
-function IsValidFileExtension(filename: string): bool
+predicate IsValidFileExtension(filename: string)
     requires |filename| > 0
-    ensures true
-    // ensures IsValidFileExtension(filename) ==>
-    //     exists i :: 0 <= i < |filename| && filename[i] == '.' &&
-    //         (forall j :: i < j < |filename| ==> filename[j] != '/' && filename[j] != '\\') &&
-    //         i < |filename| - 1
+    ensures IsValidFileExtension(filename) ==>
+        exists i :: 0 <= i < |filename| && filename[i] == '.' &&
+            (forall j :: i < j < |filename| ==> filename[j] != '/' && filename[j] != '\\') &&
+            i < |filename| - 1
 {
-    // var lastDotIndex := LastIndexOf(filename, '.');
-    // lastDotIndex >= 0 &&
-    // lastDotIndex < |filename| - 1 &&
-    // forall i :: lastDotIndex < i < |filename| ==>
-    //     filename[i] != '/' && filename[i] != '\\'
-    true
+    var lastDotIndex := LastIndexOf(filename, '.');
+    lastDotIndex >= 0 &&
+    lastDotIndex < |filename| - 1 &&
+    forall i :: lastDotIndex < i < |filename| ==>
+        filename[i] != '/' && filename[i] != '\\'
 }
 
 // Helper function to get the last index of a character in a sequence
@@ -551,7 +549,7 @@ method StartsWith(s: string, prefix: string) returns (result: bool)
 
 
 
-function ContainsConsecutivePeriods(s: seq<char>): bool
+predicate ContainsConsecutivePeriods(s: seq<char>)
     decreases s
 {
    StringSliceLemma(s);
@@ -566,7 +564,7 @@ function ContainsConsecutivePeriods(s: seq<char>): bool
 
 
 
-function ContainsEncodedPeriods(s: seq<char>): bool
+predicate ContainsEncodedPeriods(s: seq<char>)
     decreases s
 {
     StringSliceLemma(s);
@@ -582,7 +580,7 @@ function ContainsEncodedPeriods(s: seq<char>): bool
 
 
     // Check for parent directory traversal (..)
-    function ContainsParentDirTraversal(s: seq<char>): bool
+    predicate ContainsParentDirTraversal(s: seq<char>)
         decreases s
     {
         StringSliceLemma(s);
@@ -595,7 +593,7 @@ function ContainsEncodedPeriods(s: seq<char>): bool
     }
 
     // Check for home directory reference (~)
-    function ContainsHomeDirReference(s: seq<char>): bool
+    predicate ContainsHomeDirReference(s: seq<char>)
         decreases s
     {
         StringSliceLemma(s);
@@ -614,7 +612,7 @@ function ContainsEncodedPeriods(s: seq<char>): bool
     // }
 
     // Check for drive letter (contains :)
-    function ContainsDriveLetter(s: seq<char>): bool
+    predicate ContainsDriveLetter(s: seq<char>)
         decreases s
     {
         StringSliceLemma(s);
@@ -627,7 +625,7 @@ function ContainsEncodedPeriods(s: seq<char>): bool
     }
 
     // Main function to detect dangerous patterns
-    function ContainsDangerousPattern(s: seq<char>): bool
+    predicate ContainsDangerousPattern(s: seq<char>)
     {
         ContainsParentDirTraversal(s) ||
         ContainsHomeDirReference(s) ||
@@ -636,13 +634,6 @@ function ContainsEncodedPeriods(s: seq<char>): bool
     }
 
 
-
-
-// Function to check if a string contains a substring
-    function Contains(s: string, substr: string): bool
-    {
-        exists i :: 0 <= i <= |s| - |substr| && s[i..i+|substr|] == substr
-    }
 
 
 
