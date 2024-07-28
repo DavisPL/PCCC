@@ -131,17 +131,18 @@ class Core:
         #                     max_output_tokens=4000)
     
     def invoke_llm(self, api_config, env_config, new_task,
-              example_db_50_tasks,
+              example_db_5_tasks,
+              vc_example_selector,
               spec_example_selector,
               code_example_selector,
-              spec_prompt_template,
+              vc_prompt_template,
               code_prompt_template,
               K):
         print("\n inside invoke_llm")
         llm = self.initialize_llm(api_config)
         api_key = api_config['openai_api_key']
         temperature = api_config['temp']
-        spec_shot_count = int(env_config["spec_shot_count"])
+        vc_shot_count = int(env_config["vc_shot_count"])
         code_shot_count = int(env_config["code_shot_count"])
         print(f" new_task:\n {new_task}\n\n") 
      
@@ -156,29 +157,28 @@ class Core:
         #         print()  # Add a blank line for better readability
         #         spec_examples_ids.append(task['task_id'])
         # print(f"\n spec_examples_ids \n {spec_examples_ids}")
-        similar_tasks = spec_example_selector.select_examples(new_task)
-        print(f"\n similar_tasks =\n  {similar_tasks}\n\n ")
-        spec_examples_ids = [t['task_id'] for t in similar_tasks]
-        print(f" spec_examples_ids: {spec_examples_ids[0]}")
+   
+        similar_tasks = spec_example_selector.select_examples(new_task)    
+        print(f"\n vc_example_selector \n {vc_example_selector}")
 
+        spec_examples_ids = [t['task_id'] for t in similar_tasks]
+        
         prompt_gen = prompt_generator.PromptGenerator()
         specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
-                                                                                  example_db_50_tasks,
-                                                                                  spec_prompt_template)
+                                                                                  example_db_5_tasks,
+                                                                                  vc_prompt_template, vc_example_selector)
 
-     
+ 
         # print("\n Is specification_prompt correct ??????????????//////////////////////")
         # print(specification_prompt)
         # Memory
         specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
-        print(f"\n ================================ \n ")
-        print(f"\n specification_memory \n {specification_memory}")
+
+        
         specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
                                     memory=specification_memory)
-        print(f"\n ================================ \n ")
-        print("\n specification_chain \n")
-        pprint.pprint(specification_chain)
-        print("\n new_task['task_description'] \n", new_task['task_description'])
+
+        print("\n new_task_description \n", new_task['task_description'])
         # Specification Prompt Response
         with get_openai_callback() as cb_spec:
             specification_response = specification_chain.run(new_task['task_description'])
@@ -187,13 +187,12 @@ class Core:
         next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
         
         print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
-        exit()
         spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
         print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
         print(f"\n code_examples_ids \n {code_examples_ids}")
 
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_50_tasks,code_prompt_template)
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks,code_prompt_template)
         
         print(f"\n ================================\n code_prompt")                                                            
         print(f"{code_prompt}")
@@ -221,7 +220,7 @@ class Core:
         # print(f"\n code_response: {code_response} \n")
         saved_map = {
             "temperature": temperature,
-            "spec_example_shots": env_config["spec_shot_count"],
+            "vc_example_shots": env_config["vc_shot_count"],
             "code_example_shots": env_config["code_shot_count"],
             "spec_examples_ids": spec_examples_ids,
             "specification_response": specification_response,

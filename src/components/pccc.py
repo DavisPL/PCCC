@@ -47,7 +47,8 @@ class PCCC:
         env_config["interface_path"] = config.get('DEFAULT', 'interface_path')
         
         env_config["example_db_json_path"] = config.get('FEWSHOT', 'example_db_json_path')
-        env_config["spec_shot_count"] = config.get('FEWSHOT', 'spec_shot_count')
+        env_config["vc_methods_api_path"] = config.get('FEWSHOT', 'vc_methods_api_path')
+        env_config["vc_shot_count"] = config.get('FEWSHOT', 'vc_shot_count')
         env_config["code_shot_count"] = config.get('FEWSHOT', 'code_shot_count')
         return api_config, env_config
     
@@ -71,14 +72,15 @@ class PCCC:
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
         print(f"script_dir_path: {script_dir_path}")
-        spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_SPEC_TEMPLATE.file')
+        # spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_VC_TEMPLATE.file')
+        vc_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_VC_TEMPLATE.file')
         code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_CODE_TEMPLATE.file')
-        if not (os.path.exists(spec_prompt_path) or os.path.exists(code_prompt_path)):
-            print("src/my_prompts_template/COT_SPEC_TEMPLATE.file or  src/my_prompts_template/COT_CODE_TEMPLATE.file!!")
+        if not (os.path.exists(vc_prompt_path) or os.path.exists(code_prompt_path)):
+            print("src/my_prompts_template/COT_VC_TEMPLATE.file or  src/my_prompts_template/COT_CODE_TEMPLATE.file!!")
             return
-        spec_template = utils.read_file(spec_prompt_path)
+        vc_template = utils.read_file(vc_prompt_path)
         code_template = utils.read_file(code_prompt_path)
-        return spec_template, code_template
+        return vc_template, code_template
     
     def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_info, _saved_map):
         print(f"\n Inside prepare_model_response \n")
@@ -93,7 +95,7 @@ class PCCC:
             "dafny_code": _dafny_code,
             "isVerified": _isVerified,
             "verification_info": _verification_info,
-            "spec_example_shots": _saved_map["spec_example_shots"],
+            "vc_example_shots": _saved_map["vc_example_shots"],
             "specification_response": _saved_map["specification_response"],
             "code_example_shots": _saved_map["code_example_shots"],
             "code_response": _saved_map["code_response"],
@@ -105,10 +107,14 @@ class PCCC:
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
         example_db_tasks = utils.load_json(env_config['example_db_json_path'])
+        vc_methods_api = utils.load_json(env_config['vc_methods_api_path'])
+    
+
         # prepare all example db for embedding
-        examples_db_for_spec_prompt = utils.get_examples_db_task_id_des_pair(example_db_tasks)
+        examples_db_for_spec_prompt = utils.get_examples_db_task_id_spec_pair(example_db_tasks)
         examples_db_for_cot_prompt = utils.get_examples_id_task_specification_pair(example_db_tasks)
-        spec_prompt_template, code_prompt_template = self.get_spec_code_prompts()
+        vc_example_selector = utils.get_vc_methods_sp_pair(vc_methods_api)
+        vc_prompt_template, code_prompt_template = self.get_spec_code_prompts()
         # print("\n What samples are we using for the prompt? \n ")
         # pprint.pprint(examples_db_for_spec_prompt)
         # pprint.pprint(examples_db_for_spec_prompt)
@@ -120,20 +126,25 @@ class PCCC:
         # print(f"formatted_examples_db_for_spec_prompt: {examples_db_for_spec_prompt}")
         spec_example_selector = task_selector.get_semantic_similarity_example_selector(
         api_config['openai_api_key'], example_db_tasks = examples_db_for_spec_prompt,
-        number_of_similar_tasks = int(env_config['spec_shot_count']))
+        number_of_similar_tasks = int(env_config['vc_shot_count']))
+        # vc_example_selector = task_selector.get_semantic_similarity_example_selector(
+        # api_config['openai_api_key'], example_db_tasks = example_db_for_vc_prompt,
+        # number_of_similar_tasks = int(env_config['vc_shot_count']))
+        
         code_example_selector = task_selector.get_semantic_similarity_example_selector(
         api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
         number_of_similar_tasks = int(env_config['code_shot_count']))
+        print(f"code_example_selector: {code_example_selector}")
+        
         for t in tasks:
             task = tasks[t]
-            
             task_spec = {
                 "task_id": task['task_id'],
                 "task_description": task['task_description'],
                 "method_signature": task['method_signature'],
                 "safety_properties": task['safety_properties'],
-                "verification_methods_signature": task['spec']['verification_methods_signature'],
-                "verification_conditions": task['spec']['verification_conditions'],
+                # "verification_methods_signature": task['spec']['verification_methods_signature'],
+                # "verification_conditions": task['spec']['verification_conditions'],
             }
             print(f"task_spec: \n {task_spec} \n\n")
             for run_count in range(1, int(env_config["K_run"]) + 1):
@@ -144,10 +155,11 @@ class PCCC:
                 try:
                     llm_core = core.Core()
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
-                                                    example_db_50_tasks=example_db_tasks,
+                                                    example_db_5_tasks=example_db_tasks,
+                                                    vc_example_selector=vc_example_selector,
                                                     spec_example_selector=spec_example_selector,
                                                     code_example_selector=code_example_selector,
-                                                    spec_prompt_template=spec_prompt_template,
+                                                    vc_prompt_template=vc_prompt_template,
                                                     code_prompt_template=code_prompt_template,
                                                      K = run_count,)
                     print(f"code_response = {saved_response['code_response']}")
