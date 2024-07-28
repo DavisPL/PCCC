@@ -44,10 +44,10 @@ def count_invariant(source):
     return len(occurrence)
 
 
-def count_assert(source):
-    patterns = "assert.*\n"
-    occurrence = re.findall(patterns, source)
-    return len(occurrence)
+# def count_assert(source):
+#     patterns = "assert.*\n"
+#     occurrence = re.findall(patterns, source)
+#     return len(occurrence)
 
 
 def count_ensures(source):
@@ -61,24 +61,39 @@ def count_requires(source):
     occurrence = re.findall(patterns, source)
     return len(occurrence)
 
+def check_filestream_usage(source):
+    pattern = r'\bvar\s+([a-zA-Z_]\w*)\s*:\s*FileStream\s*;?'
+    occurrence = re.findall(pattern, source)
+    print("occurrence", occurrence)
+    return {"No of calls to FileStream": len(occurrence), "message": "Use safe APIs from the FileStream class to read, write and manipulate files."}
+
+def check_filestream_open(source):
+    pattern = r'\b(ok)\s*,\s*([a-zA-Z_]\w*)\s*:=\s*FileStream\.Open\(\s*([a-zA-Z_]\w*)\s*\)\s*;?'
+    occurence = re.search(pattern, source)
+    return occurence
+    
+
 
 def get_all_verification_bits_count(code):
     obj = {}
-    obj['method'] = count_method(code)
+    # obj['method'] = count_method(code)
     obj['ensure'] = count_ensures(code)
     obj['requires'] = count_requires(code)
-    obj['function'] = count_function(code)
-    obj['lemma'] = count_lemma(code)
-    obj['predicate'] = count_predicate(code)
-    obj['invariant'] = count_invariant(code)
-    obj['assert_count'] = count_assert(code)
+    obj['filestream_usage'] = check_filestream_usage(code)
+    obj['filestream_open'] = check_filestream_open(code)
+    print("---------------------------------")
+    print("obj", obj)
+    # obj['function'] = count_function(code)
+    # obj['lemma'] = count_lemma(code)
+    # obj['predicate'] = count_predicate(code)
+    # obj['invariant'] = count_invariant(code)
+    # obj['assert_count'] = count_assert(code)
     return obj
 
 def get_verification_info(error):
     pass
 
 def get_verification_bits_count(path):
-    # code = utility.read_file(path)
     code = utils.read_file(path)
     return get_all_verification_bits_count(code)
 
@@ -92,6 +107,7 @@ def get_verification_bits_count_rq1(save_map):
 def get_verification_bits_count_rq3(save_map):
     code = save_map['code_response']
     return get_all_verification_bits_count(code)
+
 
 
 def get_dafny_verification_result(dfy_file_path):

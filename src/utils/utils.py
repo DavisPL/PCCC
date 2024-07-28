@@ -92,12 +92,15 @@ def parse_data_to_dict(data):
     return parsed_data
 
 
-def get_examples_db_task_id_des_pair(example_json):
+def get_examples_db_task_id_spec_pair(example_json):
     list_of_examples = []
     for t in example_json:
         output_task = {
             "task_id": example_json[t]["task_id"],
-            "task_description": example_json[t]["task_description"]
+            "task_description": example_json[t]["task_description"],
+            "safety_properties": example_json[t]["safety_properties"],
+            "verification_methods_signature": example_json[t]["spec"]["verification_methods_signature"],
+            "verification_conditions": example_json[t]["spec"]["verification_conditions"],
         }
         list_of_examples.append(output_task)
     return list_of_examples
@@ -136,6 +139,19 @@ def get_examples_id_task_specification_pair(example_json):
     #             })
     #     list_of_examples.append(output_task)
     # return list_of_examples
+
+def get_vc_methods_sp_pair(example_json):
+    list_of_vc_methods = []
+    for t in example_json:
+        print(f"example_json[t]: {example_json[t]}")
+        output_task = {
+            "sp_id": example_json[t]["sp_id"],
+            "safety_property": example_json[t]["safety_property"],
+            "verification_methods_signature": example_json[t]["verification_methods_signature"],
+            "verification_method_description": example_json[t]["verification_method_description"]
+        }
+        list_of_vc_methods.append(output_task)
+    return list_of_vc_methods
 
 def save_to_json(map, file_path):
     json_string = json.dumps(map)
