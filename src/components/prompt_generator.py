@@ -47,9 +47,8 @@ class PromptGenerator:
         return similar_examples
 
 
-    def create_few_shot_specification_prompts(self, examples_task_ids, examples_db, prompt_template, vc_example_selector):
+    def create_few_shot_specification_prompts(self, examples_task_ids, examples_db, prompt_template):
         print(f"\n \n inside few shot spe: {examples_task_ids} \n \n")
-        print(f"vc_example_selector: {vc_example_selector}")
         # vc_example_selector=vc_example_selector,
         examples = self.get_similar_tasks_based_on_sp_description(examples_task_ids, examples_db)
         print(f"\n \n =========================== \n\n examples: \n\n {examples} \n\n")
@@ -64,7 +63,7 @@ class PromptGenerator:
         print(f"\n\n example_prompt_template: \n\n {example_prompt_template} \n\n")
         prompt = FewShotPromptTemplate(
             # prefix="SYSTEM:\n Your task is to implement verification conditions (preconditions/posconditions) in Dafny.Your task is to map each given safety propertt to its equivalent in the provided list. Then find the verification method signatures in the given list. Finally generate verification conditions using these signatures.\n\n",
-            # vc_example_selector=vc_example_selector,
+            prefix="SYSTEM:\n The list of safety properties and their corresponding verification methods and verification methods descriptions are provided.",
             examples=examples,
             example_prompt=example_prompt_template,
             suffix='''Task:\n{{task}}\n''',

@@ -15,20 +15,17 @@ Step 2: Determine the safety properties.
 In this case:
     {{safety_properties}}
 
-step 3: Determine the verification methods signatures.
-In this case:
-    {{verification_methods_signature}}
 
-Step 4: Determine the required preconditions/postconditions.
+Step 3: Determine the required preconditions/postconditions.
 In this case:
     {{verification_conditions}}
 
 
-step 5: Determine required fileIO methods signatures
+step 4: Determine required fileIO methods signatures
     {{fileIO_methods_signature}}
 
 
-Step 6: Write the code and use verification methods signatures that help the solver prove the internally implemented verification conditions.
+Step 5: Write the code and its formal specification, and the verification annotations that help the solver prove the safety properties.
 In this case:
 
 ```dafny

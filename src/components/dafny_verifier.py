@@ -64,8 +64,7 @@ def count_requires(source):
 def check_filestream_usage(source):
     pattern = r'\bvar\s+([a-zA-Z_]\w*)\s*:\s*FileStream\s*;?'
     occurrence = re.findall(pattern, source)
-    print("occurrence", occurrence)
-    return {"No of calls to FileStream": len(occurrence), "message": "Use safe APIs from the FileStream class to read, write and manipulate files."}
+    return occurrence
 
 def check_filestream_open(source):
     pattern = r'\b(ok)\s*,\s*([a-zA-Z_]\w*)\s*:=\s*FileStream\.Open\(\s*([a-zA-Z_]\w*)\s*\)\s*;?'

@@ -189,3 +189,5 @@ pccc-venv/
 LICENSE
 makefile
 
+# Local development files
+/Users/pari/pcc-llms/output
