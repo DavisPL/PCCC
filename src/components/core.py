@@ -166,7 +166,7 @@ class Core:
         prompt_gen = prompt_generator.PromptGenerator()
         specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
                                                                                   example_db_5_tasks,
-                                                                                  vc_prompt_template, vc_example_selector)
+                                                                                  vc_prompt_template)
 
  
         # print("\n Is specification_prompt correct ??????????????//////////////////////")
