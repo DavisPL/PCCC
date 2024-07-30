@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb1cbe8e (updated)
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
 method AppendToFile(path: seq<char>, fname: seq<char>) returns (jointPath: seq<char>)
@@ -12,6 +15,7 @@ method AppendToFile(path: seq<char>, fname: seq<char>) returns (jointPath: seq<c
     ensures jointPath == path + fname
 {
     jointPath := PathJoin(path, fname);
+<<<<<<< HEAD
 }
 =======
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy" 
@@ -49,3 +53,6 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
         print jointPath;
     }
 >>>>>>> 3f0f37c0 (updated)
+=======
+}
+>>>>>>> fb1cbe8e (updated)

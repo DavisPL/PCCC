@@ -20,7 +20,11 @@ step4: Determine FileIO methods signatures
     {{fileIO_methods_signature}}
 
 
+<<<<<<< HEAD
 Step 5: Write the code and use verification methods that help the solver prove the internally implemented verification conditions.
+=======
+Step 5: Write the code and use verification methods that help the solver prove the internally implemented formal specificaions.
+>>>>>>> fb1cbe8e (updated)
 In this case:
 
 ```dafny

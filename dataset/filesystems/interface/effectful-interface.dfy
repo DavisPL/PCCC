@@ -100,22 +100,25 @@ class FileStream
   }
 
   
-  static method{:axiom} Open(name: seq<char>)
-    returns(ok:bool, f:FileStream)
+  static method{:axiom} SafeOpenAPI(name: seq<char>) returns(ok:bool, f:FileStream)
     requires NonEmptyString(name)
     requires !IsDangerousPath(name)
     requires HasAbsolutePath(name)
     requires IsValidPathName(name)
     ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
 
-  method{:axiom} Close() returns(ok:bool)
+  method{:axiom} SafeCloseAPI() returns(ok:bool)
     requires !ListContainsString(sensitivePaths, Name()) || Name() !in sensitivePaths
     requires IsOpen()
     modifies this
     ensures !IsOpen()
+    requires env.ok.ok()
+    modifies env.ok
+    ensures  env == old(env)
+    ensures  env.ok.ok() == ok
 
-  method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
-      // modifies this
+  method{:axiom} SafeReadAPI(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+      modifies this
       requires IsOpen()
       requires 0 <= start as int <= end as int <= buffer.Length
       requires NonEmptyString(p)
@@ -125,7 +128,7 @@ class FileStream
       ensures ByteContentLengthIsValid(buffer)
       ensures  ok ==> IsOpen()
 
-  method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  method{:axiom} SafeWriteAPI(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
       requires IsOpen()
       requires 0 <= start as int32 <= end as int32
       requires !IsDangerousPath(p)
@@ -159,13 +162,13 @@ class FileStream
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen() && validate_file_type(Name()) && dstFile !in sensitivePaths
 
-  method{:axiom} Flush() returns(ok:bool)
+  method{:axiom} SafeFlushAPI() returns(ok:bool)
     requires IsOpen()
     modifies this
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen()
 
-  method Join(p: path, f: file) returns(result: path)
+  method SafeJoinAPI(p: path, f: file) returns(result: path)
     requires IsOpen()
     modifies this
     ensures  Name() == old(Name())
