@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(12,0): Error: a postcondition could not be proved on this return path
    |
 12 | {
@@ -35,3 +36,17 @@
 
 
 Dafny program verifier finished with 0 verified, 3 errors
+=======
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_1.dfy(19,8): Error: a precondition for this call could not be proved
+   |
+19 |         ok, f := FileStream.Open(fname);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy(106,13): Related location: this is the precondition that could not be proved
+    |
+106 |     requires name[..] in nonSensitiveFilesList
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Dafny program verifier finished with 1 verified, 1 error
+>>>>>>> 3f0f37c0 (updated)

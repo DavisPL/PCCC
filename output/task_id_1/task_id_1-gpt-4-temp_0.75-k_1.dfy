@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
 method AppendToFile(path: seq<char>, fname: seq<char>) returns (jointPath: seq<char>)
@@ -12,3 +13,39 @@ method AppendToFile(path: seq<char>, fname: seq<char>) returns (jointPath: seq<c
 {
     jointPath := PathJoin(path, fname);
 }
+=======
+include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy" 
+
+    function GetFileName(): string 
+    {
+        "example.txt" 
+    } 
+
+    function GetPath(): string 
+    { 
+        "/user-data/" 
+    }
+
+    method JoinFileToPath(path: seq<char>, fname: seq<char>) returns (jointPath: seq<char>)
+    requires path == GetPath()
+    requires fname == GetFileName()
+    {
+        var f: FileStream;
+        var ok: bool;
+        ok, f := FileStream.Open(fname);
+        if !ok { 
+            print "open failed\n"; 
+            return ""; 
+        }
+        var joinIsOk: bool;
+        joinIsOk, jointPath := f.Join(path, fname);
+    }
+
+    method {:main} Main() 
+    {
+        var path := GetPath();
+        var fname := GetFileName();
+        var jointPath := JoinFileToPath(path, fname);
+        print jointPath;
+    }
+>>>>>>> 3f0f37c0 (updated)
