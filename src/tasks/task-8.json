@@ -1,0 +1,18 @@
+{
+  "3": {
+    "task_id": "3",
+    "input_generators_signature": "function GetFilePath(): string",
+    "verifier_methods": "- NoPathTraversal(p: path) returns (ok:bool) \n - IsAbsolutePath(p: path) returns (ok:bool) \n - static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream) \n - method FileStream.Read(fname: seq<char>, offset: int, data: array<byte>, start: int, count: int32) returns (ok: bool)",
+  "method_signature":  "method ReadFile(fPath: seq<char>)",
+  "task_description": "Write a code in Dafny to read a file that is provided by the user.",
+  "safety_properties": "- Only use valid characters for file name and path. - User is not allowed to access any sensitive files or directories of system - Check any input files to avoid path traversal"
+    },
+    "6": {
+        "task_id": "8",
+        "task_description": "Write a code in Dafny to implement a feature that allows users to specify a filename, which will then be used to create a full file path in a predetermined directory. The base directory should be \"/home/user/documents\"",
+        "method_signature": "method CreateFullFilePath(fname: seq<char>) returns (res: seq<char>)",
+        "verifier_methods": "- NoPathTraversal(p: path) returns (ok:bool) \n - IsAbsolutePath(p: path) returns (ok:bool) \n - static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream) \n - method FileStream.Join(path: seq<char>, fname: seq<char>) returns (joinIsOk: bool, jointPath: seq<char>)",
+        "safety_properties": "- Only use valid characters for file - Check any input files to avoid path traversal ",
+        "input_generators_signature": "- function GetFileName(): string \n - function GetPath(): string"
+    }
+}

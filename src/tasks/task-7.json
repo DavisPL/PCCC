@@ -1,0 +1,16 @@
+{
+  "1": {
+      "task_id": "1",
+      "task_description": "Write a code in Dafny to join a file to a path. File and path are provided by user.",
+      "method_signature": "method JoinFileToPath(path: seq<char>, fname: seq<char>) returns (jointPath: path)",
+      "safety_properties": "- Only use valid characters for file name and path. - You are allowed to access this list of file  = [\"/user-data/shared-data.txt\",\"/user-data/public-info.txt\"]",
+      "input_generators_signature": "- function GetFileName(): string \n - function GetPath(): string"
+    },
+    "6": {
+        "task_id": "7",
+        "task_description": "Write a code in Dafny to create a file server that allows users to access only company public files in '/company-docs/' directory.",
+        "method_signature": "method GetFileContents(fname: seq<char>)",
+        "safety_properties": "- Only use valid characters for file name and path. - Users are allowed to access this list of file  = [\"/company-docs/shared-data.txt\",\"/company-docs/public-info.txt\", \"company-docs/annual-report.txt\", \"company-docs/instructions.txt]",
+        "input_generators_signature": "- function GetFileName(): string \n - function GetPath(): string"
+    }
+}
