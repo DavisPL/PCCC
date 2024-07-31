@@ -12,6 +12,7 @@ requires HasValidPathLength(path + fname) //Ensure that the resultant path does 
 ensures PathJoin(path, fname) == jointPath  || jointPath == "" //Ensures that the resultant path is either a valid path or an empty string
 ensures HasValidPathLength(jointPath) || 0 <= |jointPath| //ensure that resultant path does not exceed the maximum limit
 {
+
     var f: FileStream;
     var ok: bool;
     ok, f := FileStream.SafeOpenAPI(fname);

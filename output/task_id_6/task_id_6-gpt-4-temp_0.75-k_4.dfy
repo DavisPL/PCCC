@@ -1,14 +1,14 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-method AppendPath(fileName: seq<char>) returns (fullPath: seq<char>)
-requires NonEmptyString(fileName)
-requires IsValidFileName(fileName)
-requires HasValidFileLength(fileName)
-requires HasValidPathLength(PathJoin("/home/user/documents", fileName))
-requires IsValidPathName(PathJoin("/home/user/documents", fileName))
-requires !IsDangerousPath(PathJoin("/home/user/documents", fileName))
-ensures fullPath == PathJoin("/home/user/documents", fileName)
-{
-    fullPath := SafeJoinAPI("/home/user/documents", fileName);
-    print "Full path created: " + fullPath + "\n";
-}
+method CreateFullPath(fname: seq<char>) returns (fullPath: path)
+ requires NonEmptyString(fname)
+ requires IsValidFileName(fname)
+ requires HasValidFileLength(fname)
+ requires !IsDangerousPath(fname)
+ {
+  var baseDir: seq<char> := "/home/user/documents";
+  requires IsValidPathName(baseDir)
+  requires HasValidPathLength(baseDir)
+  requires !IsDangerousPath(baseDir)
+  fullPath := File.Join(baseDir, fname);
+}"
