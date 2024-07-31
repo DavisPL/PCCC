@@ -17,7 +17,7 @@ class PromptGenerator:
         print(f"example_prompt_template: \n {example_prompt_template}")
        
         prompt = FewShotPromptTemplate(
-            prefix="SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines - Utilize Safe APIs from an implemented library for file operations.\n- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- Do not modify any provided method signatures.",
+            prefix="SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines:\n- Utilize Safe APIs from an implemented library for file operations.\n- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- Do not modify any provided method signatures.",
             examples=examples,
             example_prompt=example_prompt_template,
             suffix='''TASK:\n{{task}}\n\nAI ASSISTANT:\n\n''',

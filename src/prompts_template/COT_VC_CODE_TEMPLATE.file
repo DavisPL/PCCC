@@ -5,19 +5,19 @@ AI ASSISTANT:
 
 Step 1: Determine the method signatures.
 In this case:
-    {{method_signature}}
+{{method_signature}}
 
 Step 2: Determine the APIs for handling files with their preconditions.
 In this case:
-    {{api_with_preconditions}}
+{{api_with_preconditions}}
 
 
-Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
 In this case:
 
 ```dafny
 
-    {{code}}
+{{code}}
 
 ```
 

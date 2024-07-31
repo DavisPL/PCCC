@@ -1,13 +1,17 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-method ConstructPath(fileName: seq<char>) returns (fullPath: seq<char>)
- requires NonEmptyString(fileName)
- requires !IsDangerousPath(fileName)
- requires HasValidFileLength(fileName)
- requires IsValidFileName(fileName)
- requires JointPathSize("/home/user/documents/", fileName)
- ensures fullPath == "/home/user/documents/" + fileName
+method FullFilePath(filename: seq<char>) returns (fullPath: seq<char>)
+ requires !has_dangerous_pattern(filename)
+ requires is_valid_file_name(filename)
+ requires has_valid_file_length(filename)
+ requires is_valid_file_extension(filename)
+ requires non_empty_string(filename)
  {
-   var fullPath := "/home/user/documents/".Join(fileName);
-   print "Full Path is: " + fullPath;
+   var f: FileStream;
+   var ok: bool;
+   var predeterminedPath: seq<char> := "/home/user/documents";
+   ok, f := FileStream.Open(filename);
+   if !ok { print "open failed"; return; }
+   fullPath := f.Join(predeterminedPath, filename);
+   print "File path created";
  }
