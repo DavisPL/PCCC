@@ -1,12 +1,12 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
-
 method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte>)
-requires !IsDangerousPath(path)
-requires IsValidFileExtension(path)
-requires IsValidPathName(path)
-requires NonEmptyString(userName)
-requires !IsDangerousPath(userName)
-requires HasAbsolutePath(path)
+requires !has_dangerous_pattern(path)
+requires is_valid_file_extension(path)
+requires is_valid_path_name(path)
+requires non_empty_string(userName)
+requires !has_dangerous_pattern(userName)
+requires has_absoloute_path(path)
+requires has_vaild_path_length(path)
 {
     var f: FileStream;
     var ok: bool;

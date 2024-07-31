@@ -1,21 +1,23 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 method Copy(srcFile: seq<char>, dstFile: seq<char>)
-requires IsValidPathName(srcFile)
-requires IsValidPathName(dstFile)
-requires NonEmptyString(srcFile)
-requires NonEmptyString(dstFile)
-requires IsValidFileExtension(srcFile)
-requires IsValidFileExtension(dstFile)
-requires !IsDangerousPath(srcFile)
-requires !IsDangerousPath(dstFile)
-requires HasValidPathLength(srcFile)
-requires HasValidPathLength(dstFile)
+requires is_valid_path_name(srcFile)
+requires is_valid_path_name(dstFile)
+requires non_empty_string(srcFile)
+requires non_empty_string(dstFile)
+requires is_valid_file_extension(srcFile)
+requires is_valid_file_extension(dstFile)
+requires !has_dangerous_pattern(srcFile)
+requires !has_dangerous_pattern(dstFile)
+requires has_vaild_path_length(srcFile)
+requires has_vaild_path_length(dstFile)
+requires is_valid_file_extension(srcFile)
+requires is_valid_file_extension(dstFile)
 {
   var f: FileStream;
   var ok: bool;
   ok, f := FileStream.Open(srcFile);
   if !ok { 
-    print "open failed\n"; 
+    print "open failed"; 
     return; 
   }
   var data := new byte[100];
@@ -24,7 +26,7 @@ requires HasValidPathLength(dstFile)
   var f2: FileStream;
   ok, f2:= FileStream.Open(dstFile);
     if !ok { 
-    print "open failed\n"; 
+    print "open failed"; 
     return; 
   }
   ok := f2.Write(dstFile, 0, data, 0, data.Length as int32);

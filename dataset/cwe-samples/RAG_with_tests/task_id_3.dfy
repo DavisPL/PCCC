@@ -1,11 +1,11 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 method ReadFile(path: seq<char>)
-requires !IsDangerousPath(path)
-requires IsValidPathName(path)
-requires NonEmptyString(path)
-requires IsValidFileExtension(path)
-requires HasValidPathLength(path)
-requires HasAbsolutePath(path)
+requires !has_dangerous_pattern(path)
+requires is_valid_path_name(path)
+requires non_empty_string(path)
+requires is_valid_file_extension(path)
+requires has_vaild_path_length(path)
+requires has_absoloute_path(path)
 {
     var f: FileStream;
     var ok: bool;

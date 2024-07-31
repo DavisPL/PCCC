@@ -1,13 +1,14 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 method SaveToFile(path: seq<char>, userData: seq<char>)
-requires !IsDangerousPath(path)
-requires HasValidPathLength(path)
-requires NonEmptyString(path)
-requires StrContentLengthIsValid(userData)
-requires HasAbsolutePath(path)
-requires IsValidPathName(path)
-requires IsValidFileName(userData)
-requires IsValidFileExtension(path)
+requires !has_dangerous_pattern(path)
+requires has_vaild_path_length(path)
+requires non_empty_string(path)
+requires is_valid_str_length(userData)
+requires has_absoloute_path(path)
+requires is_valid_path_name(path)
+requires is_valid_file_name(userData)
+requires is_valid_file_extension(path)
+requires get_file_extension(path) == "txt"
 {
     var f: FileStream;
     var ok: bool;
