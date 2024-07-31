@@ -68,7 +68,7 @@ def check_filestream_usage(source):
 
 def check_filestream_open(source):
     pattern = r'\b(ok)\s*,\s*([a-zA-Z_]\w*)\s*:=\s*FileStream\.Open\(\s*([a-zA-Z_]\w*)\s*\)\s*;?'
-    occurence = re.search(pattern, source)
+    occurence = re.findall(pattern, source)
     return occurence
     
 

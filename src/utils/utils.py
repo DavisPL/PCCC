@@ -98,9 +98,10 @@ def get_examples_db_task_id_spec_pair(example_json):
         output_task = {
             "task_id": example_json[t]["task_id"],
             "task_description": example_json[t]["task_description"],
-            "safety_properties": example_json[t]["safety_properties"],
-            "verification_methods_signature": example_json[t]["spec"]["verification_methods_signature"],
-            "verification_conditions": example_json[t]["spec"]["verification_conditions"],
+            "api_with_preconditions": example_json[t]["api_with_preconditions"],
+            # "safety_properties": example_json[t]["safety_properties"],
+            # "verification_methods_signature": example_json[t]["spec"]["verification_methods_signature"],
+            # "verification_conditions": example_json[t]["spec"]["verification_conditions"],
         }
         list_of_examples.append(output_task)
     return list_of_examples
@@ -111,12 +112,13 @@ def get_examples_id_task_specification_pair(example_json):
     for task in example_json:
         print(f"example_json[task]: {example_json[task]}")
         output_task = {
-            "task_id": example_json[task]["task_id"],
-            "task_description": example_json[task]["task_description"],
-            "method_signature": example_json[task]["method_signature"],
-            "safety_properties": example_json[task]["safety_properties"],
-            "verification_methods_signature": example_json[task]["spec"]["verification_methods_signature"],
-            "verification_conditions": example_json[task]["spec"]["verification_conditions"],
+            "task_id": example_json[task]['task_id'],
+            "task_description": example_json[task]['task_description'],
+            "method_signature": example_json[task]['method_signature'],
+            "api_with_preconditions": example_json[task]['api_with_preconditions'],
+            # "safety_properties": example_json[task]["safety_properties"],
+            # "verification_methods_signature": example_json[task]["spec"]["verification_methods_signature"],
+            # "verification_conditions": example_json[task]["spec"]["verification_conditions"],
         }
         list_of_examples.append(output_task)
     return list_of_examples

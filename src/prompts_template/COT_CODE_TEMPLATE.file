@@ -1,34 +1,22 @@
 TASK:
-{task_description}
 
-REFERENCE:
-Set of safe fileIO APIs form FileStream class for reading, writing, and manipulating files:
-- static method FileStream.SafeOpenAPI(fname: seq<char>) returns (ok: bool, f: FileStream) \n- method SafeJoinAPI(p: path, f: file) returns(result: path) \n- method SafeReadAPI(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool) \n- method SafeWriteAPI(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)\n method SafeCloseAPI() returns(ok:bool) \n- method SafeFlushAPI returns(ok:bool)
-         
+     
 
 AI ASSISTANT:
 Step 1: Determine the method signatures.
 In this case:
     {{method_signature}}
 
-Step 2: Determine the safety properties.
+Step 2: Determine the preconditions.
 In this case:
-    {{safety_properties}}
-
-step 3: Determine the verification methods signatures.
-In this case:
-    {{verification_methods_signature}}
-
-Step 4: Determine the required preconditions/postconditions.
-In this case:
-    {{verification_conditions}}
+    {{preconditions}}
 
 
-step 5: Determine required fileIO methods signatures
-    {{fileIO_methods_signature}}
+step 3: Determine required fileIO methods signatures
+    {{fileIO_methods_signature_plus_preconditions}}
 
 
-Step 6: Write the code and use verification methods signatures that help the solver prove the internally implemented verification conditions.
+Step 4: Write the code and use verification methods signatures that help the solver prove the internally implemented verification conditions.
 In this case:
 
 ```dafny

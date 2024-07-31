@@ -8,9 +8,9 @@ class PromptGenerator:
         pass
     def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template):
         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db) 
+        print(f"examples: {examples}")
         example_prompt_template = PromptTemplate(
-            input_variables=["task_description","available_fileIO_methods", "method_signature", "safety_properties","safety_properties_and_methods",
-            "safety_properties_and_verifications","fileIO_methods_signature", "verification_methods_signature", "code"],
+            input_variables=["task_description", "method_signature", "api_with_preconditions", "code"],
             template_format='jinja2',
             template=prompt_template
         )
@@ -25,11 +25,13 @@ class PromptGenerator:
             example_separator="\n------------------------------------------------------\n",
             template_format='jinja2'
         )
-        print(f"prompt: \n {prompt}")
+        print("Generated prompt successfully")
+        print(f"Suffix: {prompt.suffix}")
         return prompt
 
 
     def get_similar_tasks_based_on_specs(self, ids, examples_db):
+        print("inside get_similar_tasks_based_on_specs")
         similar_examples = []
         for id in ids:
             new_obj = {}
@@ -37,94 +39,95 @@ class PromptGenerator:
             new_obj['code'] = obj['code']
             new_obj['task_description'] = obj['task_description']
             new_obj['method_signature'] = obj['method_signature']
-            new_obj['safety_properties'] = obj['safety_properties']
-            new_obj['verification_conditions'] = obj['spec']['verification_conditions']
-            new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
-            new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
+            new_obj['api_with_preconditions'] = obj['api_with_preconditions']
+            # new_obj['safety_properties'] = obj['safety_properties']
+            # new_obj['verification_conditions'] = obj['spec']['verification_conditions']
+            # new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
+            # new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
     
             similar_examples.append(new_obj)
             print(f"simmilar_examples: {similar_examples}")
         return similar_examples
 
 
-    def create_few_shot_specification_prompts(self, examples_task_ids, examples_db, prompt_template):
-        print(f"\n \n inside few shot spe: {examples_task_ids} \n \n")
-        # vc_example_selector=vc_example_selector,
-        examples = self.get_similar_tasks_based_on_sp_description(examples_task_ids, examples_db)
-        print(f"\n \n =========================== \n\n examples: \n\n {examples} \n\n")
-        example_prompt_template = PromptTemplate(
-            # input_variables=["task_description", "method_signature", "safety_properties"],
-            # input_variables=["safety_properties", "'verification_method_signature", "verification_method_description", "verification_conditions"],
-            input_variables=["safety_properties", "'verification_method_signature", "verification_conditions","fileIO_methods_signature"],   
-            template_format='jinja2',
-            template=prompt_template,
+    # def create_few_shot_specification_prompts(self, examples_task_ids, examples_db, prompt_template):
+    #     print(f"\n \n inside few shot spe: {examples_task_ids} \n \n")
+    #     # vc_example_selector=vc_example_selector,
+    #     examples = self.get_similar_tasks_based_on_sp_description(examples_task_ids, examples_db)
+    #     print(f"\n \n =========================== \n\n examples: \n\n {examples} \n\n")
+    #     example_prompt_template = PromptTemplate(
+    #         # input_variables=["task_description", "method_signature", "safety_properties"],
+    #         # input_variables=["safety_properties", "'verification_method_signature", "verification_method_description", "verification_conditions"],
+    #         input_variables=["safety_properties", "'verification_method_signature", "verification_conditions","fileIO_methods_signature"],   
+    #         template_format='jinja2',
+    #         template=prompt_template,
 
-        )
-        print(f"\n\n example_prompt_template: \n\n {example_prompt_template} \n\n")
-        prompt = FewShotPromptTemplate(
-            # prefix="SYSTEM:\n Your task is to implement verification conditions (preconditions/posconditions) in Dafny.Your task is to map each given safety propertt to its equivalent in the provided list. Then find the verification method signatures in the given list. Finally generate verification conditions using these signatures.\n\n",
-            prefix="SYSTEM:\n The list of safety properties and their corresponding verification methods and verification methods descriptions are provided.",
-            examples=examples,
-            example_prompt=example_prompt_template,
-            suffix='''Task:\n{{task}}\n''',
-            input_variables=["task"],
-            example_separator="\n------------------------------------------------------\n",
-            template_format='jinja2'
-        )
-        print(f"\n\n SPEC prompt: \n\n {prompt} \n\n")
-        return prompt
+    #     )
+    #     print(f"\n\n example_prompt_template: \n\n {example_prompt_template} \n\n")
+    #     prompt = FewShotPromptTemplate(
+    #         # prefix="SYSTEM:\n Your task is to implement verification conditions (preconditions/posconditions) in Dafny.Your task is to map each given safety propertt to its equivalent in the provided list. Then find the verification method signatures in the given list. Finally generate verification conditions using these signatures.\n\n",
+    #         prefix="SYSTEM:\n The list of safety properties and their corresponding verification methods and verification methods descriptions are provided.",
+    #         examples=examples,
+    #         example_prompt=example_prompt_template,
+    #         suffix='''Task:\n{{task}}\n''',
+    #         input_variables=["task"],
+    #         example_separator="\n------------------------------------------------------\n",
+    #         template_format='jinja2'
+    #     )
+    #     print(f"\n\n SPEC prompt: \n\n {prompt} \n\n")
+    #     return prompt
 
 
-    def get_similar_tasks_based_on_sp_description(self, ids, examples_db):
-        # examples_db it's a list
-        similar_examples = []
-        for id in ids:
-            new_obj = {}
-            obj = examples_db[id]
-            # new_obj['code'] = obj['code']
-            # new_obj['task_description'] = obj['task_description']
-            # new_obj['method_signature'] = obj['method_signature']
-            new_obj['verification_conditions'] = obj['spec']['verification_conditions']
-            new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
-            new_obj['safety_properties'] = obj['safety_properties']
-            new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
-            # new_obj['verification_method_description'] = obj['spec']['verification_method_description']
-            similar_examples.append(new_obj)
+    # def get_similar_tasks_based_on_sp_description(self, ids, examples_db):
+    #     # examples_db it's a list
+    #     similar_examples = []
+    #     for id in ids:
+    #         new_obj = {}
+    #         obj = examples_db[id]
+    #         # new_obj['code'] = obj['code']
+    #         # new_obj['task_description'] = obj['task_description']
+    #         # new_obj['method_signature'] = obj['method_signature']
+    #         new_obj['verification_conditions'] = obj['spec']['verification_conditions']
+    #         new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
+    #         new_obj['safety_properties'] = obj['safety_properties']
+    #         new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
+    #         # new_obj['verification_method_description'] = obj['spec']['verification_method_description']
+    #         similar_examples.append(new_obj)
       
-        return similar_examples
+    #     return similar_examples
 
 
-    def get_specification_output_parser(self):
-        response_schemas = [
-            ResponseSchema(name="verification_methods_signature", description="Verification Method Signature"),
-            ResponseSchema(name="task_description", description="task_description"),
-            ResponseSchema(name="safety_properties", description="Safety Properties"),
-        ]
-        specifications_parser = StructuredOutputParser.from_response_schemas(response_schemas)
-        return specifications_parser
+    # def get_specification_output_parser(self):
+    #     response_schemas = [
+    #         ResponseSchema(name="verification_methods_signature", description="Verification Method Signature"),
+    #         ResponseSchema(name="task_description", description="task_description"),
+    #         ResponseSchema(name="safety_properties", description="Safety Properties"),
+    #     ]
+    #     specifications_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+    #     return specifications_parser
 
-    def format_safety_properties_and_methods(self, data):
-        formatted = ""
-        for key, value in data.items():
-            formatted += f"Property {value['sp_id']}: {value['safety_property']}\n"
-            formatted += f"Verification Method: {value['verification_methods_signature']}\n"
-        return formatted.strip()
-    def format_safety_properties_and_verifications(self, data):
-        formatted = ""
-        for key, value in data.items():
-            formatted += f"    {value['sp_id']}. Safety Property: {value['safety_property']}\n"
-            formatted += f"       Verification: {value['verification_methods_signature']}\n"
-        return formatted.strip()
+    # def format_safety_properties_and_methods(self, data):
+    #     formatted = ""
+    #     for key, value in data.items():
+    #         formatted += f"Property {value['sp_id']}: {value['safety_property']}\n"
+    #         formatted += f"Verification Method: {value['verification_methods_signature']}\n"
+    #     return formatted.strip()
+    # def format_safety_properties_and_verifications(self, data):
+    #     formatted = ""
+    #     for key, value in data.items():
+    #         formatted += f"    {value['sp_id']}. Safety Property: {value['safety_property']}\n"
+    #         formatted += f"       Verification: {value['verification_methods_signature']}\n"
+    #     return formatted.strip()
 
-    def create_safety_property_explanations(self, data):
-        return "\n".join([f"    {value['sp_id']}. {{explanation_{value['sp_id']}}}" for value in data.values()])
+    # def create_safety_property_explanations(self, data):
+    #     return "\n".join([f"    {value['sp_id']}. {{explanation_{value['sp_id']}}}" for value in data.values()])
 
-    def get_sp_vc_for_code_prompt(self, sp_json_data):
-        safety_properties_and_methods = self.format_safety_properties_and_methods(sp_json_data)
-        safety_properties_and_verifications = self.format_safety_properties_and_verifications(sp_json_data)
-        safety_property_explanations = self.create_safety_property_explanations(sp_json_data)
+    # def get_sp_vc_for_code_prompt(self, sp_json_data):
+    #     safety_properties_and_methods = self.format_safety_properties_and_methods(sp_json_data)
+    #     safety_properties_and_verifications = self.format_safety_properties_and_verifications(sp_json_data)
+    #     safety_property_explanations = self.create_safety_property_explanations(sp_json_data)
         
-        return  safety_properties_and_methods, safety_properties_and_verifications,safety_property_explanations
+    #     return  safety_properties_and_methods, safety_properties_and_verifications,safety_property_explanations
     
 
 # # Define a function to format each example using the provided template
@@ -145,7 +148,7 @@ class PromptGenerator:
         
 #     def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template):
 #         # Fetch similar tasks based on specifications
-#         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db)
+        # examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db)
         
 
         
