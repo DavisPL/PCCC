@@ -132,10 +132,10 @@ class Core:
     
     def invoke_llm(self, api_config, env_config, new_task,
               example_db_5_tasks,
-              vc_example_selector,
-              spec_example_selector,
+            #   vc_example_selector,
+            #   spec_example_selector,
               code_example_selector,
-              vc_prompt_template,
+            #   vc_prompt_template,
               code_prompt_template,
               K):
         print("\n inside invoke_llm")
@@ -158,45 +158,56 @@ class Core:
         #         spec_examples_ids.append(task['task_id'])
         # print(f"\n spec_examples_ids \n {spec_examples_ids}")
    
-        similar_tasks = spec_example_selector.select_examples(new_task)    
-        print(f"\n vc_example_selector \n {vc_example_selector}")
+        # similar_tasks = spec_example_selector.select_examples(new_task)    
+        # print(f"\n vc_example_selector \n {vc_example_selector}")
 
-        spec_examples_ids = [t['task_id'] for t in similar_tasks]
+        spec_examples_ids = [1, 2, 3, 4, 5]
         
         prompt_gen = prompt_generator.PromptGenerator()
-        specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
-                                                                                  example_db_5_tasks,
-                                                                                  vc_prompt_template)
+        # specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
+        #                                                                           example_db_5_tasks,
+        #                                                                           vc_prompt_template)
+
 
  
         # print("\n Is specification_prompt correct ??????????????//////////////////////")
         # print(specification_prompt)
         # Memory
-        specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # specification_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
 
         
-        specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
-                                    memory=specification_memory)
+        # specification_chain = LLMChain(llm=llm, prompt=specification_prompt, verbose=False, output_key='specifications',
+        #                             memory=specification_memory)
+        
+        
 
         print("\n new_task_description \n", new_task['task_description'])
         # Specification Prompt Response
-        with get_openai_callback() as cb_spec:
-            specification_response = specification_chain.run(new_task['task_description'])
-        print(f'\n Spent a total of {cb_spec.total_tokens} tokens for verification \n')
-        print(f"\n specification_response: \n {specification_response} \n")
-        next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
+        # with get_openai_callback() as cb_spec:
+        #     specification_response = specification_chain.run(new_task['task_description'])
+        # print(f'\n Spent a total of {cb_spec.total_tokens} tokens for verification \n')
+        # print(f"\n specification_response: \n {specification_response} \n")
+        # next_input_task_with_spec = utils.parse_specification_response(new_task, specification_response)
         
-        print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
-        spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
-        print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
-        code_examples_ids = [t['task_id'] for t in spec_similar_code_tasks]
+        # print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
+        # spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
+        # print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
+        similar_code_tasks = code_example_selector.select_examples(new_task)
+        code_examples_ids = [t['task_id'] for t in similar_code_tasks]
         print(f"\n code_examples_ids \n {code_examples_ids}")
-
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks,code_prompt_template)
-        
+        print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template)
+        print(f"\n new_task_task_description: \n{new_task['task_description']}")
+        generated_prompt = code_prompt.format(input=new_task['task_description'])
+        print(f"\n generated_prompt: \n{generated_prompt}")
+        # Convert the prompt to a string (it should already be a string, but this ensures it)
+        prompt_string = str(generated_prompt)
+        with open("/Users/pari/pcc-llms/output/generated_prompt.txt", "w") as file:
+            file.write(prompt_string)
         print(f"\n ================================\n code_prompt")                                                            
         print(f"{code_prompt}")
         print(f"\n ================================") 
+        # utils.write_to_file("/Users/pari/pcc-llms/output/code_prompt.txt", code_prompt)
         
         # print(f"\n base_output_path {env_config["base_output_path"]} \n")
         # prompt_path = os.path.join(env_config["base_output_path"],
@@ -220,10 +231,10 @@ class Core:
         # print(f"\n code_response: {code_response} \n")
         saved_map = {
             "temperature": temperature,
-            "vc_example_shots": env_config["vc_shot_count"],
+            # "vc_example_shots": env_config["vc_shot_count"],
             "code_example_shots": env_config["code_shot_count"],
-            "spec_examples_ids": spec_examples_ids,
-            "specification_response": specification_response,
+            # "spec_examples_ids": spec_examples_ids,
+            # "specification_response": specification_response,
             "code_examples_ids": code_examples_ids,
             "code_response": code_response
         }

@@ -1,7 +1,7 @@
+from langchain.prompts import MaxMarginalRelevanceExampleSelector
 from langchain.prompts.example_selector import SemanticSimilarityExampleSelector
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain.prompts import MaxMarginalRelevanceExampleSelector
 
 
 def get_semantic_similarity_example_selector(api_key, example_db_tasks, number_of_similar_tasks):
