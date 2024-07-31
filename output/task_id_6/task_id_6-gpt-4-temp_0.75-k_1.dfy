@@ -1,12 +1,11 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-method CreateFullPath(fname: seq<char>) returns (fullPath: seq<char>)
-    requires !IsDangerousPath(fname)
-    requires !HasAbsolutePath(fname)
-    requires IsValidFileName(fname)
-    requires HasValidFileLength(fname)
-    requires HasValidPathLength("/home/user/documents" + fname)
-    ensures fullPath == "/home/user/documents" + fname
-    {
-        return "/home/user/documents" + fname;
-    }
+method CreateFullPath(filename: seq<char>) returns (fullPath: seq<char>)
+requires NonEmptyString(filename)
+requires !IsDangerousPath(filename)
+requires HasValidFileLength(filename)
+requires IsValidFileName(filename)
+{
+ var basePath: seq<char> := "/home/user/documents";
+ fullPath := Path.Join(basePath, filename);
+}"

@@ -1,0 +1,289 @@
+SYSTEM:
+You are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines - Utilize Safe APIs from an implemented library for file operations.
+- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.
+- Ensure that the code satisfies given safety properties for filesystem operations.
+- Do not modify any provided method signatures.
+------------------------------------------------------
+TASK:
+Write a code in Dafny to append a file to a path
+    
+AI ASSISTANT:
+
+Step 1: Determine the method signatures.
+In this case:
+    method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: path)
+
+Step 2: Determine the APIs for handling files with their preconditions.
+In this case:
+    - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires NonEmptyString(name)
+ requires !IsDangerousPath(name)
+ requires HasAbsolutePath(name)
+ requires IsValidPathName(name)
+ - method Join(p: path, f: file) returns(result: path)
+ requires NonEmptyString(f)
+ requires NonEmptyString(p)
+ requires !IsDangerousPath(f)
+ requires HasAbsolutePath(f)
+ requires IsValidFileName(f)
+ requires IsValidPathName(p)
+ requires HasValidFileLength(f)
+ requires HasValidPathLength(p)
+ requires HasValidPathLength(p+f)
+ requires JointPathSize(p, f)
+
+
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+In this case:
+
+```dafny
+
+    method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: path)
+ requires !IsDangerousPath(fname)
+ requires !IsDangerousPath(path)
+ requires HasAbsolutePath(fname)
+ requires IsValidPathName(path)
+ requires IsValidFileName(fname)
+ requires HasValidFileLength(fname)
+ requires HasValidPathLength(path)
+ requires HasValidPathLength(path + fname)
+ requires PathJoin(path, fname) == path + fname
+ {
+var f: FileStream;
+var ok: bool;
+ok, f := FileStream.Open(fname);
+if !ok { print "open failed
+ "; return "";}
+var joinIsOk:bool;
+jointPath := f.Join(path, fname);
+}"
+
+```
+
+------------------------------------------------------
+TASK:
+Write a code in Dafny to read a file. File is provided by user.
+    
+AI ASSISTANT:
+
+Step 1: Determine the method signatures.
+In this case:
+    method ReadFile(path: seq<char>)
+
+Step 2: Determine the APIs for handling files with their preconditions.
+In this case:
+    - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires NonEmptyString(name)
+ requires !IsDangerousPath(name)
+ requires HasAbsolutePath(name)
+ requires IsValidPathName(name) 
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires NonEmptyString(p)
+ requires IsValidFileExtension(p)
+ requires HasValidPathLength(path)
+ requires HasAbsolutePath(path)
+
+
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+In this case:
+
+```dafny
+
+    method ReadFile(path: seq<char>)
+ requires !IsDangerousPath(path)
+ requires IsValidPathName(path)
+ requires NonEmptyString(path)
+ requires IsValidFileExtension(path)
+ requires HasValidPathLength(path)
+ requires HasAbsolutePath(path)
+ {
+  var f: FileStream;
+  var ok: bool;
+  ok, f := FileStream.Open(path);
+  if !ok { print "open failed
+ "; return; }
+  var data := new byte[100];
+  ok := f.Read(path, 0, data, 0, data.Length as int32);
+  print "Read operation terminated safely!
+ ";
+}"
+
+```
+
+------------------------------------------------------
+TASK:
+Write a code in Dafny that copies a file from one location to another
+    
+AI ASSISTANT:
+
+Step 1: Determine the method signatures.
+In this case:
+    method Copy(srcFile: seq<char>, dstFile: seq<char>)
+
+Step 2: Determine the APIs for handling files with their preconditions.
+In this case:
+    - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires NonEmptyString(name)
+ requires !IsDangerousPath(name)
+ requires HasAbsolutePath(name)
+ requires IsValidPathName(name) 
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires !IsDangerousPath(p)
+ requires HasValidPathLength(p)
+ requires HasAbsolutePath(p)
+ requires IsValidPathName(p) 
+ requires ByteContentLengthIsValid(buffer) 
+ requires IsValidFileExtension(p) 
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires NonEmptyString(p)
+ requires IsValidFileExtension(p)
+ requires HasValidPathLength(path)
+ requires HasAbsolutePath(path)
+
+
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+In this case:
+
+```dafny
+
+    method Copy(srcFile: seq<char>, dstFile: seq<char>)
+ requires IsValidPathName(srcFile)
+ requires IsValidPathName(dstFile)
+ requires NonEmptyString(srcFile)
+ requires NonEmptyString(dstFile)
+ requires IsValidFileExtension(srcFile)
+ requires IsValidFileExtension(dstFile)
+ requires !IsDangerousPath(srcFile)
+ requires !IsDangerousPath(dstFile)
+ requires HasValidPathLength(srcFile)
+ requires HasValidPathLength(dstFile)
+ {
+var f: FileStream;
+var ok: bool;
+ok, f := FileStream.Open(srcFile);
+if !ok { print "open failed
+"; return "";}
+var data := new byte[100];
+var dataLength: int32 := 100; 
+ok := f.Read(srcFile, 0, data, 0, dataLength);
+var f2: FileStream;
+ok, f2:= FileStream.Open(dstFile);
+  if !ok { print "open failed
+"; return "";}
+ok := f2.Write(dstFile, 0, data, 0, data.Length as int32);
+}"
+
+```
+
+------------------------------------------------------
+TASK:
+Write a code in Dafny to save a data into a file
+    
+AI ASSISTANT:
+
+Step 1: Determine the method signatures.
+In this case:
+    method SaveToFile(path: seq<char>, userData: seq<char>)
+
+Step 2: Determine the APIs for handling files with their preconditions.
+In this case:
+    - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires NonEmptyString(name)
+ requires !IsDangerousPath(name)
+ requires HasAbsolutePath(name)
+ requires IsValidPathName(name)
+ - method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires !IsDangerousPath(p)
+ requires HasValidPathLength(p)
+ requires HasAbsolutePath(p)
+ requires IsValidPathName(p) 
+ requires ByteContentLengthIsValid(buffer) 
+ requires IsValidFileExtension(p)
+
+
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+In this case:
+
+```dafny
+
+    method SaveToFile(path: seq<char>, userData: seq<char>)
+ requires !IsDangerousPath(path)
+ requires HasValidPathLength(path)
+ requires NonEmptyString(path)
+ requires StrContentLengthIsValid(userData)
+ requires HasAbsolutePath(path)
+ requires IsValidPathName(path)
+ requires IsValidFileName(userData)
+ requires IsValidFileExtension(path)
+ {
+  var f: FileStream;
+  var ok: bool;
+  var data: array<byte> := ArrayFromSeq(StringToBytes(userData));
+  ok, f := FileStream.Open(path);
+  if !ok { print "open failed
+ "; return; }
+  if ( data.Length == 0 ) { print "Empty data
+ "; return; }
+  ok := f.Write(path, 0, data, 0, data.Length as int32);
+  print "Safe write operation!
+ ";
+}"
+
+```
+
+------------------------------------------------------
+TASK:
+Write a code in Dafny that takes a username and a path as inputs and loads user's data from the given path
+    
+AI ASSISTANT:
+
+Step 1: Determine the method signatures.
+In this case:
+    method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte>)
+
+Step 2: Determine the APIs for handling files with their preconditions.
+In this case:
+    - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires NonEmptyString(name)
+ requires !IsDangerousPath(name)
+ requires HasAbsolutePath(name)
+ requires IsValidPathName(name)
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires NonEmptyString(p)
+ requires IsValidFileExtension(p)
+ requires HasValidPathLength(path)
+ requires HasAbsolutePath(path)
+
+
+Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy. Use preconditions as preconditions in the generated code.
+In this case:
+
+```dafny
+
+    method LoadUserData(path: seq<char>, userName: string)
+ requires !IsDangerousPath(path)
+ requires IsValidFileExtension(path)
+ requires IsValidPathName(path)
+ requires NonEmptyString(userName)
+ requires !IsDangerousPath(userName)
+ requires HasValidPathLength(path)
+ requires HasAbsolutePath(path)
+{
+ var f: FileStream;
+ var ok: bool;
+ ok, f := FileStream.Open(path);
+ if !ok { print "open failed
+"; return; }
+ var data := new byte[100];
+ ok := f.Read(path, 0, data, 0, data.Length as int32);
+ print "User data loaded!
+";
+}"
+
+```
+
+------------------------------------------------------
+TASK:
+
+
+AI ASSISTANT:
