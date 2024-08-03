@@ -8,8 +8,8 @@ requires is_valid_file_extension(srcFile)
 requires is_valid_file_extension(dstFile)
 requires !has_dangerous_pattern(srcFile)
 requires !has_dangerous_pattern(dstFile)
-requires has_vaild_path_length(srcFile)
-requires has_vaild_path_length(dstFile)
+requires has_valid_path_length(srcFile)
+requires has_valid_path_length(dstFile)
 requires is_valid_file_extension(srcFile)
 requires is_valid_file_extension(dstFile)
 {
@@ -23,11 +23,7 @@ requires is_valid_file_extension(dstFile)
   var data := new byte[100];
   var dataLength: int32 := 100; 
   ok := f.Read(srcFile, 0, data, 0, dataLength);
-  var f2: FileStream;
-  ok, f2:= FileStream.Open(dstFile);
-    if !ok { 
-    print "open failed"; 
-    return; 
-  }
-  ok := f2.Write(dstFile, 0, data, 0, data.Length as int32);
+  ok, f:= FileStream.Open(dstFile);
+    if !ok { print "open failed"; return; }
+  ok := f.Write(dstFile, 0, data, 0, data.Length as int32);
 }

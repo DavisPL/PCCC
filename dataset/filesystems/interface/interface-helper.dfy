@@ -93,7 +93,7 @@ ensures is_valid_dir(p) <==> forall i :: 0 <= i < |p| ==> is_valid_char(p[i])
   forall i :: 0 <= i < |p| ==> is_valid_char(p[i])
 }
 
-predicate has_vaild_path_length(p: path)
+predicate has_valid_path_length(p: path)
 {
    0 <= |p| < pathMaxLength
 }
