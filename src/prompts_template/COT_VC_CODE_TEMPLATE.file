@@ -12,7 +12,7 @@ In this case:
 {{api_with_preconditions}}
 
 
-Step 4: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
+Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
 In this case:
 
 ```dafny

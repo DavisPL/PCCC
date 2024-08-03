@@ -40,9 +40,9 @@ class VcGen:
         sp_pattern = r"([A-Za-z]+)(?=\()"
         access_pattern = r"l\:(.*?)\,access"
         sp_class = pattern_match.match(sp_pattern, safety_policy)
-        print(f"safety_policy {safety_policy}")
-        print(f"sp_class {sp_class}")
-        print(f"access_pattern {access_pattern}")
+        # print(f"safety_policy {safety_policy}")
+        # print(f"sp_class {sp_class}")
+        # print(f"access_pattern {access_pattern}")
         access_type = pattern_match.match(access_pattern, safety_policy)
         # import pdb; pdb.set_trace()
         # print(f"access_type {access_type}")

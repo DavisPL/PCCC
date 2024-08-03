@@ -10,7 +10,7 @@ method CreateFullPath(fileName: seq<char>) returns (fullPath: seq<char>)
     var dirPath: seq<char> := "/home/user/documents/";
     var f: FileStream;
     var ok: bool;
-    ok, f := FileStream.Open(dirPath);
+    ok, f := f.Open(dirPath);
     if !ok { print "open failed"; return dirPath; }
     fullPath := f.Join(dirPath, fileName);
     print "Full path created";

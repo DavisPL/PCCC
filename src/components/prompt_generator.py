@@ -8,16 +8,16 @@ class PromptGenerator:
         pass
     def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template):
         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db) 
-        print(f"examples: {examples}")
+        # print(f"examples: {examples}")
         example_prompt_template = PromptTemplate(
             input_variables=["task_description", "method_signature", "api_with_preconditions", "code"],
             template_format='jinja2',
             template=prompt_template
         )
-        print(f"example_prompt_template: \n {example_prompt_template}")
+        # print(f"example_prompt_template: \n {example_prompt_template}")
        
         prompt = FewShotPromptTemplate(
-            prefix="SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines:\n- Utilize Safe APIs from an implemented library for file operations.\n- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- Do not modify any provided method signatures.",
+            prefix="SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines:\n- Utilize Safe APIs from an implemented library for file operations.\n- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- Do not modify any provided method signatures.\n Let’s think step by step.",
             examples=examples,
             example_prompt=example_prompt_template,
             suffix='''TASK:\n{{task}}\n\nAI ASSISTANT:\n\n''',
@@ -25,8 +25,8 @@ class PromptGenerator:
             example_separator="\n------------------------------------------------------\n",
             template_format='jinja2'
         )
-        print("Generated prompt successfully")
-        print(f"Suffix: {prompt.suffix}")
+        # print("Generated prompt successfully")
+        # print(f"Suffix: {prompt.suffix}")
         return prompt
 
 
@@ -46,7 +46,7 @@ class PromptGenerator:
             # new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
     
             similar_examples.append(new_obj)
-            print(f"simmilar_examples: {similar_examples}")
+            # print(f"simmilar_examples: {similar_examples}")
         return similar_examples
 
 

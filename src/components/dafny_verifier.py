@@ -80,8 +80,8 @@ def get_all_verification_bits_count(code):
     obj['requires'] = count_requires(code)
     obj['filestream_usage'] = check_filestream_usage(code)
     obj['filestream_open'] = check_filestream_open(code)
-    print("---------------------------------")
-    print("obj", obj)
+    # print("---------------------------------")
+    # print("obj", obj)
     # obj['function'] = count_function(code)
     # obj['lemma'] = count_lemma(code)
     # obj['predicate'] = count_predicate(code)
@@ -118,10 +118,8 @@ def get_dafny_verification_result(dfy_file_path):
     except CalledProcessError as e:
         cmd_output = e.output  # get the verification errors
         # if detected any parse errors
-        # print(cmd_output)
         if "parse errors detected" in cmd_output:
             return -2, -2, cmd_output  # -2,-2 parser_errors
-    # print(cmd_output)
     lines = cmd_output.strip().split("\n")
     last_line = lines[len(lines) - 1]
     # Example logs:

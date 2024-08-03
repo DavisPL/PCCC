@@ -6,6 +6,8 @@ import re
 from time import sleep
 from typing import Optional, Union
 
+from langchain.globals import set_verbose
+
 from components import core
 from components import dafny_verifier as verifier
 from components import task_selector, validator, vc_generator
@@ -18,17 +20,14 @@ class PCCC:
         print("PCCC is running!")
     def get_config(self):
         src_dir_path = os.path.dirname(os.getcwd())
-        print(f"src_dir_path: {src_dir_path}")
         # ToDo: change this before pushing to the repo to get env.config from the root directory
         config_path = os.path.join(src_dir_path, 'dpl.config')
-        print(f"config_path: {config_path}")
         if not (os.path.exists(config_path)):
             print(f"Given Config Path: {config_path}")
             print("env.config not found!!")
             return
         config = configparser.ConfigParser()
         config.read(config_path)
-        print(f"config: {config.get('DEFAULT', 'openai_api_key')}")
         api_config = dict()
         api_config["openai_api_key"] = config.get('DEFAULT', 'openai_api_key')
         api_config["google_api_key"] = config.get('DEFAULT', 'google_api_key')
@@ -57,21 +56,17 @@ class PCCC:
         if not os.path.exists(task_base_path):
             os.makedirs(task_base_path)
         out_paths = dict()
-        print("\n Inside get_output_paths \n ")
-        print(f"task: {task}")
-        print(f"str(task['task_id']) {str(task['task_id'])}")
         common_path = "task_id" + "_" + str(task['task_id']) + "-" + model + "-" + "temp_" + str(
             temp) + "-" + "k_" + str(K)
         out_paths["saved_path"] = os.path.join(task_base_path, common_path + ".json")
         out_paths["dfy_src_path"] = os.path.join(task_base_path, common_path + ".dfy")
         out_paths["verification_path"] = os.path.join(task_base_path, common_path + "_verification_log.txt")
-        print(f"out_paths: {out_paths}")
         return out_paths
 
     
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
-        print(f"script_dir_path: {script_dir_path}")
+        # print(f"script_dir_path: {script_dir_path}")
         # spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_VC_TEMPLATE.file')
         # vc_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_VC_TEMPLATE.file')
         code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_VC_CODE_TEMPLATE.file')
@@ -85,7 +80,7 @@ class PCCC:
     
     def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_bits, _saved_map):
         print(f"\n Inside prepare_model_response \n")
-        print(f"id: { _task['task_id']}")
+        # print(f"id: { _task['task_id']}")
         return {
             "id": _task['task_id'],
             "K": _K,
@@ -137,11 +132,11 @@ class PCCC:
         code_example_selector = task_selector.get_semantic_similarity_example_selector(
         api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
         number_of_similar_tasks = int(env_config['code_shot_count']))
-        print(f"\n code_example_selector: \n {code_example_selector}")
+        # print(f"\n code_example_selector: \n {code_example_selector}")
         
         for t in tasks:
             task = tasks[t]
-            print(f"\n task: \n  {task}")
+            # print(f"\n task: \n  {task}")
             task_spec = {
                 "task_id": task['task_id'],
                 "task_description": task['task_description'],
@@ -150,14 +145,15 @@ class PCCC:
                 # "verification_methods_signature": task['spec']['verification_methods_signature'],
                 # "verification_conditions": task['spec']['verification_conditions'],
             }
-            print(f"task_spec: \n {task_spec} \n\n")
+            # print(f"task_spec: \n {task_spec} \n\n")
             for run_count in range(1, int(env_config["K_run"]) + 1):
                 output_paths = self.get_output_paths(task = task_spec, temp = api_config["temp"],  K = run_count,
                                              model = model,
                                              base_path = env_config["base_output_path"])
-                print(f"\n output_paths: {output_paths} \n")
+                # print(f"\n output_paths: {output_paths} \n")
                 try:
                     llm_core = core.Core()
+                    set_verbose(True)
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
                                                     example_db_5_tasks=example_db_tasks,
                                                     # vc_example_selector=vc_example_selector,
@@ -167,29 +163,21 @@ class PCCC:
                                                     code_prompt_template=code_prompt_template,
                                                      K = run_count,)
                     
-                    print(f"code_response = {saved_response['code_response']}")
+                  
                     interface_path = os.path.join(env_config["interface_path"])
                     response_with_fileio_lib = utils.prepend_include_to_code(saved_response['code_response'], interface_path)
                     saved_response['code_response'] = response_with_fileio_lib
-                    print(f"response_with_fileio_lib: {response_with_fileio_lib}")
                     isVerified, parsedCode, errors = verifier.verify_dfy_src(saved_response['code_response'],
                                                                     output_paths['dfy_src_path'],
                                                                     output_paths['verification_path'])
                     # verification_info = verifier.get_verification_info(errors)
-                    print(f"errors: {errors}")
-                     # Find the line number and error message
-                    error_message = verifier.find_match(errors)
-                    print(f"error_message: {error_message}")
-                    # code_with_error = verifier.get_code_with_error(parsedCode, errors)
+                    # Find the line number and error message
                     verification_bits = verifier.get_all_verification_bits_count(parsedCode)
-                    print(f"task_spec: {task_spec}")
-                    print(f"task_api_with_preconditions: {task["api_with_preconditions"]}")
+
                     saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,
                                                     _model=model, _dafny_code=parsedCode, _isVerified=isVerified,
                                                     _verification_bits=verification_bits, _saved_map=saved_response)
                     if isVerified:
-                        print(f"\n isVerified: {isVerified}")
-                        print(f"\n output_paths['saved_path']: {output_paths['saved_path']}")
                         utils.save_to_json(saved_map, output_paths["saved_path"])
                         all_response.append(saved_map)
                         print("\n Task:" + task['task_id'] + " Verified @K=" + str(run_count) + ", saved, ignore next runs.")
@@ -209,8 +197,8 @@ class PCCC:
         # Generate proof carrying code
     def generate_proof_with_code(self):
         api_config , env_config = self.get_config()
-        print(api_config)
-        print(env_config)
+        # print(api_config)
+        # print(env_config)
         self.execute_dynamic_few_shot_prompt(api_config, env_config)
         # self.get_output_paths()
         # The validator object is created to validate the code

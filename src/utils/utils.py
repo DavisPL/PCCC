@@ -110,7 +110,7 @@ def get_examples_db_task_id_spec_pair(example_json):
 def get_examples_id_task_specification_pair(example_json):
     list_of_examples = []
     for task in example_json:
-        print(f"example_json[task]: {example_json[task]}")
+        # print(f"example_json[task]: {example_json[task]}")
         output_task = {
             "task_id": example_json[task]['task_id'],
             "task_description": example_json[task]['task_description'],
@@ -185,12 +185,8 @@ def prepend_include_to_code(response, interface_path):
     pattern = r'```dafny\n(.*?)```'
     dafny_blocks = re.findall(pattern, response, re.DOTALL)
     for block in dafny_blocks:
-        print(f" ----------------------------- \n\n\n")
-        print(f"block: {block}")
-        modified_block = f'include "{interface_path}"\n\n{block.strip()}'
-        
+        modified_block = f'include "{interface_path}"\n\n{block.strip()}'  
         response = response.replace(f'```dafny\n{block}```', 
                                                       f'```dafny\n{modified_block}\n```')
         
-    print(f" included \n\n\n\n\n\ {response}")
     return response

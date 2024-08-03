@@ -17,9 +17,15 @@ import numpy as np
 import openai
 import torch
 from langchain.chains import LLMChain
+from langchain.globals import set_verbose
 from langchain.memory import ConversationBufferMemory
 from langchain_community.callbacks.manager import get_openai_callback
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.runnables import RunnableConfig, RunnablePassthrough
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
+from lunary import LunaryCallbackHandler
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -119,9 +125,11 @@ class Core:
     def initialize_llm(self, api_config):
         model = api_config['model']
         print(f"\n model: {model} \n")
+        handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
+    
         if model == "gpt-4":
             return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
-                            openai_api_key=api_config['openai_api_key'])
+                            openai_api_key=api_config['openai_api_key'], callbacks=[handler])
         if model == "gpt-3.5-turbo-0125":
             return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
                             openai_api_key=api_config['openai_api_key'])
@@ -130,6 +138,11 @@ class Core:
         #                     google_api_key=_api_config['google_api_key'],
         #                     max_output_tokens=4000)
     
+    def get_session_history(session_id: str, store) -> BaseChatMessageHistory:
+        if session_id not in store:
+            store[session_id] = ChatMessageHistory()
+        return store[session_id]
+        
     def invoke_llm(self, api_config, env_config, new_task,
               example_db_5_tasks,
             #   vc_example_selector,
@@ -139,12 +152,12 @@ class Core:
               code_prompt_template,
               K):
         print("\n inside invoke_llm")
+        store = {}
         llm = self.initialize_llm(api_config)
         api_key = api_config['openai_api_key']
         temperature = api_config['temp']
         vc_shot_count = int(env_config["vc_shot_count"])
         code_shot_count = int(env_config["code_shot_count"])
-        print(f" new_task:\n {new_task}\n\n") 
      
 
         # Required for similarity_example_selector without lanchain
@@ -194,19 +207,18 @@ class Core:
         # print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         similar_code_tasks = code_example_selector.select_examples(new_task)
         code_examples_ids = [t['task_id'] for t in similar_code_tasks]
-        print(f"\n code_examples_ids \n {code_examples_ids}")
-        print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
+        # print(f"\n code_examples_ids \n {code_examples_ids}")
+        # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
         code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template)
-        print(f"\n new_task_task_description: \n{new_task['task_description']}")
         generated_prompt = code_prompt.format(input=new_task['task_description'])
-        print(f"\n generated_prompt: \n{generated_prompt}")
+        # print(f"\n generated_prompt: \n{generated_prompt}")
         # Convert the prompt to a string (it should already be a string, but this ensures it)
         prompt_string = str(generated_prompt)
         with open("/Users/pari/pcc-llms/output/generated_prompt.txt", "w") as file:
             file.write(prompt_string)
-        print(f"\n ================================\n code_prompt")                                                            
-        print(f"{code_prompt}")
-        print(f"\n ================================") 
+        # print(f"\n ================================\n code_prompt")                                                            
+        # print(f"{code_prompt}")
+        # print(f"\n ================================") 
         # utils.write_to_file("/Users/pari/pcc-llms/output/code_prompt.txt", code_prompt)
         
         # print(f"\n base_output_path {env_config["base_output_path"]} \n")
@@ -220,12 +232,18 @@ class Core:
         #         print(f"Error: The file {prompt_path} does not exist.")
         # except IOError as e:
         #         print(f"Error reading the file {prompt_path}: {str(e)}")
-                
+        
+        # config = RunnableConfig({"callbacks": [handler]})        
         code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # sequence = llm | code_prompt
         code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
         # print(f"\n code_chain: {code_chain} \n")
         # Dynamic Few-Shot Prompt Response
+
         with get_openai_callback() as cb_code:
+            set_verbose(True)
+            handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
+            config = RunnableConfig({"callbacks": [handler]})
             code_response = code_chain.run(new_task['task_description'])
             print(f'Spent a total of {cb_code.total_tokens} tokens for code')
         # print(f"\n code_response: {code_response} \n")
@@ -329,7 +347,7 @@ class Core:
         
     def extract_info_from_prompt(self, prompt, pattern):
         match = re.search(pattern, prompt, re.DOTALL)
-        print(f"match: {match}")
+        # print(f"match: {match}")
         if match:
             # The first group (index 1) contains the captured content between the markers
             content = match.group(1).strip()  # .strip() to remove leading/trailing whitespace
@@ -341,7 +359,7 @@ class Core:
     def get_prompt(self, prompt_path):
         prompts = []
         prompts.append(utils.read_file(prompt_path))
-        print(f"prompts: {prompts}")
+        # print(f"prompts: {prompts}")
         # prompts = utils.content.split("---\n")
         # prompts = [prompt.strip() for prompt in prompts if prompt.strip()]
         return prompts
@@ -352,7 +370,6 @@ class Core:
         pattern = r"\[SPECIFCATION PROMPT\](.*?)\[[New Task SPEC]\]"
         specification_prompt = self.extract_info_from_prompt(prompt, pattern)
         spec_prmopt_dict = utils.parse_data_to_dict(specification_prompt)
-        print(f"spec_prmopt_dict: {spec_prmopt_dict}")
         # extract spec task info
         pattern = r"\[SPECIFCATION PROMPT\](.*?)\[New Task\]"
         spec_new_task = self.extract_info_from_prompt(prompt, pattern)

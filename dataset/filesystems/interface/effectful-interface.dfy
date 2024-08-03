@@ -111,11 +111,11 @@ class FileStream
     requires IsOpen()
     modifies this
     ensures !IsOpen()
-
+    
   method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
       requires non_empty_string(p)
       requires !has_dangerous_pattern(p)
-      requires has_vaild_path_length(p)
+      requires has_valid_path_length(p)
       requires has_absoloute_path(p)
       requires is_valid_file_extension(p)
       requires has_valid_content_length(buffer)     
@@ -130,7 +130,7 @@ class FileStream
 
   method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
       requires !has_dangerous_pattern(p)
-      requires has_vaild_path_length(p)
+      requires has_valid_path_length(p)
       requires has_absoloute_path(p)
       requires is_valid_path_name(p)
       requires has_valid_content_length(buffer)
@@ -168,32 +168,6 @@ class FileStream
     ensures  Name() == old(Name())
     ensures  ok ==> IsOpen()
 
-  method Join(p: path, f: file) returns(result: path)
-    requires non_empty_string(f)
-    requires non_empty_string(p)
-    requires !has_dangerous_pattern(f)
-    requires has_absoloute_path(f)
-    requires is_valid_file_name(f)
-    requires is_valid_path_name(p)
-    requires has_valid_file_length(f)
-    requires has_vaild_path_length(p)
-    requires has_vaild_path_length(p+f)
-    requires is_valid_file_extension(f)
-    requires IsOpen()
-    modifies this
-    ensures result == append_file_to_path(p, f) || result == ""
-    ensures  Name() == old(Name())
-    {
-      if |p| + |f| >= pathMaxLength || |p| + |f| == 0 
-      {
-        result := "";
-      }
-      else
-      {
-        result := append_file_to_path(p, f);
-      }
-    
-    }
 
     // requires 0 < |p| < pathMaxLength && 0 < |p| + |f| < pathMaxLength
     // requires p !in sensitivePaths
@@ -317,3 +291,29 @@ class FileStream
 // TODO: How to link axioms to python functions
 
 }
+
+  method Join(p: path, f: file) returns(result: path)
+    requires non_empty_string(f)
+    requires non_empty_string(p)
+    requires !has_dangerous_pattern(f)
+    requires has_absoloute_path(f)
+    requires is_valid_file_name(f)
+    requires is_valid_path_name(p)
+    requires has_valid_file_length(f)
+    requires has_valid_path_length(p)
+    requires has_valid_path_length(p+f)
+    // requires is_valid_file_extension(f)
+    //  requires IsOpen()
+    // modifies this
+    ensures result == append_file_to_path(p, f) || result == ""
+    {
+      if |p| + |f| >= pathMaxLength || |p| + |f| == 0 
+      {
+        result := "";
+      }
+      else
+      {
+        result := append_file_to_path(p, f);
+      }
+    
+    }
