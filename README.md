@@ -16,4 +16,3 @@ Use the env.config file and modify it to add your desired configurations to work
 cd src
 python3 main.py
 ```
-

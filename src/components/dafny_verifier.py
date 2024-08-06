@@ -68,7 +68,7 @@ def check_filestream_usage(source):
 
 def check_filestream_open(source):
     pattern = r'\b(ok)\s*,\s*([a-zA-Z_]\w*)\s*:=\s*FileStream\.Open\(\s*([a-zA-Z_]\w*)\s*\)\s*;?'
-    occurence = re.search(pattern, source)
+    occurence = re.findall(pattern, source)
     return occurence
     
 
@@ -80,8 +80,8 @@ def get_all_verification_bits_count(code):
     obj['requires'] = count_requires(code)
     obj['filestream_usage'] = check_filestream_usage(code)
     obj['filestream_open'] = check_filestream_open(code)
-    print("---------------------------------")
-    print("obj", obj)
+    # print("---------------------------------")
+    # print("obj", obj)
     # obj['function'] = count_function(code)
     # obj['lemma'] = count_lemma(code)
     # obj['predicate'] = count_predicate(code)
@@ -109,19 +109,8 @@ def get_verification_bits_count_rq3(save_map):
 
 
 
-def find_filestream_usage(source, error_msg):
-    pattern = r'\bvar\s+([a-zA-Z_]\w*)\s*:\s*FileStream\s*;?'
-    occurrence = re.findall(pattern, source)
-    if len(occurrence) == 0:
-        error_msg_filestream = ""
-    else:
-        error_msg_filestream = "FileStream Class declaration not found"
-    return error_msg.append(error_msg_filestream)
-
 def get_dafny_verification_result(dfy_file_path):
     cmd_output = ""
-    error_msg = []
-    find_filestream_usage(source, error_msg);
     try:
         cmd_output = check_output(["dafny", "verify", dfy_file_path], timeout=300, encoding='utf8')
     except TimeoutExpired as e:
@@ -129,10 +118,8 @@ def get_dafny_verification_result(dfy_file_path):
     except CalledProcessError as e:
         cmd_output = e.output  # get the verification errors
         # if detected any parse errors
-        # print(cmd_output)
         if "parse errors detected" in cmd_output:
             return -2, -2, cmd_output  # -2,-2 parser_errors
-    # print(cmd_output)
     lines = cmd_output.strip().split("\n")
     last_line = lines[len(lines) - 1]
     # Example logs:
