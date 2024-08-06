@@ -1,0 +1,104 @@
+{
+    "1":{
+        "safety_property": "Prevent any invalid pattern in the file name",
+        "verification_method_description": "Verifies that the file name is valid and returns a boolean value",
+        "verification_methods_signature":"predicate IsValidFileName(filename: seq<char>)",
+        "sp_id": "1"
+
+        },
+    "2":{
+        "safety_property": "Prevent any invalid pattern in the path",
+        "verification_method_description": "Verifies that the path is valid and returns a boolean value",
+        "verification_methods_signature":"predicate IsValidPathName(path: seq<char>)",
+        "sp_id": "2"
+        },
+    "3":{
+        "safety_property": "Prevent path traversal by avoiding any dangerous pattern in the file name",
+        "verification_method_description": "Verifies that the file name does not contain any dangerous pattern related to path traversal and returns a boolean value",
+        "verification_methods_signature":"predicate IsDangerousPath(filename: seq<char>)",
+        "sp_id": "3"
+        },
+    "4":{
+        "safety_property": "Prevent file name length from exceeding the maximum limit",
+        "verification_method_description": "Verifies that file name length does not exceed the maximum limit and returns a boolean value",
+        "verification_methods_signature":"predicate HasValidFileLength(filename: seq<char>)",
+        "sp_id": "4"
+    },
+    "5":{
+        "safety_property": "Prevent using any relative path",
+        "verification_method_description": "Verifies that the path does not contain any relative path and returns a boolean value",
+        "verification_methods_signature":"predicate HasAbsolutePath(path: seq<char>)",
+        "sp_id": "5"
+    },
+    "6":{
+        "safety_property": "Prevent any relative path in the file name",
+        "verification_method_description": "Verifies that the file name does not contain any relative path and returns a boolean value",
+        "verification_methods_signature":"predicate HasAbsolutePath(filename: seq<char>)",
+        "sp_id": "6"
+    },
+    "7":{
+        "safety_property": "Prevent path length from exceeding the maximum limit",
+        "verification_method_description": "Verifies that the path length does not exceed the maximum limit and returns a boolean value",
+        "verification_methods_signature": "predicate HasValidPathLength(path: seq<char>)",
+        "sp_id": "7"
+
+    },
+    "8":{
+        "safety_property": "Join a path and without navigation outside the intended directory",
+        "verification_method_description": "Verifies that the path and file name are joined safely without navigation outside the intended directory ",
+        "verification_methods_signature": "function PathJoin(p: seq<char>, f: seq<char>): seq<char>",
+        "sp_id": "8"
+    },
+    "9":{
+        "safety_property": "Verifies path is not empty",
+        "verification_method_description": "Verifies that the path is not empty and returns a boolean value",
+        "verification_methods_signature": "predicate NonEmptyString(s: seq<char>)",
+        "sp_id": "9"
+    },
+    "10":{
+        "safety_property": "Verifies that the new data to be written to a file does not exceed the maximum limit",
+        "verification_method_description": "Verifies that new data to be written to a file does not exceed the maximum limit and returns a boolean value",
+        "verification_methods_signature": "predicate StrContentLengthIsValid(content: string)",
+        "sp_id": "10"
+
+    },
+    "11": {
+        "safety_property": "Verifies that file extension is valid",
+        "verification_method_description": "Verifies that the file extension is valid and returns a boolean value",
+        "verification_methods_signature": "predicate IsValidFileExtension(filename: seq<char>)",
+        "sp_id": "11"
+
+    },
+    "12": {
+        "safety_property": "Verifies that the content to be read from a file does not exceed the maximum limit",
+        "verification_method_description": "Verifies that the content to be read from a file does not exceed the maximum limit and returns a boolean value",
+        "verification_methods_signature": "predicate ByteContentLengthIsValid(content: array<byte>)",
+        "sp_id": "12"
+    },
+    "13":{
+        "safety_property": "Prevent path traversal by avoiding any dangerous pattern in the path",
+        "verification_method_description": "Verifies that the path does not contain any dangerous pattern related to path traversal and returns a boolean value",
+        "verification_methods_signature":"predicate IsDangerousPath(path: seq<char>)",
+        "sp_id": "13"
+    },
+    "14":{
+        "safety_property": "Verifies no user input is not empty",
+        "verification_method_description": "Verifies that the user data is not empty and returns a boolean value",
+        "verification_methods_signature": "predicate NonEmptyString(s: seq<char>)",
+        "sp_id": "14"
+    },
+
+    "15":{
+        "safety_property": "Verifies user input does not contain any dangerous pattern related to path traversal",
+        "verification_method_description": "Verifies that the user data does not contain any dangerous pattern related to path traversal and returns a boolean value",
+        "verification_methods_signature":"predicate IsDangerousPath(data: seq<char>)",
+        "sp_id": "15"
+        },
+    "16":{
+        "safety_property": "Open the given file and handle exeptions if any occured ",
+        "verification_method_description": "Opens a file and handles exceptions if any occurred",
+        "verification_methods_signature":"FileStream.Open(file: seq<char>) returns (ok: bool, f: FileStream)",
+        "sp_id": "16"
+        }
+
+}
