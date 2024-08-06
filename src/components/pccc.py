@@ -2,6 +2,7 @@ import configparser
 import os
 import pdb
 import pprint
+import re
 from time import sleep
 from typing import Optional, Union
 
@@ -43,6 +44,7 @@ class PCCC:
         env_config["cool_down_time"] = config.get('DEFAULT', 'cool_down_time')
         env_config["task_path"] = config.get('DEFAULT', 'task_path')
         env_config["base_output_path"] = config.get('DEFAULT', 'base_output_path')
+        env_config["interface_path"] = config.get('DEFAULT', 'interface_path')
         
         env_config["example_db_json_path"] = config.get('FEWSHOT', 'example_db_json_path')
         env_config["spec_shot_count"] = config.get('FEWSHOT', 'spec_shot_count')
@@ -69,8 +71,8 @@ class PCCC:
     def get_spec_code_prompts(self):
         script_dir_path = os.path.dirname(os.getcwd())
         print(f"script_dir_path: {script_dir_path}")
-        spec_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_SPEC_TEMPLATE.file')
-        code_prompt_path = os.path.join(script_dir_path, 'src/my_prompts_template/COT_CODE_TEMPLATE.file')
+        spec_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_SPEC_TEMPLATE.file')
+        code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_CODE_TEMPLATE.file')
         if not (os.path.exists(spec_prompt_path) or os.path.exists(code_prompt_path)):
             print("src/my_prompts_template/COT_SPEC_TEMPLATE.file or  src/my_prompts_template/COT_CODE_TEMPLATE.file!!")
             return
@@ -98,11 +100,11 @@ class PCCC:
             "code_examples_ids": _saved_map["code_examples_ids"],
             "spec_examples_ids": _saved_map["spec_examples_ids"]
         }
+
     
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
         example_db_tasks = utils.load_json(env_config['example_db_json_path'])
-        print(f"example_db_tasks: {example_db_tasks}")
         # prepare all example db for embedding
         examples_db_for_spec_prompt = utils.get_examples_db_task_id_des_pair(example_db_tasks)
         examples_db_for_cot_prompt = utils.get_examples_id_task_specification_pair(example_db_tasks)
@@ -113,9 +115,7 @@ class PCCC:
         # 228 task json path
         all_response = []
         tasks = utils.load_json(env_config['task_path'])
-        print(f"\n tasks: {tasks}")
         model = api_config['model']
-        print(f"model: {model}")
         # formatted_examples_db_for_spec_prompt = utils.convert_json_for_langchain(examples_db_for_spec_prompt)
         # print(f"formatted_examples_db_for_spec_prompt: {examples_db_for_spec_prompt}")
         spec_example_selector = task_selector.get_semantic_similarity_example_selector(
@@ -125,29 +125,24 @@ class PCCC:
         api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
         number_of_similar_tasks = int(env_config['code_shot_count']))
         for t in tasks:
-            print(f"\n =================== \n t: {t}")
             task = tasks[t]
-            print(f"\n What is task: {task}")
+            
             task_spec = {
                 "task_id": task['task_id'],
                 "task_description": task['task_description'],
-                "method_signature": task['method_signature']
+                "method_signature": task['method_signature'],
+                "safety_properties": task['safety_properties'],
+                "verification_methods_signature": task['spec']['verification_methods_signature'],
+                "verification_conditions": task['spec']['verification_conditions'],
             }
-            print(f"task_spec: {task_spec}")
-    
-            # print("\n spec_example_selector\n ")
-            # pprint.pprint(spec_example_selector)
-            # print("\n code_example_selector\n ")
-            # pprint.pprint(code_example_selector)
+            print(f"task_spec: \n {task_spec} \n\n")
             for run_count in range(1, int(env_config["K_run"]) + 1):
                 output_paths = self.get_output_paths(task = task_spec, temp = api_config["temp"],  K = run_count,
                                              model = model,
                                              base_path = env_config["base_output_path"])
                 print(f"\n output_paths: {output_paths} \n")
                 try:
-                    print(f"env_config: {env_config}")
                     llm_core = core.Core()
-                    
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
                                                     example_db_50_tasks=example_db_tasks,
                                                     spec_example_selector=spec_example_selector,
@@ -155,7 +150,11 @@ class PCCC:
                                                     spec_prompt_template=spec_prompt_template,
                                                     code_prompt_template=code_prompt_template,
                                                      K = run_count,)
-                    print(f"saved_response = {saved_response}")
+                    print(f"code_response = {saved_response['code_response']}")
+                    interface_path = os.path.join(env_config["interface_path"])
+                    response_with_fileio_lib = utils.prepend_include_to_code(saved_response['code_response'], interface_path)
+                    saved_response['code_response'] = response_with_fileio_lib
+                    print(f"response_with_fileio_lib: {response_with_fileio_lib}")
                     isVerified, parsedCode, errors = verifier.verify_dfy_src(saved_response['code_response'],
                                                                     output_paths['dfy_src_path'],
                                                                     output_paths['verification_path'])
@@ -186,7 +185,7 @@ class PCCC:
                 sleep(int(env_config['cool_down_time']))
         utils.save_to_json(all_response,
                             os.path.join(env_config["base_output_path"],
-                                        "rq3-dynamic-few-shot-prompting-" + model + ".json"))
+                                        "dynamic-few-shot-prompting-" + model + ".json"))
 
         # Generate proof carrying code
     def generate_proof_with_code(self):

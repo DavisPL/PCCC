@@ -1,10 +1,17 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy" 
- function GetFileName(): string
+include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+
+method AppendFileToPath(path: seq<char>, file: seq<char>) returns (jointPath: seq<char>)
+requires !IsDangerousPath(path)
+requires !IsDangerousPath(file)
+requires IsValidPathName(path)
+requires IsValidFileName(file)
+requires NonEmptyString(path)
+requires NonEmptyString(file)
+requires HasValidPathLength(path)
+requires HasValidFileLength(file)
+ensures GetPathLength(jointPath) <= GetPathLength(path) + GetPathLength(file)
+ensures HasValidPathLength(jointPath) || jointPath == []
 {
- "shared-data.txt" 
-} 
-function GetPath(): string 
-{ 
- "/user-data/" 
+  jointPath := PathJoin(path, file);
+  assert HasValidPathLength(jointPath) || jointPath == [];
 }
- method JoinFileToPath(path:seq<char>,fname:seq<char>)returns(jointPath:path)requires path==GetPath()requires fname==GetFileName(){var f:FileStream;var ok:bool;ok,f:=FileStream.Open(fname);if!ok{print"open failed\n";return"";}var joinIsOk:bool;joinIsOk,jointPath:=f.Join(path,fname);}method{:main}Main(){var path:=GetPath();var fname:=GetFileName();var jointPath:=JoinFileToPath(path,fname);print jointPath;}

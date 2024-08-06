@@ -1,26 +1,22 @@
 TASK:
-{task_description}
+
+     
 
 AI ASSISTANT:
-
-Step 1: Determine the method’s signature.
+Step 1: Determine the method signatures.
 In this case:
     {{method_signature}}
 
-Step 2: Determine the safety properties.
+Step 2: Determine the preconditions.
 In this case:
-        {{safety_properties}}
+    {{preconditions}}
 
-Step 3: Determine the input generators.
-In this case:
-    {{input_generators_signature}}
 
-step 4: Your code should satisfy these verifier methods
-In this case:
+step 3: Determine required fileIO methods signatures
+    {{fileIO_methods_signature_plus_preconditions}}
 
-    {{verifier_methods}}
 
-Step 5: Write the code and use verifier methods that help the solver prove the its inner verification conditions.
+Step 4: Write the code and use verification methods signatures that help the solver prove the internally implemented verification conditions.
 In this case:
 
 ```dafny
