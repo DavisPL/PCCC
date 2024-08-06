@@ -1,0 +1,9 @@
+Safety Propeties:
+    {{safety_properties}}
+
+Verification Conditions:
+    {{verification_conditions}}
+
+Safe Filestream APIs:
+    {{fileIO_methods_signature}}
+

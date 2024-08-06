@@ -1,0 +1,104 @@
+{
+    "1": {
+      "code": "function GetFileName(){return\"public-info.txt\"}function GetPath(){return\"/user-data/\"}method JoinFileToPath(path:seq<char>,fname:seq<char>)returns(jointPath:path)requires path==GetPath()requires fname==GetFileName(){var f:FileStream;var ok:bool;ok,f:=FileStream.Open(fname);if!ok{print\"open failed\\n\";return\"\";}var joinIsOk:bool;joinIsOk,jointPath:=f.Join(path,fname);}method{:main}Main(){var path:=GetPath();var fname:=GetFileName();var jointPath:=JoinFileToPath(path,fname);print jointPath;}",
+        "input_generators": [
+          {
+            "function_signature": "function GetFileName(): string",
+            "function_description": "This function returns a filename."
+          },
+          {
+            "function_signature": "function GetPath(): string",
+            "function_description": "This function returns a path."
+          }
+        ],
+        "verifier_methods": [
+          {
+            "method_signature": "static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream)",
+            "method_description": "This method opens a file with the given name and returns a FileStream object for it. If the file does not exist, it is created."
+          },
+          {
+            "method_signature": "method FileStream.Join(path: seq<char>, fname: seq<char>) returns (joinIsOk: bool, jointPath: seq<char>)",
+            "method_description": "This method joins a file to a path. The file and path are provided as arguments."
+          }
+        ],
+        "method_signature": "method JoinFileToPath(path: seq<char>, fname: seq<char>) returns (jointPath: path)",
+      "task_description": "Write a code in Dafny to join a file to a path. File and path are provided by user.",
+           "task_id": "1"
+    },
+    "2": {
+      "code": "function GetFileName(): string\n{\n// This function returns a filename\n}\nmethod WriteToFile(fname: seq<char>)\nrequires fname == GetFileName()\n{\nvar f: FileStream;\nvar ok: bool;\n ok, f := FileStream.Open(fname);\nif !ok { print \"open failed\\n\"; return; }\n// This is \"hello world!\" in ascii.\n// The library requires the data to be an array of bytes, but Dafny has no char->byte conversions\nvar data: array<byte> := ArrayFromSeq([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 10]);\n ok := f.Write(fname, 0, data, 0, data.Length as int32);\nprint \"Safe write operation!\\n\";\n}",
+        "input_generators": [
+          {
+            "function_signature": "function GetFileName(): string",
+            "function_description": "This function returns a filename."
+          }
+        ],
+       
+        "verifier_methods": [
+          {
+            "method_signature": "static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream)",
+            "method_description": "This method opens a file with the given name and returns a FileStream object for it. If the file does not exist, it is created."
+          },
+          {
+            "method_signature": "method FileStream.Write(fname: seq<char>, offset: int, data: array<byte>, start: int, count: int32) returns (ok: bool)",
+            "method_description": "This method writes data to the file with the given name. The data is written starting at the given offset in the file. The data is read from the given array, starting at the given index, and up to the given count."
+          }
+        ],
+        "method_signature":  "method WriteToFile(fname: seq<char>)",
+      "task_description": "Write a code in Dafny to get an input from user and write it to the file ",
+      "task_id": "2"
+    },
+    "3": {
+      "code": "function GetFilePath():string{return\"/user-data/public-key.txt\"}method ReadFile(fPath:seq<char>)requires fPath==GetFilePath(){var f:FileStream;var ok:bool;ok,f:=FileStream.Open(fPath);if!ok{print\"open failed\\n\";return;}var data:array<byte>:=new byte[100];ok:=f.Read(fPath,0,data,0,data.Length as int32);print\"Safe Read operation!\\n\";}",
+        "input_generators": [
+          {
+            "function_signature": "function GetFilePath(): seq<char>",
+            "function_description": "This function returns a path."
+          }
+        ],
+        "verifier_methods": [
+          {
+            "method_signature": "static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream)",
+            "method_description": "This method opens a file with the given name and returns a FileStream object for it. If the file does not exist, it is created."
+          },
+          {
+            "method_signature": "method FileStream.Read(fname: seq<char>, offset: int, data: array<byte>, start: int, count: int32) returns (ok: bool)",
+            "method_description": "This method reads data from the file with the given name. The data is read starting at the given offset in the file. The data is written to the given array, starting at the given index, and up to the given count."
+          }
+        ],
+      "method_signature":  "method ReadFile(fPath: seq<char>)",
+      "task_description": "Write a code in Dafny to read a file. File is provided by user.",
+       "task_id": "3"
+    },
+    "4": {
+      "code": "function GetSourceFileName():string{return\"/user-data/public-key.txt\"}function GetDistFileName():string{return\"/user-data/public-info.txt\"}method WriteToFile(dstFile:path,data:array<byte>)requires dstFile==GetDistFileName(){var f:FileStream;var ok:bool;ok,f:=FileStream.Open(dstFile);if!ok{print\"open failed\\n\";return;}var dataLength:int32;if data.Length<=0x7fffffff{dataLength:=data.Length as int32;}else{print\"Data too large for int32\\n\";return;}ok:=f.Write(dstFile,0,data,0,dataLength);if!ok{print\"write failed\\n\";}else{print\"Safe write operation!\\n\";}}method ReadFile(fname:path)returns(data:array<byte>)requires fname==GetSourceFileName(){var f:FileStream;var ok:bool;ok,f:=FileStream.Open(fname);if!ok{print\"open failed\\n\";return new byte[0];}data:=new byte[100];var dataLength:int32:=100;ok:=f.Read(fname,0,data,0,dataLength);if!ok{print\"read failed\\n\";data:=new byte[0];}else{print\"Safe Read operation!\\n\";}}method Copy(srcFile:seq<char>,dstFile:seq<char>)requires srcFile==GetSourceFileName()requires dstFile==GetDistFileName(){var data:=ReadFile(srcFile);if data.Length==0{print\"Copy failed: couldn't read source file\\n\";return;}if data.Length>0x7fffffff{print\"Copy failed: file too large (exceeds int32 maximum)\\n\";return;}WriteToFile(dstFile,data);}method Main(){var srcFile:=GetSourceFileName();var dstFile:=GetDistFileName();Copy(srcFile,dstFile);}",
+        "input_generators": [
+          {
+            "function_signature": "function GetSourceFileName(): string",
+            "function_description": "This function returns the source file name."
+          },
+          {
+            "function_signature": "function GetDistFileName(): string",
+            "function_description": "This function returns the destination file name."
+          }
+        ],
+     
+        "verifier_methods": [
+          {
+            "method_signature": "static method FileStream.Open(fname: seq<char>) returns (ok: bool, f: FileStream)",
+            "method_description": "This method opens a file with the given name and returns a FileStream object for it. If the file does not exist, it is created."
+          },
+          {
+            "method_signature": "method FileStream.Write(fname: seq<char>, offset: int, data: array<byte>, start: int, count: int32) returns (ok: bool)",
+            "method_description": "This method writes data to the file with the given name. The data is written starting at the given offset in the file. The data is read from the given array, starting at the given index, and up to the given count."
+          },
+          {
+            "method_signature": "method FileStream.Read(fname: seq<char>, offset: int, data: array<byte>, start: int, count: int32) returns (ok: bool)",
+            "method_description": "This method reads data from the file with the given name. The data is read starting at the given offset in the file. The data is written to the given array, starting at the given index, and up to the given count."
+          }
+        ],
+        "method_signature":"method Copy(srcFile: seq<char>, dstFile: seq<char>)",
+      "task_description": "Write a code in Dafny to copy data from a source file and to a distination file provided by user.",
+      "task_id": "4"
+    }
+}

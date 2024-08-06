@@ -44,10 +44,10 @@ def count_invariant(source):
     return len(occurrence)
 
 
-def count_assert(source):
-    patterns = "assert.*\n"
-    occurrence = re.findall(patterns, source)
-    return len(occurrence)
+# def count_assert(source):
+#     patterns = "assert.*\n"
+#     occurrence = re.findall(patterns, source)
+#     return len(occurrence)
 
 
 def count_ensures(source):
@@ -61,24 +61,38 @@ def count_requires(source):
     occurrence = re.findall(patterns, source)
     return len(occurrence)
 
+def check_filestream_usage(source):
+    pattern = r'\bvar\s+([a-zA-Z_]\w*)\s*:\s*FileStream\s*;?'
+    occurrence = re.findall(pattern, source)
+    return occurrence
+
+def check_filestream_open(source):
+    pattern = r'\b(ok)\s*,\s*([a-zA-Z_]\w*)\s*:=\s*FileStream\.Open\(\s*([a-zA-Z_]\w*)\s*\)\s*;?'
+    occurence = re.findall(pattern, source)
+    return occurence
+    
+
 
 def get_all_verification_bits_count(code):
     obj = {}
-    obj['method'] = count_method(code)
+    # obj['method'] = count_method(code)
     obj['ensure'] = count_ensures(code)
     obj['requires'] = count_requires(code)
-    obj['function'] = count_function(code)
-    obj['lemma'] = count_lemma(code)
-    obj['predicate'] = count_predicate(code)
-    obj['invariant'] = count_invariant(code)
-    obj['assert_count'] = count_assert(code)
+    obj['filestream_usage'] = check_filestream_usage(code)
+    obj['filestream_open'] = check_filestream_open(code)
+    # print("---------------------------------")
+    # print("obj", obj)
+    # obj['function'] = count_function(code)
+    # obj['lemma'] = count_lemma(code)
+    # obj['predicate'] = count_predicate(code)
+    # obj['invariant'] = count_invariant(code)
+    # obj['assert_count'] = count_assert(code)
     return obj
 
 def get_verification_info(error):
     pass
 
 def get_verification_bits_count(path):
-    # code = utility.read_file(path)
     code = utils.read_file(path)
     return get_all_verification_bits_count(code)
 
@@ -94,6 +108,7 @@ def get_verification_bits_count_rq3(save_map):
     return get_all_verification_bits_count(code)
 
 
+
 def get_dafny_verification_result(dfy_file_path):
     cmd_output = ""
     try:
@@ -103,10 +118,8 @@ def get_dafny_verification_result(dfy_file_path):
     except CalledProcessError as e:
         cmd_output = e.output  # get the verification errors
         # if detected any parse errors
-        # print(cmd_output)
         if "parse errors detected" in cmd_output:
             return -2, -2, cmd_output  # -2,-2 parser_errors
-    # print(cmd_output)
     lines = cmd_output.strip().split("\n")
     last_line = lines[len(lines) - 1]
     # Example logs:

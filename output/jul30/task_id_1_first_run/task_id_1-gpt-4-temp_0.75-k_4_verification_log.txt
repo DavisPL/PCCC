@@ -1,0 +1,6 @@
+/Users/pari/pcc-llms/output/task_id_1/task_id_1-gpt-4-temp_0.75-k_4.dfy(3,8): Error: file /Users/pari/pcc-llms/output/task_id_1/filesystems/interface/effectful-interface.dfy not found
+  |
+3 | include "filesystems/interface/effectful-interface.dfy"
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1 parse errors detected in task_id_1-gpt-4-temp_0.75-k_4.dfy
