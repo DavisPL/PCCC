@@ -10,6 +10,10 @@ method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
  requires has_valid_path_length(path)
  requires has_valid_path_length(path + fname)
  requires append_file_to_path(path, fname) == path + fname
+ requires is_valid_file_extension(path)
  {
-   jointPath := Join(path, fname);
+   var f: FileStream;
+   var ok: bool;
+   var joinIsOk:bool;
+   jointPath := f.Join(path, fname);
  }
