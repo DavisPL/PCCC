@@ -1,0 +1,6 @@
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,60): Error: comma expected
+  |
+8 |   var directoryPath: seq<char> := seq("/home/user/documents");
+  |                                                             ^
+
+1 parse errors detected in task_id_6-gpt-4-temp_0.75-k_2.dfy

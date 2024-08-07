@@ -1,79 +1,23 @@
 SYSTEM:
-You are an expert code assistant tasked with implementing Dafny code for file I/O operations. Your implementation should adhere to the following guidelines:
-- Utilize Safe APIs from an implemented library for file operations.
-- Generate Dafny code with appropriate preconditions and postconditions to satisfy the requested safety properties.
+You are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:
+ - Must utilize given Safe APIs for file operations.
+- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.
 - Ensure that the code satisfies given safety properties for filesystem operations.
-- Do not modify any provided method signatures.
- Let’s think step by step.
+- You are only limted to the provided method signatures and preconditions.
 ------------------------------------------------------
 TASK:
-Write a code in Dafny to append a file to a path
+The task is to generate a code in Dafny which takes a source path and a destination path as its parameters and copies from the source file to the destination file
     
 AI ASSISTANT:
+Follow these steps to complete the task:
 
-Step 1: Determine the method signatures.
-In this case:
-method Append(path: seq<char>,  fname: seq<char>)
-
-Step 2: Determine the APIs for handling files with their preconditions.
-In this case:
-- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
- requires non_empty_string(name)
- requires !has_dangerous_pattern(name)
- requires has_absoloute_path(name)
- requires is_valid_path_name(name)
- ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
-
- - method Join(p: path, f: file) returns(result: path)
- requires non_empty_string(f)
- requires non_empty_string(p)
- requires !has_dangerous_pattern(f)
- requires has_absoloute_path(f)
- requires is_valid_file_name(f)
- requires is_valid_path_name(p)
- requires has_valid_file_length(f)
- requires has_valid_path_length(p)
- requires has_valid_path_length(p+f)
- requires is_valid_file_extension(f)
- requires IsOpen()
- modifies this 
- ensures result == append_file_to_path(p, f) || result == "" 
- ensures  Name() == old(Name())
-
-
-Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
-In this case:
-
-```dafny
-
-method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
- requires !has_dangerous_pattern(fname)
- requires !has_dangerous_pattern(path)
- requires has_absoloute_path(fname)
- requires is_valid_path_name(path)
- requires is_valid_file_name(fname)
- requires has_valid_file_length(fname)
- requires has_valid_path_length(path)
- requires has_valid_path_length(path + fname)
- requires append_file_to_path(path, fname) == path + fname
- {
-   jointPath := Join(path, fname);
- }
-
-```
-
-------------------------------------------------------
-TASK:
-Write a code in Dafny that copies a file from one location to another
-    
-AI ASSISTANT:
-
-Step 1: Determine the method signatures.
-In this case:
+Step 1: Analyze the method signatures
+Examine the following method signature(s):
 method Copy(srcFile: seq<char>, dstFile: seq<char>)
 
-Step 2: Determine the APIs for handling files with their preconditions.
-In this case:
+Step 2:  Review the file handling APIs and their preconditions
+
+Familiarize yourself with these API(s) and their associated preconditions:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
  requires !has_dangerous_pattern(name)
@@ -98,7 +42,55 @@ In this case:
   ensures  ok ==> IsOpen()
 
 - method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
- requires !has_dangerous_pattern(p)
+ requires has_valid_path_length(p)
+ requires has_absoloute_path(p)
+ requires is_valid_path_name(p)
+ requires has_valid_content_length(buffer)
+ requires is_valid_file_extension(p)
+ requires 0 <= start as int32 <= end as int32
+ requires IsOpen()
+ modifies this
+ ensures  Name() == old(Name())
+ ensures  ok ==> IsOpen() 
+
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+ requires append_file_to_path(p, f) == p + f
+
+Step 3: Analyze and select the required APIs and their preconditions
+For this task:
+- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires non_empty_string(name)
+ requires !has_dangerous_pattern(name)
+ requires has_absoloute_path(name)
+ requires is_valid_path_name(name)
+ ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
+
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  requires non_empty_string(p)
+  requires !has_dangerous_pattern(p)
+  requires has_valid_path_length(p)
+  requires has_absoloute_path(p)
+  requires is_valid_file_extension(p)
+  requires has_valid_content_length(buffer)
+  requires is_valid_file_extension(p)
+  requires is_valid_file_extension(p)
+  requires IsOpen()
+  requires 0 <= start as int <= end as int <= buffer.Length
+  modifies buffer
+  modifies this
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
  requires has_valid_path_length(p)
  requires has_absoloute_path(p)
  requires is_valid_path_name(p)
@@ -110,9 +102,9 @@ In this case:
  ensures  Name() == old(Name())
  ensures  ok ==> IsOpen()
 
+Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
 
-Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
-In this case:
+Provide the implementation in Dafny syntax as follows:
 
 ```dafny
 
@@ -146,19 +138,20 @@ method Copy(srcFile: seq<char>, dstFile: seq<char>)
  }
 
 ```
-
 ------------------------------------------------------
 TASK:
-Write a code in Dafny to read a file. File is provided by user.
+The task is to generate a code in Dafny which takes a path as its parameter and reads its content
     
 AI ASSISTANT:
+Follow these steps to complete the task:
 
-Step 1: Determine the method signatures.
-In this case:
+Step 1: Analyze the method signatures
+Examine the following method signature(s):
 method ReadFile(path: seq<char>)
 
-Step 2: Determine the APIs for handling files with their preconditions.
-In this case:
+Step 2:  Review the file handling APIs and their preconditions
+
+Familiarize yourself with these API(s) and their associated preconditions:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
  requires !has_dangerous_pattern(name)
@@ -182,9 +175,58 @@ In this case:
   ensures  Name() == old(Name())
   ensures  ok ==> IsOpen()
 
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires has_valid_path_length(p)
+ requires has_absoloute_path(p)
+ requires is_valid_path_name(p)
+ requires has_valid_content_length(buffer)
+ requires is_valid_file_extension(p)
+ requires 0 <= start as int32 <= end as int32
+ requires IsOpen()
+ modifies this
+ ensures  Name() == old(Name())
+ ensures  ok ==> IsOpen() 
 
-Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
-In this case:
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+ requires append_file_to_path(p, f) == p + f
+
+Step 3: Analyze and select the required APIs and their preconditions
+For this task:
+- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires non_empty_string(name)
+ requires !has_dangerous_pattern(name)
+ requires has_absoloute_path(name)
+ requires is_valid_path_name(name)
+ ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
+
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  requires non_empty_string(p)
+  requires !has_dangerous_pattern(p)
+  requires has_valid_path_length(p)
+  requires has_absoloute_path(p)
+  requires is_valid_file_extension(p)
+  requires has_valid_content_length(buffer)
+  requires is_valid_file_extension(p)
+  requires is_valid_file_extension(p)
+  requires IsOpen()
+  requires 0 <= start as int <= end as int <= buffer.Length
+  modifies buffer
+  modifies this
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
+
+Provide the implementation in Dafny syntax as follows:
 
 ```dafny
 
@@ -208,19 +250,69 @@ method ReadFile(path: seq<char>)
  }
 
 ```
-
 ------------------------------------------------------
 TASK:
-Write a code in Dafny to save a data into a file
+The task is to generate a code in Dafny which takes a path and a user's data as its parameters and save the user's data into the given path
     
 AI ASSISTANT:
+Follow these steps to complete the task:
 
-Step 1: Determine the method signatures.
-In this case:
+Step 1: Analyze the method signatures
+Examine the following method signature(s):
 method SaveToFile(path: seq<char>, userData: seq<char>)
 
-Step 2: Determine the APIs for handling files with their preconditions.
-In this case:
+Step 2:  Review the file handling APIs and their preconditions
+
+Familiarize yourself with these API(s) and their associated preconditions:
+- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires non_empty_string(name)
+ requires !has_dangerous_pattern(name)
+ requires has_absoloute_path(name)
+ requires is_valid_path_name(name)
+ ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
+
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  requires non_empty_string(p)
+  requires !has_dangerous_pattern(p)
+  requires has_valid_path_length(p)
+  requires has_absoloute_path(p)
+  requires is_valid_file_extension(p)
+  requires has_valid_content_length(buffer)
+  requires is_valid_file_extension(p)
+  requires is_valid_file_extension(p)
+  requires IsOpen()
+  requires 0 <= start as int <= end as int <= buffer.Length
+  modifies buffer
+  modifies this
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires has_valid_path_length(p)
+ requires has_absoloute_path(p)
+ requires is_valid_path_name(p)
+ requires has_valid_content_length(buffer)
+ requires is_valid_file_extension(p)
+ requires 0 <= start as int32 <= end as int32
+ requires IsOpen()
+ modifies this
+ ensures  Name() == old(Name())
+ ensures  ok ==> IsOpen() 
+
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+ requires append_file_to_path(p, f) == p + f
+
+Step 3: Analyze and select the required APIs and their preconditions
+For this task:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
  requires !has_dangerous_pattern(name)
@@ -229,7 +321,6 @@ In this case:
  ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
 
 - method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
- requires !has_dangerous_pattern(p)
  requires has_valid_path_length(p)
  requires has_absoloute_path(p)
  requires is_valid_path_name(p)
@@ -241,9 +332,9 @@ In this case:
  ensures  Name() == old(Name())
  ensures  ok ==> IsOpen()
 
+Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
 
-Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
-In this case:
+Provide the implementation in Dafny syntax as follows:
 
 ```dafny
 
@@ -268,19 +359,20 @@ method SaveToFile(path: seq<char>, userData: seq<char>)
  }
 
 ```
-
 ------------------------------------------------------
 TASK:
-Write a code in Dafny that takes a username and a path as inputs and loads user's data from the given path
+The task is to generate a code in Dafny which takes a username and a path as its parameters and loads user's data from the given file path
     
 AI ASSISTANT:
+Follow these steps to complete the task:
 
-Step 1: Determine the method signatures.
-In this case:
+Step 1: Analyze the method signatures
+Examine the following method signature(s):
 method LoadUserData(path: seq<char>, userName: string)
 
-Step 2: Determine the APIs for handling files with their preconditions.
-In this case:
+Step 2:  Review the file handling APIs and their preconditions
+
+Familiarize yourself with these API(s) and their associated preconditions:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
  requires !has_dangerous_pattern(name)
@@ -304,9 +396,58 @@ In this case:
   ensures  Name() == old(Name())
   ensures  ok ==> IsOpen()
 
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires has_valid_path_length(p)
+ requires has_absoloute_path(p)
+ requires is_valid_path_name(p)
+ requires has_valid_content_length(buffer)
+ requires is_valid_file_extension(p)
+ requires 0 <= start as int32 <= end as int32
+ requires IsOpen()
+ modifies this
+ ensures  Name() == old(Name())
+ ensures  ok ==> IsOpen() 
 
-Step 3: Write the code and use given methods for handling files. Each fileIo API has some preconditions that the generated code must satisfy.
-In this case:
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+ requires append_file_to_path(p, f) == p + f
+
+Step 3: Analyze and select the required APIs and their preconditions
+For this task:
+- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires non_empty_string(name)
+ requires !has_dangerous_pattern(name)
+ requires has_absoloute_path(name)
+ requires is_valid_path_name(name)
+ ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
+
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  requires non_empty_string(p)
+  requires !has_dangerous_pattern(p)
+  requires has_valid_path_length(p)
+  requires has_absoloute_path(p)
+  requires is_valid_file_extension(p)
+  requires has_valid_content_length(buffer)
+  requires is_valid_file_extension(p)
+  requires is_valid_file_extension(p)
+  requires IsOpen()
+  requires 0 <= start as int <= end as int <= buffer.Length
+  modifies buffer
+  modifies this
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
+
+Provide the implementation in Dafny syntax as follows:
 
 ```dafny
 
@@ -330,7 +471,102 @@ method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte
  }
 
 ```
+------------------------------------------------------
+TASK:
+The task is to generate a code in Dafny which takes a file and a path as its parameters and appends the file to the path
+    
+AI ASSISTANT:
+Follow these steps to complete the task:
 
+Step 1: Analyze the method signatures
+Examine the following method signature(s):
+method Append(path: seq<char>,  fname: seq<char>)
+
+Step 2:  Review the file handling APIs and their preconditions
+
+Familiarize yourself with these API(s) and their associated preconditions:
+- static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
+ requires non_empty_string(name)
+ requires !has_dangerous_pattern(name)
+ requires has_absoloute_path(name)
+ requires is_valid_path_name(name)
+ ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
+
+- method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+  requires non_empty_string(p)
+  requires !has_dangerous_pattern(p)
+  requires has_valid_path_length(p)
+  requires has_absoloute_path(p)
+  requires is_valid_file_extension(p)
+  requires has_valid_content_length(buffer)
+  requires is_valid_file_extension(p)
+  requires is_valid_file_extension(p)
+  requires IsOpen()
+  requires 0 <= start as int <= end as int <= buffer.Length
+  modifies buffer
+  modifies this
+  ensures  Name() == old(Name())
+  ensures  ok ==> IsOpen()
+
+- method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
+ requires has_valid_path_length(p)
+ requires has_absoloute_path(p)
+ requires is_valid_path_name(p)
+ requires has_valid_content_length(buffer)
+ requires is_valid_file_extension(p)
+ requires 0 <= start as int32 <= end as int32
+ requires IsOpen()
+ modifies this
+ ensures  Name() == old(Name())
+ ensures  ok ==> IsOpen() 
+
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+ requires append_file_to_path(p, f) == p + f
+
+Step 3: Analyze and select the required APIs and their preconditions
+For this task:
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f) 
+ requires append_file_to_path(p, f) == p + f
+
+Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
+
+Provide the implementation in Dafny syntax as follows:
+
+```dafny
+
+method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
+ requires !has_dangerous_pattern(fname)
+ requires !has_dangerous_pattern(path)
+ requires has_absoloute_path(fname)
+ requires is_valid_path_name(path)
+ requires is_valid_file_name(fname)
+ requires has_valid_file_length(fname)
+ requires has_valid_path_length(path)
+ requires has_valid_path_length(path + fname)
+ requires append_file_to_path(path, fname) == path + fname
+ {
+   jointPath := Join(path, fname);
+ }
+
+```
 ------------------------------------------------------
 TASK:
 

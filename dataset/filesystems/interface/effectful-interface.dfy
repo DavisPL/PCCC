@@ -302,10 +302,7 @@ class FileStream
     requires has_valid_file_length(f)
     requires has_valid_path_length(p)
     requires has_valid_path_length(p+f)
-    // requires is_valid_file_extension(f)
-    //  requires IsOpen()
-    // modifies this
-    ensures result == append_file_to_path(p, f) || result == ""
+    // requires append_file_to_path(p, f) == p + f
     {
       if |p| + |f| >= pathMaxLength || |p| + |f| == 0 
       {

@@ -46,8 +46,8 @@ class PCCC:
         env_config["interface_path"] = config.get('DEFAULT', 'interface_path')
         
         env_config["example_db_json_path"] = config.get('FEWSHOT', 'example_db_json_path')
-        env_config["vc_methods_api_path"] = config.get('FEWSHOT', 'vc_methods_api_path')
-        env_config["vc_shot_count"] = config.get('FEWSHOT', 'vc_shot_count')
+        # env_config["vc_methods_api_path"] = config.get('FEWSHOT', 'vc_methods_api_path')
+        # env_config["vc_shot_count"] = config.get('FEWSHOT', 'vc_shot_count')
         env_config["code_shot_count"] = config.get('FEWSHOT', 'code_shot_count')
         return api_config, env_config
     
@@ -97,9 +97,11 @@ class PCCC:
             "code_example_shots": _saved_map["code_example_shots"],
             "code_response": _saved_map["code_response"],
             "code_examples_ids": _saved_map["code_examples_ids"],
+         
             # "spec_examples_ids": _saved_map["spec_examples_ids"]
         }
 
+    
     
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
@@ -140,8 +142,8 @@ class PCCC:
             task_spec = {
                 "task_id": task['task_id'],
                 "task_description": task['task_description'],
-                # "method_signature": task['method_signature'],
-                "api_with_preconditions": task['api_with_preconditions'],
+                "method_signature": task['method_signature'],
+                "all_api_with_preconditions": task['all_api_with_preconditions'],
                 # "verification_methods_signature": task['spec']['verification_methods_signature'],
                 # "verification_conditions": task['spec']['verification_conditions'],
             }
@@ -161,7 +163,7 @@ class PCCC:
                                                     code_example_selector=code_example_selector,
                                                     # vc_prompt_template=vc_prompt_template,
                                                     code_prompt_template=code_prompt_template,
-                                                     K = run_count,)
+                                                     K = run_count)
                     
                   
                     interface_path = os.path.join(env_config["interface_path"])
@@ -172,6 +174,7 @@ class PCCC:
                                                                     output_paths['verification_path'])
                     # verification_info = verifier.get_verification_info(errors)
                     # Find the line number and error message
+                    print(f"\n errors: {errors}")
                     verification_bits = verifier.get_all_verification_bits_count(parsedCode)
 
                     saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,

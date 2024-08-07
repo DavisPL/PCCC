@@ -1,11 +1,13 @@
 include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
 
-method MakePath(fname: seq<char>) returns (path: seq<char>)
- requires !has_dangerous_pattern(fname)
- requires is_valid_file_name(fname)
- requires has_valid_file_length(fname)
- requires is_valid_file_extension(fname)
+method CreateFullPath(fileName: seq<char>) returns (fullPath: seq<char>)
+ requires !has_dangerous_pattern(fileName)
+ requires is_valid_file_name(fileName)
+ requires has_valid_file_length(fileName)
+ requires has_valid_path_length("/home/user/documents")
+ requires has_valid_path_length("/home/user/documents" + fileName)
+//  requires append_file_to_path("/home/user/documents", fileName) == "/home/user/documents" + fileName
  {
-     var baseDir: seq<char> := "/home/user/documents/";
-     path := JoinPath(baseDir, fname);
+    assert false;
+     fullPath := Join("/home/user/documents", fileName);
  }

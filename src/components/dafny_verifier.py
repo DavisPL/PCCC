@@ -140,6 +140,22 @@ def parse_code(model_response):
     else:
         return ""
 
+def parse_dafny_error(error_message):
+    # Pattern to match the initial error message
+    error_pattern = r"Error: a precondition for this call could not be proved"
+    
+    # Pattern to match the related precondition
+    precondition_pattern = r"Related location: this is the precondition that could not be proved\s+\|\s+\d+\s+\|\s+(.*)"
+    
+    # Check if the error message contains the precondition error
+    if re.search(error_pattern, error_message):
+        # If found, extract the related precondition
+        match = re.search(precondition_pattern, error_message)
+        if match:
+            return match.group(1).strip()
+    
+    return None
+
 
 def verify_dfy_src(response, dfy_source_path, verification_path):
     # parse the response
@@ -149,11 +165,25 @@ def verify_dfy_src(response, dfy_source_path, verification_path):
         utils.write_to_file(code, dfy_source_path)
     # call verifier:
     verification, errors, cmd_output = get_dafny_verification_result(dfy_source_path)
+    print("cmd_output", cmd_output)
+    missed_preconditions = extract_dafny_preconditions(cmd_output)
+    for mpre in missed_preconditions:
+        print("missed_preconditions", mpre)
     utils.write_to_file(cmd_output, verification_path)
     if errors == 0:
         return True, code, cmd_output
     return False, code, cmd_output
     # return true/false
+
+def extract_dafny_preconditions(error_message):
+       # Pattern to match lines starting with any amount of whitespace, 
+    # followed by "requires", and then capturing the rest of the line
+    pattern = r'^\s*requires\s+.*$'
+    
+    # Find all matches in the error_message
+    matches = re.finditer(pattern, error_message, re.MULTILINE)
+    # Extract and return all matching lines
+    return [match.group(0) for match in matches]
 
 def find_match(error):
     # Pattern to find the line that error occurs and the corresponding error
