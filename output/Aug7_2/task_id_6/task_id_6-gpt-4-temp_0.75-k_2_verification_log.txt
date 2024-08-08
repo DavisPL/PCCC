@@ -1,0 +1,141 @@
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,32): Error: unresolved identifier: '
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                 ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,34): Error: unresolved identifier: home
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                   ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,39): Error: unresolved identifier: user
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                        ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,44): Error: unresolved identifier: documents'
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                             ^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,30): Error: unresolved identifier: '
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                               ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,32): Error: unresolved identifier: home
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                 ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,37): Error: unresolved identifier: user
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                      ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,42): Error: unresolved identifier: documents'
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                           ^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,67): Error: unresolved identifier: '
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                    ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,69): Error: unresolved identifier: home
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                      ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,74): Error: unresolved identifier: user
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                           ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,79): Error: unresolved identifier: documents'
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                                ^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,33): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                  ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,38): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                       ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(7,43): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+7 |  requires has_valid_path_length('/home/user/documents' + filename)
+  |                                            ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,68): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                     ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,73): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                          ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,78): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                                                               ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,31): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,36): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                     ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(8,41): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+  |
+8 |  requires append_file_to_path('/home/user/documents', filename) == '/home/user/documents' + filename
+  |                                          ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,20): Error: unresolved identifier: '
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                     ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,22): Error: unresolved identifier: home
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                       ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,27): Error: unresolved identifier: user
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                            ^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,32): Error: unresolved identifier: documents'
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                                 ^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,21): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                      ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,26): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                           ^
+
+/Users/pari/pcc-llms/output/task_id_6/task_id_6-gpt-4-temp_0.75-k_2.dfy(10,31): Error: arguments to / must be numeric or bitvector types (got seq<char>)
+   |
+10 |    fullpath := Join('/home/user/documents', filename);
+   |                                ^
+
+28 resolution/type errors detected in task_id_6-gpt-4-temp_0.75-k_2.dfy

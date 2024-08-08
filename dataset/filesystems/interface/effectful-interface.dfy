@@ -184,16 +184,13 @@ class FileStream
 
 
 
-  method{:axiom} GetFileLength() returns (ok:bool, length:int32)
-    requires IsOpen()
-    ensures ok ==> length >= 0
-    ensures !ok ==> length == -1
-
-  method{:axiom} GetCurrentDirectory() returns (cwd: path)
+  method{:axiom} GetCurrentDirectory(p: seq<char>) returns (cwd: path)
     // Method to get the current working directory
-    modifies this
+    requires !has_dangerous_pattern(p)
+    requires has_valid_path_length(p)
+    requires has_absoloute_path(p)
+    requires is_valid_path_name(p)
     ensures cwd !in sensitivePaths
-    ensures cwd == currentDirectory
     ensures cwd in fs.Keys && fs[cwd].Directory?
   
 
@@ -212,15 +209,6 @@ class FileStream
     ensures old(dir in fs.Keys) ==> success  // If the directory existed, removal should succeed
     ensures  Name() == old(Name())
 
- method{:axiom} FileExists(p: path) returns (fileFound: bool)
-    requires |p| <= pathMaxLength
-    requires p !in sensitivePaths
-    requires is_valid_dir(p)
-    requires IsOpen()
-    ensures fileFound <==> p in fs.Keys
-  {
-    fileFound := p in fs.Keys;
-  }
 
   // Helper method to check if a path exists and is a file
   method{:axiom} IsFile(p: path) returns (isFile: bool)
@@ -292,7 +280,7 @@ class FileStream
 
 }
 
-  method Join(p: path, f: file) returns(result: path)
+  method Join(p: path, f: file) returns(fullPath: path)
     requires non_empty_string(f)
     requires non_empty_string(p)
     requires !has_dangerous_pattern(f)
@@ -302,18 +290,17 @@ class FileStream
     requires has_valid_file_length(f)
     requires has_valid_path_length(p)
     requires has_valid_path_length(p+f)
-    // requires is_valid_file_extension(f)
-    //  requires IsOpen()
-    // modifies this
-    ensures result == append_file_to_path(p, f) || result == ""
+    ensures fullPath == if p == "" then f
+                        else if p[|p|-1] == '/' then p + f
+                        else p + "/" + f
     {
-      if |p| + |f| >= pathMaxLength || |p| + |f| == 0 
-      {
-        result := "";
-      }
-      else
-      {
-        result := append_file_to_path(p, f);
+      
+      if p == "" {
+          fullPath := f;
+      } else if p[|p|-1] == '/' {
+          fullPath := p + f;
+      } else {
+          fullPath := p + "/" + f;
       }
     
     }

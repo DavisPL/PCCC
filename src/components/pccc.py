@@ -44,10 +44,10 @@ class PCCC:
         env_config["task_path"] = config.get('DEFAULT', 'task_path')
         env_config["base_output_path"] = config.get('DEFAULT', 'base_output_path')
         env_config["interface_path"] = config.get('DEFAULT', 'interface_path')
-        
         env_config["example_db_json_path"] = config.get('FEWSHOT', 'example_db_json_path')
-        env_config["vc_methods_api_path"] = config.get('FEWSHOT', 'vc_methods_api_path')
-        env_config["vc_shot_count"] = config.get('FEWSHOT', 'vc_shot_count')
+        env_config["api_reference_path"] = config.get('FEWSHOT', 'api_reference_path')
+        # env_config["vc_methods_api_path"] = config.get('FEWSHOT', 'vc_methods_api_path')
+        # env_config["vc_shot_count"] = config.get('FEWSHOT', 'vc_shot_count')
         env_config["code_shot_count"] = config.get('FEWSHOT', 'code_shot_count')
         return api_config, env_config
     
@@ -77,6 +77,7 @@ class PCCC:
         code_template = utils.read_file(code_prompt_path)
         # return vc_template, code_template
         return code_template
+        
     
     def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_bits, _saved_map):
         print(f"\n Inside prepare_model_response \n")
@@ -97,9 +98,17 @@ class PCCC:
             "code_example_shots": _saved_map["code_example_shots"],
             "code_response": _saved_map["code_response"],
             "code_examples_ids": _saved_map["code_examples_ids"],
+         
             # "spec_examples_ids": _saved_map["spec_examples_ids"]
         }
 
+    
+    
+    def get_filesystem_api_ref(self, env_config):
+        api_ref = utils.load_json(env_config["api_reference_path"])
+        formatted_ref = utils.format_api_reference(api_ref)
+        return formatted_ref
+        
     
     def execute_dynamic_few_shot_prompt(self, api_config, env_config):
         # load example db
@@ -133,15 +142,15 @@ class PCCC:
         api_config['openai_api_key'], example_db_tasks = examples_db_for_cot_prompt,
         number_of_similar_tasks = int(env_config['code_shot_count']))
         # print(f"\n code_example_selector: \n {code_example_selector}")
-        
+        filesystem_api_ref = self.get_filesystem_api_ref(env_config)
         for t in tasks:
             task = tasks[t]
             # print(f"\n task: \n  {task}")
             task_spec = {
                 "task_id": task['task_id'],
                 "task_description": task['task_description'],
-                # "method_signature": task['method_signature'],
-                "api_with_preconditions": task['api_with_preconditions'],
+                "method_signature": task['method_signature'],
+                # "all_api_with_preconditions": task['all_api_with_preconditions'],
                 # "verification_methods_signature": task['spec']['verification_methods_signature'],
                 # "verification_conditions": task['spec']['verification_conditions'],
             }
@@ -161,7 +170,7 @@ class PCCC:
                                                     code_example_selector=code_example_selector,
                                                     # vc_prompt_template=vc_prompt_template,
                                                     code_prompt_template=code_prompt_template,
-                                                     K = run_count,)
+                                                     K = run_count, filesystem_api_ref = filesystem_api_ref)
                     
                   
                     interface_path = os.path.join(env_config["interface_path"])
@@ -172,6 +181,7 @@ class PCCC:
                                                                     output_paths['verification_path'])
                     # verification_info = verifier.get_verification_info(errors)
                     # Find the line number and error message
+                    print(f"\n errors: {errors}")
                     verification_bits = verifier.get_all_verification_bits_count(parsedCode)
 
                     saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,

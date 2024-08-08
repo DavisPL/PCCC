@@ -354,6 +354,23 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
 //         // print "All tests passed successfully!\n";
 //     }
 
+<<<<<<< HEAD
+  method TestJoin() {
+    var p1: seq<char> := "path/to";
+    var f1: seq<char> := "file.txt";
+    var result1 := Join(p1, f1);
+    assert p1 == "path/to";
+    assert f1 == "file.txt";
+    assert p1 + "/" + f1 == "path/to/file.txt";
+    assert result1 == "path/to/file.txt";
+    var p2: seq<char> := "path/to/";
+    var f2: seq<char> := "../../file.txt";
+    var result2 := Join(p2, f2);
+    assert result2 == "path/to/";
+  } 
+
+=======
+>>>>>>> main
 method TestIsValidFileExtension()
     {
         // Test case 1: Valid file extension

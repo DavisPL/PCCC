@@ -9,6 +9,7 @@ _type_
 """
 import configparser
 import json
+import logging
 import os
 import pprint
 import re
@@ -19,6 +20,7 @@ import torch
 from langchain.chains import LLMChain
 from langchain.globals import set_verbose
 from langchain.memory import ConversationBufferMemory
+from langchain.prompts import PromptTemplate
 from langchain_community.callbacks.manager import get_openai_callback
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
@@ -50,6 +52,7 @@ class Core:
         self.messages = []
         self.conversation_history = []
         self.max_history_length = max_history_length
+        self.lunary_handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
         # self.function = {
         #     "name": "json_format_composer",
         #     "description": "A function that takes in a list of arguments related to a \
@@ -125,11 +128,11 @@ class Core:
     def initialize_llm(self, api_config):
         model = api_config['model']
         print(f"\n model: {model} \n")
-        handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
+
     
         if model == "gpt-4":
             return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
-                            openai_api_key=api_config['openai_api_key'], callbacks=[handler])
+                            openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=False)
         if model == "gpt-3.5-turbo-0125":
             return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
                             openai_api_key=api_config['openai_api_key'])
@@ -138,10 +141,35 @@ class Core:
         #                     google_api_key=_api_config['google_api_key'],
         #                     max_output_tokens=4000)
     
-    def get_session_history(session_id: str, store) -> BaseChatMessageHistory:
+    def get_session_history(self, session_id: str, store) -> BaseChatMessageHistory:
         if session_id not in store:
             store[session_id] = ChatMessageHistory()
         return store[session_id]
+    
+    
+    def fix_code(self, api_config, code, error):
+        
+        code_fix_template = """
+        The following Python code has an error:
+
+        {code}
+
+        The error message is:
+
+        {error}
+
+        Please provide a corrected version of the code that fixes this error. 
+        Only provide the corrected code without any explanations.
+        """
+        llm = self.initialize_llm(api_config)
+        code_fix_chain = LLMChain(
+        llm=llm,
+        prompt=PromptTemplate(
+            input_variables=["code", "error"],
+            template=code_fix_template
+         )
+        )
+        return code_fix_chain.run(code=code, error=error)
         
     def invoke_llm(self, api_config, env_config, new_task,
               example_db_5_tasks,
@@ -150,13 +178,13 @@ class Core:
               code_example_selector,
             #   vc_prompt_template,
               code_prompt_template,
-              K):
+              K, filesystem_api_ref):
         print("\n inside invoke_llm")
         store = {}
         llm = self.initialize_llm(api_config)
         api_key = api_config['openai_api_key']
         temperature = api_config['temp']
-        vc_shot_count = int(env_config["vc_shot_count"])
+        # vc_shot_count = int(env_config["vc_shot_count"])
         code_shot_count = int(env_config["code_shot_count"])
      
 
@@ -209,8 +237,12 @@ class Core:
         code_examples_ids = [t['task_id'] for t in similar_code_tasks]
         # print(f"\n code_examples_ids \n {code_examples_ids}")
         # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template)
-        generated_prompt = code_prompt.format(input=new_task['task_description'])
+        api_reference_dict = json.loads(filesystem_api_ref)
+        api_reference = api_reference_dict["api_reference"]
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template, api_reference)
+    
+        print(f"new task: {new_task['method_signature']}")
+        generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
         # print(f"\n generated_prompt: \n{generated_prompt}")
         # Convert the prompt to a string (it should already be a string, but this ensures it)
         prompt_string = str(generated_prompt)
@@ -234,19 +266,45 @@ class Core:
         #         print(f"Error reading the file {prompt_path}: {str(e)}")
         
         # config = RunnableConfig({"callbacks": [handler]})        
-        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
-        # sequence = llm | code_prompt
+        # ************************** langchain deprecated **************************
+        # code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
+        # print (f"\n code_memory: {code_memory} \n")
+        # code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
+        
+  
+        # **************************************************************************
+        # Create memory
+        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True)
         code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
-        # print(f"\n code_chain: {code_chain} \n")
+        # # Compose the chain
+        # config = RunnableConfig({"callbacks": [self.lunary_handler]})
+        # code_chain = llm | code_prompt | code_memory
         # Dynamic Few-Shot Prompt Response
 
-        with get_openai_callback() as cb_code:
-            set_verbose(True)
-            handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
-            config = RunnableConfig({"callbacks": [handler]})
-            code_response = code_chain.run(new_task['task_description'])
-            print(f'Spent a total of {cb_code.total_tokens} tokens for code')
-        # print(f"\n code_response: {code_response} \n")
+        # with get_openai_callback() as cb_code:
+        #     set_verbose(True)
+        #     handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
+        #     config = RunnableConfig({"callbacks": [handler]})
+        #     code_response = code_chain.invoke({"task": new_task['task_description']})
+        #     print(f'Spent a total of {cb_code.total_tokens} tokens for code')
+        
+        
+        # with self.lunary_handler.trace("run_code_task") as trace:
+        print(f"filesystem_api_ref: {filesystem_api_ref}")
+
+        code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
+        print(f"\n code_response: {code_response} \n")
+     
+        code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
+        memory_contents = code_memory.load_memory_variables({})
+        # Set up logging
+        print(f"\n memory_contents: {memory_contents} \n")
+        # with get_openai_callback() as cb_code:
+        #     set_verbose(True)
+        #     code_response = code_chain.invoke({"task": new_task['task_description']}, config=  config)
+        #     conversation_history = code_memory.load_memory_variables({})["chat_history"]
+        #     code_memory.save_context({"task": new_task['task_description']}, {"output": code_response.content})
+  
         saved_map = {
             "temperature": temperature,
             # "vc_example_shots": env_config["vc_shot_count"],
