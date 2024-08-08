@@ -15,7 +15,7 @@ Step 1: Analyze and select the required APIs and their preconditions from the li
 For this task:
 {{api_with_preconditions}}
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
+Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
 
 Provide the implementation in Dafny syntax as follows:
 
