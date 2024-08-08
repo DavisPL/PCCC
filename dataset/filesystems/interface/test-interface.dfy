@@ -354,6 +354,7 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
 //         // print "All tests passed successfully!\n";
 //     }
 
+<<<<<<< HEAD
   method TestJoin() {
     var p1: seq<char> := "path/to";
     var f1: seq<char> := "file.txt";
@@ -368,6 +369,8 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
     assert result2 == "path/to/";
   } 
 
+=======
+>>>>>>> main
 method TestIsValidFileExtension()
     {
         // Test case 1: Valid file extension
