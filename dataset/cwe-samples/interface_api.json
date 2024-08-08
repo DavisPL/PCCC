@@ -1,5 +1,41 @@
 {
-    "verification_methods_signature": "-predicate IsValidFileName(filename: string): bool\n- predicate HasValidFileLength(f: file)\n- predicate IsValidPathName(path: string)\n- predicate StrContentLengthIsValid(content: string)\n- predicate ByteContentLengthIsValid(content: array<byte>)\n-predicate IsValidDir(p: path)\n- predicate HasValidPathLength(p: path)\n- predicate JointPathSize(p: path, f: file)\n- function PathJoin(p: path, f: file): seq<char> \n- function GetPathLength(pof: PathOrFile): nat\n- predicate IsDangerousPath(p: path)\n- predicate HasAbsolutePath(p: path)\n- function IsValidFileExtension(filename: string): bool\n- method ArrayFromSeq<A>(s: seq<A>) returns (a: array<A>)\n- predicate NonEmptyString(s: string)\n- predicate ContainsConsecutivePeriods(s: seq<char>)\n- predicate ContainsEncodedPeriods(s: seq<char>)\n- predicate ContainsParentDirTraversal(s: seq<char>)\n- predicate ContainsHomeDirReference(s: seq<char>)\n- predicate ContainsDriveLetter(s: seq<char>)\n- predicate ContainsDangerousPattern(s: seq<char>)\n",
-    "fileIO_methods_signature": "- static method Open(fname: seq<char>) returns (ok: bool, f: FileStream) \n - method Join(p: path, f: file) returns(result: path) \n  method Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool) \n method Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)\n method Close() returns(ok:bool) \n method Flush returns(ok:bool)"
+    "1": {
+        "method_name": "Open",
+        "method_description": "This method opens a file with the given name",
+        "method_signature": "static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)",
+        "preconditions": " requires non_empty_string(name)\n requires !has_dangerous_pattern(name)\n requires has_absoloute_path(name)\n requires is_valid_path_name(name)",
+        "method_id": "1"
 
+    },
+    "2": {
+        "method_name": "Read",
+        "method_description": "This method reads the content of a file",
+        "method_signature": "method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)",
+        "preconditions": " requires non_empty_string(p) \n requires !has_dangerous_pattern(p)\n requires has_valid_path_length(p)\n requires has_absoloute_path(p)\n requires is_valid_file_extension(p)\n requires has_valid_content_length(buffer)\n requires is_valid_file_extension(p)\n requires is_valid_file_extension(p)\n",
+        "method_id": "2"
+
+    },
+    "3": {
+        "method_name": "Write",
+        "method_description": "This method writes data to a file",
+        "method_signature": "method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)",
+        "preconditions": " requires !has_dangerous_pattern(p)\n requires has_valid_path_length(p)\n requires has_absoloute_path(p)\n requires is_valid_path_name(p)\n requires has_valid_content_length(buffer)\n requires is_valid_file_extension(p)\n ",
+        "method_id": "3"
+
+    },
+    "4": {
+        "method_name": "Join",
+        "method_description": "This method joins a path and a file",
+        "method_signature": "method Join(p: path, f: file) returns(result: path)",
+        "preconditions": " requires non_empty_string(f)\n requires non_empty_string(p)\n requires !has_dangerous_pattern(f)\n requires has_absoloute_path(f)\n requires is_valid_file_name(f)\n requires is_valid_path_name(p)\n requires has_valid_file_length(f)\n requires has_valid_path_length(p)\n requires has_valid_path_length(p+f)",
+        "method_id": "4"
+
+    },
+    "5": {
+        "method_name": "Close",
+        "method_description": "This method closes a file",
+        "method_signature": "method Close()",
+        "preconditions": " requires IsOpen()",
+        "method_id": "5"
+    }
 }
