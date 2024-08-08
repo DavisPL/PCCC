@@ -6,22 +6,22 @@ from langchain.prompts.prompt import PromptTemplate
 class PromptGenerator:
     def __init__(self) -> None:
         pass
-    def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template):
+    def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template, api_reference):
         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db) 
         # print(f"examples: {examples}")
         example_prompt_template = PromptTemplate(
-            input_variables=["task_description", "method_signature", "all_api_with_preconditions", "api_with_preconditions" , "code"],
+            input_variables=["task_description", "method_signature", "api_with_preconditions" , "code"],
             template_format='jinja2',
             template=prompt_template
         )
         print(f"example_prompt_template: \n {example_prompt_template}")
        
         prompt = FewShotPromptTemplate(
-            prefix="SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:\n - Must utilize given Safe APIs for file operations.\n- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- You are only limited to the provided method signatures and preconditions.",
+            prefix= f"SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:\n- Must utilize given Safe APIs for file operations.\n- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- You are only limited to the provided method signatures and preconditions.\n\nAPI Reference:\n" + api_reference + "\n\n",
             examples=examples,
             example_prompt=example_prompt_template,
-            suffix='''TASK:\n{{task}}\n\nAI ASSISTANT:\n\n''',
-            input_variables=["task"],
+            suffix="""TASK:\n Task Description: {{task}}\n Method Signature:\n {{method_signature}}\n\nAI ASSISTANT:\n\n""",
+            input_variables=["task", "method_signature",],
             example_separator="\n------------------------------------------------------\n",
             template_format='jinja2'
         )
@@ -40,7 +40,7 @@ class PromptGenerator:
             new_obj['task_description'] = obj['task_description']
             new_obj['method_signature'] = obj['method_signature']
             new_obj['api_with_preconditions'] = obj['api_with_preconditions']
-            new_obj['all_api_with_preconditions'] = obj['all_api_with_preconditions']
+            # new_obj['all_api_with_preconditions'] = obj['all_api_with_preconditions']
             # new_obj['safety_properties'] = obj['safety_properties']
             # new_obj['verification_conditions'] = obj['spec']['verification_conditions']
             # new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']

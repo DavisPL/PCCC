@@ -178,7 +178,7 @@ class Core:
               code_example_selector,
             #   vc_prompt_template,
               code_prompt_template,
-              K):
+              K, filesystem_api_ref):
         print("\n inside invoke_llm")
         store = {}
         llm = self.initialize_llm(api_config)
@@ -237,9 +237,12 @@ class Core:
         code_examples_ids = [t['task_id'] for t in similar_code_tasks]
         # print(f"\n code_examples_ids \n {code_examples_ids}")
         # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template)
+        api_reference_dict = json.loads(filesystem_api_ref)
+        api_reference = api_reference_dict["api_reference"]
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template, api_reference)
+    
         print(f"new task: {new_task['method_signature']}")
-        generated_prompt = code_prompt.format(input=new_task['task_description'])
+        generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
         # print(f"\n generated_prompt: \n{generated_prompt}")
         # Convert the prompt to a string (it should already be a string, but this ensures it)
         prompt_string = str(generated_prompt)
@@ -287,8 +290,11 @@ class Core:
         
         
         # with self.lunary_handler.trace("run_code_task") as trace:
-        code_response = code_chain.run(new_task['task_description'])
+        print(f"filesystem_api_ref: {filesystem_api_ref}")
+
+        code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
         print(f"\n code_response: {code_response} \n")
+     
         code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
         memory_contents = code_memory.load_memory_variables({})
         # Set up logging

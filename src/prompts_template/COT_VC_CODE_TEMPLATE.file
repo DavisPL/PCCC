@@ -1,23 +1,21 @@
 TASK:
+
+Task Description: 
 {{task_description}}
-    
+
+Method Signature:
+{{method_signature}}
+
+
 AI ASSISTANT:
 Follow these steps to complete the task:
 
-Step 1: Analyze the method signatures
-Examine the following method signature(s):
-{{method_signature}}
 
-Step 2:  Review the file handling APIs and their preconditions
-
-Familiarize yourself with these API(s) and their associated preconditions:
-{{all_api_with_preconditions}}
-
-Step 3: Analyze and select the required APIs and their preconditions
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
 For this task:
 {{api_with_preconditions}}
 
-Step 4: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
+Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. You must select and insert the fileIO methods preconditions incrementally.
 
 Provide the implementation in Dafny syntax as follows:
 

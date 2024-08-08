@@ -105,7 +105,7 @@ def get_examples_db_task_id_spec_pair(example_json):
         }
         list_of_examples.append(output_task)
     return list_of_examples
-
+    
 
 def get_examples_id_task_specification_pair(example_json):
     list_of_examples = []
@@ -141,6 +141,22 @@ def get_examples_id_task_specification_pair(example_json):
     #             })
     #     list_of_examples.append(output_task)
     # return list_of_examples
+
+def format_api_reference(api_ref):
+    formatted_ref = ""
+    for method in api_ref.values():
+        formatted_ref += f"{method['method_signature']}\n"
+        preconditions = method['preconditions'].split('\n')
+        formatted_ref += '\n'.join(precond.strip() for precond in preconditions if precond.strip())
+        formatted_ref += "\n\n"
+    
+    # Remove the last newline
+    formatted_ref = formatted_ref.rstrip()
+    
+    # Create a JSON object with a single "api_reference" key
+    json_output = json.dumps({"api_reference": formatted_ref})
+    
+    return json_output
 
 def get_vc_methods_sp_pair(example_json):
     list_of_vc_methods = []
