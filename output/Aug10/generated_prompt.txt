@@ -46,8 +46,6 @@ requires IsOpen()
 
 
 ------------------------------------------------------
-TASK:
-
 Task Description: 
 The task is to generate a code in Dafny which takes a source path and a destination path as its parameters and copies from the source file to the destination file
 
@@ -59,7 +57,7 @@ AI ASSISTANT:
 Follow these steps to complete the task:
 
 
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
 For this task:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
@@ -97,8 +95,7 @@ For this task:
  ensures  Name() == old(Name())
  ensures  ok ==> IsOpen()
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny
@@ -134,8 +131,52 @@ method Copy(srcFile: seq<char>, dstFile: seq<char>)
 
 ```
 ------------------------------------------------------
-TASK:
+Task Description: 
+The task is to generate a code in Dafny which takes a file and a path as its parameters and appends the file to the path
 
+Method Signature:
+method Append(path: seq<char>,  fname: seq<char>)
+
+
+AI ASSISTANT:
+Follow these steps to complete the task:
+
+
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
+For this task:
+ - method Join(p: path, f: file) returns(result: path)
+ requires non_empty_string(f)
+ requires non_empty_string(p)
+ requires !has_dangerous_pattern(f)
+ requires !has_dangerous_pattern(p)
+ requires has_absoloute_path(f)
+ requires is_valid_file_name(f)
+ requires is_valid_path_name(p)
+ requires has_valid_file_length(f)
+ requires has_valid_path_length(p)
+ requires has_valid_path_length(p+f)
+
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
+Provide the implementation in Dafny syntax as follows:
+
+```dafny
+
+method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
+ requires !has_dangerous_pattern(fname)
+ requires !has_dangerous_pattern(path)
+ requires has_absoloute_path(fname)
+ requires is_valid_path_name(path)
+ requires is_valid_file_name(fname)
+ requires has_valid_file_length(fname)
+ requires has_valid_path_length(path)
+ requires has_valid_path_length(path + fname)
+ requires append_file_to_path(path, fname) == path + fname
+ {
+   jointPath := Join(path, fname);
+ }
+
+```
+------------------------------------------------------
 Task Description: 
 The task is to generate a code in Dafny which takes a path as its parameter and reads its content
 
@@ -147,7 +188,7 @@ AI ASSISTANT:
 Follow these steps to complete the task:
 
 
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
 For this task:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
@@ -172,7 +213,7 @@ For this task:
   ensures  Name() == old(Name())
   ensures  ok ==> IsOpen()
 
-Step 2: Generate code that implements the given task using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference.
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny
@@ -198,58 +239,6 @@ method ReadFile(path: seq<char>)
 
 ```
 ------------------------------------------------------
-TASK:
-
-Task Description: 
-The task is to generate a code in Dafny which takes a file and a path as its parameters and appends the file to the path
-
-Method Signature:
-method Append(path: seq<char>,  fname: seq<char>)
-
-
-AI ASSISTANT:
-Follow these steps to complete the task:
-
-
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
-For this task:
- - method Join(p: path, f: file) returns(result: path)
- requires non_empty_string(f)
- requires non_empty_string(p)
- requires !has_dangerous_pattern(f)
- requires !has_dangerous_pattern(p)
- requires has_absoloute_path(f)
- requires is_valid_file_name(f)
- requires is_valid_path_name(p)
- requires has_valid_file_length(f)
- requires has_valid_path_length(p)
- requires has_valid_path_length(p+f) 
- requires append_file_to_path(p, f) == p + f
-
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
-Provide the implementation in Dafny syntax as follows:
-
-```dafny
-
-method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
- requires !has_dangerous_pattern(fname)
- requires !has_dangerous_pattern(path)
- requires has_absoloute_path(fname)
- requires is_valid_path_name(path)
- requires is_valid_file_name(fname)
- requires has_valid_file_length(fname)
- requires has_valid_path_length(path)
- requires has_valid_path_length(path + fname)
- requires append_file_to_path(path, fname) == path + fname
- {
-   jointPath := Join(path, fname);
- }
-
-```
-------------------------------------------------------
-TASK:
-
 Task Description: 
 The task is to generate a code in Dafny which takes a username and a path as its parameters and loads user's data from the given file path
 
@@ -261,7 +250,7 @@ AI ASSISTANT:
 Follow these steps to complete the task:
 
 
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
 For this task:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
@@ -286,8 +275,7 @@ For this task:
   ensures  Name() == old(Name())
   ensures  ok ==> IsOpen()
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny
@@ -313,8 +301,6 @@ method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte
 
 ```
 ------------------------------------------------------
-TASK:
-
 Task Description: 
 The task is to generate a code in Dafny which takes a path and a user's data as its parameters and save the user's data into the given path
 
@@ -326,7 +312,7 @@ AI ASSISTANT:
 Follow these steps to complete the task:
 
 
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
 For this task:
 - static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
  requires non_empty_string(name)
@@ -348,8 +334,7 @@ For this task:
  ensures  Name() == old(Name())
  ensures  ok ==> IsOpen()
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny
@@ -376,8 +361,7 @@ method SaveToFile(path: seq<char>, userData: seq<char>)
 
 ```
 ------------------------------------------------------
-TASK:
- Task Description: 
+Task Description: 
  Method Signature:
  
 
