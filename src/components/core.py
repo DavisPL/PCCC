@@ -21,6 +21,7 @@ from langchain.chains import LLMChain
 from langchain.globals import set_verbose
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
+from langchain.schema import SystemMessage
 from langchain_community.callbacks.manager import get_openai_callback
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
@@ -275,6 +276,7 @@ class Core:
         # **************************************************************************
         # Create memory
         code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True)
+        # code_memory = ConversationBufferMemory(input_key=['task', 'api_reference'], memory_key='chat_history', return_messages=True)
         code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
         # # Compose the chain
         # config = RunnableConfig({"callbacks": [self.lunary_handler]})
@@ -288,7 +290,12 @@ class Core:
         #     code_response = code_chain.invoke({"task": new_task['task_description']})
         #     print(f'Spent a total of {cb_code.total_tokens} tokens for code')
         
-        
+        # Format your API reference
+        # formatted_api_reference = format_api_reference(api_reference)
+
+        # Add the API reference as a system message
+        # api_ref_message = SystemMessage(content=f"API Reference:\n{formatted_api_reference}")
+        # code_memory.chat_memory.add_message(api_ref_message)
         # with self.lunary_handler.trace("run_code_task") as trace:
         print(f"filesystem_api_ref: {filesystem_api_ref}")
 
