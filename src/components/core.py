@@ -26,7 +26,11 @@ from langchain_community.callbacks.manager import get_openai_callback
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnableConfig, RunnablePassthrough
+from langchain_core.runnables import (
+    RunnableConfig,
+    RunnablePassthrough,
+    RunnableSequence,
+)
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
 from lunary import LunaryCallbackHandler
@@ -56,6 +60,7 @@ class Core:
         self.max_history_length = max_history_length
         self.lunary_handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
         self.store = {}
+        self.code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
         # self.function = {
         #     "name": "json_format_composer",
         #     "description": "A function that takes in a list of arguments related to a \
@@ -174,17 +179,23 @@ class Core:
         )
         return code_fix_chain.run(code=code, error=error)
 
-    def format_history(messages):
-        return "\n".join([f"{'Human' if isinstance(m, HumanMessage) else 'AI'}: {m.content}" for m in messages])
-
-    def load_memory(input_dict):
-        history = code_memory.load_memory_variables({})
-        formatted_history = format_history(history.get('chat_history', []))
-        return {"chat_history": formatted_history, "task": input_dict["task"]}
-
-    def save_memory(input_and_output):
-        code_memory.save_context({"task": input_and_output["task"]}, {"output": input_and_output["output"]})
-        return input_and_output["output"]
+    # def safe_extract_history(self, x):
+    # # Safely extract chat history, returning an empty list if not found
+    #     return x.get("chat_history", {}).get("chat_history", [])
+    
+    # def load_memory_debug(self, code_memory):
+    #     memory_data = code_memory.load_memory_variables({})
+    #     print(f"Loaded memory data: {memory_data}")  # Debug print
+    #     return memory_data
+    def safe_extract_history(self, x):
+        chat_history = x.get("chat_history", {}).get("chat_history", [])
+        print(f"Extracted chat history: {chat_history}")  # Debug print
+        return chat_history
+    
+    def add_error_to_memory(self, validation_result):
+        error_feedback = f"Error occurred. Let's try again."
+        self.code_memory.chat_memory.add_message(SystemMessage(content=validation_result))
+        return error_feedback
     
     def invoke_llm(self, api_config, env_config, new_task,
               example_db_5_tasks,
@@ -240,6 +251,9 @@ class Core:
         
 
         print("\n new_task_description \n", new_task['task_description'])
+        # Debug: Print memory contents before running the chain
+        print("Memory before running the chain:")
+        print(self.code_memory.load_memory_variables({}))
         # Specification Prompt Response
         # with get_openai_callback() as cb_spec:
         #     specification_response = specification_chain.run(new_task['task_description'])
@@ -291,7 +305,7 @@ class Core:
   
         # **************************************************************************
         # Create memory
-        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
+        
         # code_memory = ConversationBufferMemory(input_key=['task', 'api_reference'], memory_key='chat_history', return_messages=True)
         set_debug(True)
         set_verbose(True)
@@ -299,16 +313,42 @@ class Core:
         
         # # Compose the chain
         # config = RunnableConfig({"callbacks": [self.lunary_handler]})
-        print(f"memory_initiates: {code_memory.load_memory_variables({})}")
+        # print(f"memory_initiates: {self.code_memory.load_memory_variables({})}")
         output = StrOutputParser()
-        code_runnable = code_prompt | llm | output
+
    
         handler =  self.lunary_handler
         config = RunnableConfig({"callbacks": [handler]})
+        # code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
+        # code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
+        # code_response = validation_result
+        print(f"\n new_task: {new_task} \n")
+        # code_memory.save_context({"task": new_task["task_description"]}, {"output": new_task["output"]})
+        # memory_contents = code_memory.load_memory_variables({})
+        # Create the runnable sequence
+        code_runnable = RunnablePassthrough.assign(chat_history=self.code_memory.load_memory_variables)  |  {
+        "method_signature": lambda x: x.get("method_signature", ""),
+        "task": lambda x: x["task"],
+        "chat_history": self.safe_extract_history
+        } | code_prompt | llm | output
+    
 
         # code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
         code_response = code_runnable.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']}, config)
         print(f"\n code_response: {code_response} \n")
+        # memory_contents = self.code_memory.load_memory_variables({})
+        # formatted_history = memory_contents.get('chat_history', [])
+        # one line if else to return validation_result if has a value else code_response
+        print(f"\n validation_result: {validation_result} \n")
+        if validation_result:
+            self.add_error_to_memory(validation_result)
+        else:
+            self.code_memory.save_context({"task": new_task["task_description"]}, {"output": code_response})
+        # result = {"task": new_task["task_description"], **memory_contents}
+        # print(f"\n code_memory: {self.code_memory} \n")
+        # print(f"\n memory_contents: {memory_contents} \n")
+        print("Memory after saving:")
+        print(self.code_memory.load_memory_variables({}))
      
         # code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
         # memory_contents = code_memory.load_memory_variables({})

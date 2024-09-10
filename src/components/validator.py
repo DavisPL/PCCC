@@ -144,6 +144,7 @@ class Validator:
                 combined_error = f"{error_type}: {content}"
             #             # Add a comment to the line where the error occurs
                 modified_code = self.add_comment_to_line(line_number, combined_error, parsed_code)
+           
             return modified_code
         else:
             return parsed_code
