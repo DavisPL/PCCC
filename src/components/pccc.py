@@ -3,6 +3,7 @@ import os
 import pdb
 import pprint
 import re
+from datetime import datetime
 from time import sleep
 from typing import Optional, Union
 
@@ -52,12 +53,14 @@ class PCCC:
         return api_config, env_config
     
     def get_output_paths(self, task,  temp, K, model, base_path):
-        task_base_path = os.path.join(base_path, "task_id" + "_" + str(task['task_id']))
+        current_time = datetime.now().strftime("%Y-%m-%d_%H")
+        task_base_path = os.path.join(base_path, "task_id" + "_" + str(task['task_id'])+ "_" + current_time)
         if not os.path.exists(task_base_path):
             os.makedirs(task_base_path)
         out_paths = dict()
+        current_time_with_min = datetime.now().strftime("%Y-%m-%d_%H-%M")
         common_path = "task_id" + "_" + str(task['task_id']) + "-" + model + "-" + "temp_" + str(
-            temp) + "-" + "k_" + str(K)
+            temp) + "-" + "k_" + str(K) + current_time_with_min
         out_paths["saved_path"] = os.path.join(task_base_path, common_path + ".json")
         out_paths["dfy_src_path"] = os.path.join(task_base_path, common_path + ".dfy")
         out_paths["verification_path"] = os.path.join(task_base_path, common_path + "_verification_log.txt")
@@ -97,8 +100,7 @@ class PCCC:
             # "specification_response": _saved_map["specification_response"],
             "code_example_shots": _saved_map["code_example_shots"],
             "code_response": _saved_map["code_response"],
-            "code_examples_ids": _saved_map["code_examples_ids"],
-         
+            "code_examples_ids": _saved_map["code_examples_ids"]
             # "spec_examples_ids": _saved_map["spec_examples_ids"]
         }
 
@@ -162,6 +164,7 @@ class PCCC:
                 # print(f"\n output_paths: {output_paths} \n")
                 try:
                     llm_core = core.Core()
+                    code_validator = validator.Validator()
                     set_verbose(True)
                     saved_response = llm_core.invoke_llm(api_config, env_config, new_task=task_spec,
                                                     example_db_5_tasks=example_db_tasks,
@@ -183,9 +186,12 @@ class PCCC:
                     # Find the line number and error message
                     print(f"\n errors: {errors}")
                     verification_bits = verifier.get_all_verification_bits_count(parsedCode)
-
+                    validation_result = code_validator.validate_code(error_message = errors, parsed_code = parsedCode)
+                    print(f"\n validation_result: {validation_result}")
+                    print(f"\n parsedCode: {parsedCode}")
+                    print(f"\n errors: {errors}")
                     saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,
-                                                    _model=model, _dafny_code=parsedCode, _isVerified=isVerified,
+                                                    _model=model, _dafny_code=validation_result, _isVerified=isVerified,
                                                     _verification_bits=verification_bits, _saved_map=saved_response)
                     if isVerified:
                         utils.save_to_json(saved_map, output_paths["saved_path"])

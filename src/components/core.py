@@ -18,13 +18,14 @@ import numpy as np
 import openai
 import torch
 from langchain.chains import LLMChain
-from langchain.globals import set_verbose
+from langchain.globals import set_debug, set_verbose
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.schema import SystemMessage
 from langchain_community.callbacks.manager import get_openai_callback
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableConfig, RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
@@ -54,6 +55,7 @@ class Core:
         self.conversation_history = []
         self.max_history_length = max_history_length
         self.lunary_handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
+        self.store = {}
         # self.function = {
         #     "name": "json_format_composer",
         #     "description": "A function that takes in a list of arguments related to a \
@@ -133,7 +135,7 @@ class Core:
     
         if model == "gpt-4":
             return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
-                            openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=False)
+                            openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=True)
         if model == "gpt-3.5-turbo-0125":
             return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
                             openai_api_key=api_config['openai_api_key'])
@@ -142,10 +144,10 @@ class Core:
         #                     google_api_key=_api_config['google_api_key'],
         #                     max_output_tokens=4000)
     
-    def get_session_history(self, session_id: str, store) -> BaseChatMessageHistory:
-        if session_id not in store:
-            store[session_id] = ChatMessageHistory()
-        return store[session_id]
+    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+        if session_id not in self.store:
+            self.store[session_id] = ChatMessageHistory()
+        return self.store[session_id]
     
     
     def fix_code(self, api_config, code, error):
@@ -171,7 +173,19 @@ class Core:
          )
         )
         return code_fix_chain.run(code=code, error=error)
-        
+
+    def format_history(messages):
+        return "\n".join([f"{'Human' if isinstance(m, HumanMessage) else 'AI'}: {m.content}" for m in messages])
+
+    def load_memory(input_dict):
+        history = code_memory.load_memory_variables({})
+        formatted_history = format_history(history.get('chat_history', []))
+        return {"chat_history": formatted_history, "task": input_dict["task"]}
+
+    def save_memory(input_and_output):
+        code_memory.save_context({"task": input_and_output["task"]}, {"output": input_and_output["output"]})
+        return input_and_output["output"]
+    
     def invoke_llm(self, api_config, env_config, new_task,
               example_db_5_tasks,
             #   vc_example_selector,
@@ -179,7 +193,9 @@ class Core:
               code_example_selector,
             #   vc_prompt_template,
               code_prompt_template,
-              K, filesystem_api_ref):
+              K, 
+              filesystem_api_ref, 
+              validation_result = None):
         print("\n inside invoke_llm")
         store = {}
         llm = self.initialize_llm(api_config)
@@ -275,43 +291,45 @@ class Core:
   
         # **************************************************************************
         # Create memory
-        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True)
+        code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
         # code_memory = ConversationBufferMemory(input_key=['task', 'api_reference'], memory_key='chat_history', return_messages=True)
-        code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
+        set_debug(True)
+        set_verbose(True)
+        # code_chain = LLMChain(llm=llm, prompt=code_prompt, output_key='script', memory=code_memory)
+        
         # # Compose the chain
         # config = RunnableConfig({"callbacks": [self.lunary_handler]})
-        # code_chain = llm | code_prompt | code_memory
-        # Dynamic Few-Shot Prompt Response
+        print(f"memory_initiates: {code_memory.load_memory_variables({})}")
+        output = StrOutputParser()
+        code_runnable = code_prompt | llm | output
+   
+        handler =  self.lunary_handler
+        config = RunnableConfig({"callbacks": [handler]})
 
-        # with get_openai_callback() as cb_code:
-        #     set_verbose(True)
-        #     handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
-        #     config = RunnableConfig({"callbacks": [handler]})
-        #     code_response = code_chain.invoke({"task": new_task['task_description']})
-        #     print(f'Spent a total of {cb_code.total_tokens} tokens for code')
-        
-        # Format your API reference
-        # formatted_api_reference = format_api_reference(api_reference)
-
-        # Add the API reference as a system message
-        # api_ref_message = SystemMessage(content=f"API Reference:\n{formatted_api_reference}")
-        # code_memory.chat_memory.add_message(api_ref_message)
-        # with self.lunary_handler.trace("run_code_task") as trace:
-        print(f"filesystem_api_ref: {filesystem_api_ref}")
-
-        code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
+        # code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
+        code_response = code_runnable.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']}, config)
         print(f"\n code_response: {code_response} \n")
      
-        code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
-        memory_contents = code_memory.load_memory_variables({})
+        # code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
+        # memory_contents = code_memory.load_memory_variables({})
+        
+        # code_with_history = RunnableWithMessageHistory(
+        #     code_chain,
+        #     self.get_session_history,
+        #     input_messages_key="task",
+        #     history_messages_key="output",
+        # )
+        # code_response = code_with_history.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']})
+        
         # Set up logging
-        print(f"\n memory_contents: {memory_contents} \n")
+        # print(f"\n memory_contents: {memory_contents} \n")
+      
         # with get_openai_callback() as cb_code:
         #     set_verbose(True)
         #     code_response = code_chain.invoke({"task": new_task['task_description']}, config=  config)
         #     conversation_history = code_memory.load_memory_variables({})["chat_history"]
         #     code_memory.save_context({"task": new_task['task_description']}, {"output": code_response.content})
-  
+        
         saved_map = {
             "temperature": temperature,
             # "vc_example_shots": env_config["vc_shot_count"],
