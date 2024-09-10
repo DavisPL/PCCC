@@ -7,6 +7,8 @@ method CreateFullPath(filename: seq<char>) returns (fullPath: seq<char>)
  requires has_valid_file_length(filename)
  requires has_valid_path_length("/home/user/documents" + filename)
  {
+
      var directoryPath: seq<char> := "/home/user/documents";
+     assert false;
      fullPath := Join(directoryPath, filename);
  }

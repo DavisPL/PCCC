@@ -1,0 +1,16 @@
+/Users/pari/pcc-llms/output/task_id_6_2024-09-10_14/task_id_6-gpt-4-temp_0.75-k_12024-09-10_14-20.dfy(9,20): Error: invalid TypeAndToken
+  |
+9 |      var directory: = seq[char]> "/home/user/documents";
+  |                     ^
+
+/Users/pari/pcc-llms/output/task_id_6_2024-09-10_14/task_id_6-gpt-4-temp_0.75-k_12024-09-10_14-20.dfy(9,20): Error: a local variable should be initialized using ':=', ':-', or ':|', not '='
+  |
+9 |      var directory: = seq[char]> "/home/user/documents";
+  |                     ^
+
+/Users/pari/pcc-llms/output/task_id_6_2024-09-10_14/task_id_6-gpt-4-temp_0.75-k_12024-09-10_14-20.dfy(9,25): Error: openparen expected
+  |
+9 |      var directory: = seq[char]> "/home/user/documents";
+  |                          ^
+
+3 parse errors detected in task_id_6-gpt-4-temp_0.75-k_12024-09-10_14-20.dfy

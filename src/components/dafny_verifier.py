@@ -193,7 +193,7 @@ def find_match(error):
     error_res = [(match[0], match[1].strip()) for match in matches]
     return error_res
 
-def add_comment_to_line(line, comment, code):
+def add_comment_to_line(self, line, comment, code):
     # Convert the line number string to an integer
     # Attaches any exceptions to the related line
     # Returns the modified code with the comment added

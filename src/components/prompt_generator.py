@@ -20,7 +20,7 @@ class PromptGenerator:
             prefix= f"SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:\n- Must utilize given Safe APIs for file operations.\n- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- You are only limited to the provided method signatures and preconditions.\n\nAPI Reference:\n" + api_reference + "\n\n",
             examples=examples,
             example_prompt=example_prompt_template,
-            suffix="""TASK:\n Task Description: {{task}}\n Method Signature:\n {{method_signature}}\n\nAI ASSISTANT:\n\n""",
+            suffix="""Task Description: {{task}}\n Method Signature:\n {{method_signature}}\n\nAI ASSISTANT:\n\n""",
             input_variables=["task", "method_signature",],
             example_separator="\n------------------------------------------------------\n",
             template_format='jinja2'

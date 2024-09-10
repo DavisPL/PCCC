@@ -1,5 +1,3 @@
-TASK:
-
 Task Description: 
 {{task_description}}
 
@@ -11,12 +9,11 @@ AI ASSISTANT:
 Follow these steps to complete the task:
 
 
-Step 1: Analyze and select the required APIs and their preconditions from the list of API reference
+Step 1: Analyze and select the required APIs and their preconditions from the list of API reference.
 For this task:
 {{api_with_preconditions}}
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
+Step 2:  Implement the Dafny code for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny

@@ -191,3 +191,6 @@ makefile
 
 # Local development files
 /Users/pari/pcc-llms/output
+
+# Ignore config files
+dpl.config

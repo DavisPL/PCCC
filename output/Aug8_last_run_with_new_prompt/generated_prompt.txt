@@ -172,8 +172,7 @@ For this task:
   ensures  Name() == old(Name())
   ensures  ok ==> IsOpen()
 
-Step 2: Generate code that implements the required filesystem operations using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference incrementally.
-
+Step 2: Generate code that implements the given task using the given fileIo API methods. Select among the fileIO methods preconditions available in API reference.
 Provide the implementation in Dafny syntax as follows:
 
 ```dafny
