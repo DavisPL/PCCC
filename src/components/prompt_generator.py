@@ -23,7 +23,7 @@ class PromptGenerator:
             suffix="""Task Description: {{task}}\n Method Signature:\n {{method_signature}}\n\nAI ASSISTANT:\n\n""",
             input_variables=["task", "method_signature",],
             example_separator="\n------------------------------------------------------\n",
-            template_format='jinja2'
+            template_format='jinja2',  
         )
         # print("Generated prompt successfully")
         # print(f"Suffix: {prompt.suffix}")

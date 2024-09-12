@@ -110,7 +110,6 @@ def get_examples_db_task_id_spec_pair(example_json):
 def get_examples_id_task_specification_pair(example_json):
     list_of_examples = []
     for task in example_json:
-        # print(f"example_json[task]: {example_json[task]}")
         output_task = {
             "task_id": example_json[task]['task_id'],
             "task_description": example_json[task]['task_description'],
@@ -161,7 +160,6 @@ def format_api_reference(api_ref):
 def get_vc_methods_sp_pair(example_json):
     list_of_vc_methods = []
     for t in example_json:
-        print(f"example_json[t]: {example_json[t]}")
         output_task = {
             "sp_id": example_json[t]["sp_id"],
             "safety_property": example_json[t]["safety_property"],
@@ -184,19 +182,13 @@ def load_json(file_path):
 
 def parse_specification_response(task, response):
     signature = response.split("\n")[1]
-    print("------------------------------")
-    print(f"signature:\n {signature} \n")
-    print(f"response:\n {response}\n")
     safety_properties = "\n".join(response.split("\n")[3:])
-    print(f"safety_properties:\n {safety_properties} \n")
     task['method_signature'] = signature.strip()
-    print(f"task['method_signature']:\n {task['method_signature']} \n")
     task['safety_properties'] = safety_properties.strip()
     return task
 
     
 def prepend_include_to_code(response, interface_path): 
-    print(f"\\n\n\n\n\n\n inside prepend_include_to_code")
     # Use regex to find Dafny code blocks
     pattern = r'```dafny\n(.*?)```'
     dafny_blocks = re.findall(pattern, response, re.DOTALL)

@@ -1,0 +1,16 @@
+/Users/pari/pcc-llms/output/task_id_6_generated@2024-09-12_01/task_id_6-gpt-4-temp_0.75-k_1.dfy(10,4): Error: missing semicolon at end of statement
+   |
+10 |     let directory: seq<char> := "/home/user/documents";
+   |     ^^^
+
+/Users/pari/pcc-llms/output/task_id_6_generated@2024-09-12_01/task_id_6-gpt-4-temp_0.75-k_1.dfy(10,8): Error: invalid statement beginning here (is a 'label' keyword missing? or a 'const' or 'var' keyword?)
+   |
+10 |     let directory: seq<char> := "/home/user/documents";
+   |         ^^^^^^^^^^
+
+/Users/pari/pcc-llms/output/task_id_6_generated@2024-09-12_01/task_id_6-gpt-4-temp_0.75-k_1.dfy(10,19): Error: rbrace expected
+   |
+10 |     let directory: seq<char> := "/home/user/documents";
+   |                    ^
+
+3 parse errors detected in task_id_6-gpt-4-temp_0.75-k_1.dfy

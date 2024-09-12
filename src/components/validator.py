@@ -125,7 +125,7 @@ class Validator:
         #     llm_response = llm_core.execute_prompt(
         #         api_config, env_config, prompt, output_path)
         #     compiler_type = llm_response["programming_language"]
-        compiler_type = "Dafny"
+        # compiler_type = "Dafny"
         # error_message = self.compile_code(output_path, compiler_type)
         # if error_message is None:
         #         return llm_response["safety_property"], llm_response["code"], llm_response["required_files"]
