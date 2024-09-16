@@ -94,6 +94,7 @@ python3 main.py
 
 
 # Repository Structure
+Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt template can be founr in `src/prompts_template/` and the example in our paper is task-6 that can be found in `src/tasks/task-6.json`. The few-shot examples can be found in `benchmark/RAG_samples`.
 
 # Authors
 This repository is maintained actively by:
