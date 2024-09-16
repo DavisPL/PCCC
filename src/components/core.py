@@ -51,62 +51,60 @@ class Core:
         self.messages = []
         self.conversation_history = []
         self.max_history_length = max_history_length
-        # Make lunary APU optional and add it to config
-        self.lunary_handler = LunaryCallbackHandler(app_id="1237e9ec-db53-4d82-b996-9ce81a650f08")
         self.store = {}
         self.code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
-        
+        self.lunary_handler = None
     def count_tokens(self, chain, query):
         with get_openai_callback() as cb:
             result = chain.run(query)
-            print(f'Spent a total of {cb.total_tokens} tokens')
+            # print(f'Spent a total of {cb.total_tokens} tokens')
 
         return result, cb.total_tokens
     
     def initialize_llm(self, api_config):
         model = api_config['model']
-        print(f"\n model: {model} \n")
-
+        if api_config["lunary_api_key"] is not None:
+            self.lunary_handler = LunaryCallbackHandler(app_id=api_config["lunary_api_key"])
     
         if model == "gpt-4":
             return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
                             openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=True)
         if model == "gpt-3.5-turbo-0125":
             return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
-                            openai_api_key=api_config['openai_api_key'])
+                            openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=True)
         if model == "claude":
             return ChatAnthropic(model="claude-3-opus-20240229", temperature=api_config['temp'],
-                            api_key=api_config['claude_api_key'])
+                            api_key=api_config['claude_api_key'], callbacks=[self.lunary_handler], verbose=True)
     
-    def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
-        if session_id not in self.store:
-            self.store[session_id] = ChatMessageHistory()
-        return self.store[session_id]
+    # def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
+    #     if session_id not in self.store:
+    #         self.store[session_id] = ChatMessageHistory()
+    #     return self.store[session_id]
     
     
-    def fix_code(self, api_config, code, error):
+    # def fix_code(self, api_config, code, error):
         
-        code_fix_template = """
-        The following Python code has an error:
+    #     code_fix_template = """
+    #     The following Python code has an error:
 
-        {code}
+    #     {code}
 
-        The error message is:
+    #     The error message is:
 
-        {error}
+    #     {error}
 
-        Please provide a corrected version of the code that fixes this error. 
-        Only provide the corrected code without any explanations.
-        """
-        llm = self.initialize_llm(api_config)
-        code_fix_chain = LLMChain(
-        llm=llm,
-        prompt=PromptTemplate(
-            input_variables=["code", "error"],
-            template=code_fix_template
-         )
-        )
-        return code_fix_chain.run(code=code, error=error)
+    #     Please provide a corrected version of the code that fixes this error. 
+    #     Only provide the corrected code without any explanations.
+    #     """
+    #     llm = self.initialize_llm(api_config)
+    #     code_fix_chain = LLMChain(
+    #     llm=llm,
+    #     prompt=PromptTemplate(
+    #         input_variables=["code", "error"],
+    #         template=code_fix_template
+    #      )
+    #     )
+    #     return code_fix_chain.run(code=code, error=error)
 
     # def safe_extract_history(self, x):
     # # Safely extract chat history, returning an empty list if not found
@@ -118,7 +116,7 @@ class Core:
     #     return memory_data
     def safe_extract_history(self, x):
         chat_history = x.get("chat_history", {}).get("chat_history", [])
-        print(f"Extracted chat history: {chat_history}")  # Debug print
+        # print(f"Extracted chat history: {chat_history}")  # Debug print
         return chat_history
     
     def add_error_to_memory(self, validation_result):
@@ -158,8 +156,6 @@ class Core:
    
         # similar_tasks = spec_example_selector.select_examples(new_task)    
         # print(f"\n vc_example_selector \n {vc_example_selector}")
-
-        spec_examples_ids = [1, 2, 3, 4, 5]
         
         prompt_gen = prompt_generator.PromptGenerator()
         # specification_prompt = prompt_gen.create_few_shot_specification_prompts(spec_examples_ids,
@@ -199,16 +195,11 @@ class Core:
         # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
         api_reference_dict = json.loads(filesystem_api_ref)
         api_reference = api_reference_dict["api_reference"]
-        print(f"\n api_reference: \n {api_reference}")
+        # print(f"\n api_reference: \n {api_reference}")
         code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template, api_reference)
     
-        print(f"new task: {new_task['method_signature']}")
+        # print(f"new task: {new_task['method_signature']}")
         generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
-        # print(f"\n generated_prompt: \n{generated_prompt}")
-        # Convert the prompt to a string (it should already be a string, but this ensures it)
-        prompt_string = str(generated_prompt)
-        with open("/Users/pari/pcc-llms/output/generated_prompt.txt", "w") as file:
-            file.write(prompt_string)
         # print(f"\n ================================\n code_prompt")                                                            
         # print(f"{code_prompt}")
         # print(f"\n ================================") 
@@ -230,7 +221,7 @@ class Core:
         # ************************** langchain deprecated **************************
         # code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history')
         # print (f"\n code_memory: {code_memory} \n")
-        # code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=code_memory)
+        # code_chain = LLMChain(llm=llm, prompt=code_prompt, verbose=False, output_key='script', memory=self.code_memory)
         
   
         # **************************************************************************
@@ -247,29 +238,35 @@ class Core:
         output = StrOutputParser()
 
    
-        handler =  self.lunary_handler
-        config = RunnableConfig({"callbacks": [handler]})
+        config = RunnableConfig({"callbacks": [self.lunary_handler]})
+        # print(f"config {config}")
         # code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
         # code_memory = ConversationBufferMemory(input_key='task', memory_key='chat_history', return_messages=True, verbose=True)
         # code_response = validation_result
-        print(f"\n new_task: {new_task} \n")
+        # print(f"\n new_task: {new_task} \n")
         # code_memory.save_context({"task": new_task["task_description"]}, {"output": new_task["output"]})
         # memory_contents = code_memory.load_memory_variables({})
         # Create the runnable sequence
-        code_runnable = RunnablePassthrough.assign(chat_history=self.code_memory.load_memory_variables)  |  {
-        "method_signature": lambda x: x.get("method_signature", ""),
-        "task": lambda x: x["task"],
-        "chat_history": self.safe_extract_history
-        } | code_prompt | llm | output
+        # code_runnable = RunnablePassthrough.assign(chat_history=self.code_memory.load_memory_variables)  |  {
+        # "method_signature": lambda x: x["method_signature"],
+        # "task": lambda x: x["task"],
+        # "chat_history": self.safe_extract_history
+        # } | code_prompt | llm | output
+        code_runnable = code_prompt | llm | output
+        # code_runnable = RunnablePassthrough.assign(chat_history=self.code_memory.load_memory_variables)  |  {
+        # "method_signature": lambda x: x[method_signature]"method_signature", ""),
+        # "task": lambda x: x["task"],
+        # "chat_history": self.safe_extract_history
+        # } | code_prompt | llm | output
     
 
         # code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
         code_response = code_runnable.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']}, config)
-        print(f"\n code_response: {code_response} \n")
+        # print(f"\n code_response: {code_response} \n")
         # memory_contents = self.code_memory.load_memory_variables({})
         # formatted_history = memory_contents.get('chat_history', [])
         # one line if else to return validation_result if has a value else code_response
-        print(f"\n validation_result: {validation_result} \n")
+        # print(f"\n validation_result: {validation_result} \n")
         if validation_result:
             self.add_error_to_memory(validation_result)
         else:
@@ -277,8 +274,8 @@ class Core:
         # result = {"task": new_task["task_description"], **memory_contents}
         # print(f"\n code_memory: {self.code_memory} \n")
         # print(f"\n memory_contents: {memory_contents} \n")
-        print("Memory after saving:")
-        print(self.code_memory.load_memory_variables({}))
+        # print("Memory after saving:")
+        # print(self.code_memory.load_memory_variables({}))
      
         # code_memory.save_context({"task": new_task['task_description']}, {"output": code_response})
         # memory_contents = code_memory.load_memory_variables({})

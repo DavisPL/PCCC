@@ -33,6 +33,7 @@ class PCCC:
         api_config["openai_api_key"] = config.get('DEFAULT', 'openai_api_key')
         api_config["google_api_key"] = config.get('DEFAULT', 'google_api_key')
         api_config["claude_api_key"] = config.get('DEFAULT', 'claude_api_key')
+        api_config["lunary_api_key"] = config.get('DEFAULT', 'lunary_api_key')
         api_config["model"] = config.get('DEFAULT', 'model')
         api_config["temp"] = float(config.get('DEFAULT', 'temp'))
         api_config["max_tokens"] = int(config.get('DEFAULT', 'max_tokens'))
@@ -52,7 +53,7 @@ class PCCC:
         return api_config, env_config
     
     def generate_output_paths(self, task,  temp, K, model, base_path):
-        current_time = datetime.now().strftime("%Y-%m-%d_%H")
+        current_time = datetime.now().strftime("%Y-%m-%d")
         task_base_path = os.path.join(base_path, "task_id" + "_" + str(task['task_id'])+ "_" + "generated@" + current_time)
         if not os.path.exists(task_base_path):
             os.makedirs(task_base_path)
@@ -65,27 +66,27 @@ class PCCC:
         return out_paths
 
     
-    def get_spec_code_prompts(self):
+    def get_spec_code_prompts(self, template_path):
         script_dir_path = os.path.dirname(os.getcwd())
-        code_prompt_path = os.path.join(script_dir_path, 'src/prompts_template/COT_TEMPLATE.file')
+        code_prompt_path = os.path.join(script_dir_path, template_path)
         code_template = utils.read_file(code_prompt_path)
         return code_template
         
     
-    def prepare_model_response(self, _task, _temp, _K, _model, _dafny_code, _isVerified, _verification_bits, _saved_map):
+    def prepare_model_response(self, task, temp, K, model, dafny_code, isVerified, saved_map, total_no_errors):
         return {
-            "id": _task['task_id'],
-            "K": _K,
-            "temperature": _temp,
-            "task_id": _task['task_id'],
-            "task_description": _task['task_description'],
-            "model": _model,
-            "dafny_code": _dafny_code,
-            "isVerified": _isVerified,
-            "verification_bits": _verification_bits,
-            "code_example_shots": _saved_map["code_example_shots"],
-            "code_response": _saved_map["code_response"],
-            "code_examples_ids": _saved_map["code_examples_ids"]
+            "id": task['task_id'],
+            "K": K,
+            "temperature": temp,
+            "task_id": task['task_id'],
+            "task_description": task['task_description'],
+            "model": model,
+            "dafny_code": dafny_code,
+            "isVerified": isVerified,
+            "code_example_shots": saved_map["code_example_shots"],
+            "code_response": saved_map["code_response"],
+            "code_examples_ids": saved_map["code_examples_ids"],
+            "total_no_errors": total_no_errors,
         }
 
     
@@ -100,7 +101,7 @@ class PCCC:
         # load example db
         example_db_tasks = utils.load_json(env_config['example_db_json_path'])
         examples_db_for_cot_prompt = utils.get_examples_id_task_specification_pair(example_db_tasks)
-        code_prompt_template = self.get_spec_code_prompts()
+        code_prompt_template = self.get_spec_code_prompts('src/prompts_template/COT_TEMPLATE.file')
         all_response = []
         tasks = utils.load_json(env_config['task_path'])
         model = api_config['model']
@@ -134,15 +135,14 @@ class PCCC:
                     isVerified, parsedCode, errors = verifier.verify_dfy_src(saved_response['code_response'],
                                                                     output_paths['dfy_src_path'],
                                                                     output_paths['verification_path'])
-                    print(f"\n errors: {errors}")
-                    verification_bits = verifier.get_all_verification_bits_count(parsedCode)
-                    validation_result = code_validator.validate_code(error_message = errors, parsed_code = parsedCode)
-                    print(f"\n validation_result: {validation_result}")
-                    print(f"\n parsedCode: {parsedCode}")
-                    print(f"\n errors: {errors}")
-                    saved_map = self.prepare_model_response(_task=task_spec, _temp=api_config['temp'], _K=run_count,
-                                                    _model=model, _dafny_code=validation_result, _isVerified=isVerified,
-                                                    _verification_bits=verification_bits, _saved_map=saved_response)
+                    # print(f"\n errors: {errors}")
+                    validation_result, total_no_errors = code_validator.validate_code(error_message = errors, parsed_code = parsedCode)
+                    # print(f"\n validation_result: {validation_result}")
+                    # print(f"\n parsedCode: {parsedCode}")
+                    # print(f"\n errors: {errors}")
+                    saved_map = self.prepare_model_response(task=task_spec, temp=api_config['temp'], K=run_count,
+                                                    model=model, dafny_code=validation_result, isVerified=isVerified,
+                                                   saved_map=saved_response, total_no_errors=total_no_errors)
                     if isVerified:
                         utils.save_to_json(saved_map, output_paths["saved_path"])
                         all_response.append(saved_map)
@@ -158,7 +158,7 @@ class PCCC:
                 sleep(int(env_config['cool_down_time']))
         utils.save_to_json(all_response,
                             os.path.join(env_config["base_output_path"],
-                                        "dynamic-few-shot-prompting-" + model + ".json"))
+                                        "few-shot-prompt-" + model + ".json"))
 
     # Generate proof carrying code completions
     def generate_proof_with_code(self):

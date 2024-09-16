@@ -38,7 +38,7 @@ class Validator:
             return -1, -1,  compile_ouput # -1, -1, time_out errors
         except CalledProcessError as e:
             compile_ouput = e.stdout.decode("utf-8")
-            if "parse errors detected" in compile_ouput:
+            if "parsed errors detected" in compile_ouput:
                 return -2, -2, compile_ouput  # -2, -2, parser_errors
             
         lines = compile_ouput.strip().split("\n")
@@ -132,22 +132,23 @@ class Validator:
         #     else:
                 # Find the line number and error message
         error_components = self.extract_errors(error_message)
-        print(f"Error components: {error_components}")
+        # print(f"Error components: {error_components}")
         #         # Get the code from the response
         # modified_code = llm_response['code']
         #         # Add comments to the lines where the errors occur
-        if len(error_components) > 0:
+        total_no_errors = len(error_components)
+        if total_no_errors > 0:
             for i, (error_type, line_number, content) in enumerate(error_components, 1):
-                print(f"Error {i}: {error_type} \n")
-                print(f"Line: {line_number} \n")
-                print(f"Content: {content} \n")
+                # print(f"Error {i}: {error_type} \n")
+                # print(f"Line: {line_number} \n")
+                # print(f"Content: {content} \n")
                 combined_error = f"{error_type}: {content}"
             #             # Add a comment to the line where the error occurs
                 modified_code = self.add_comment_to_line(line_number, combined_error, parsed_code)
-           
-            return modified_code
+
+            return modified_code, total_no_errors
         else:
-            return parsed_code
+            return parsed_code, total_no_errors
         #         # Add the error message to the modified prompt
         #         modified_prompt = f"{modified_code} \n\n Compiler Error:\n{error_message}"
         #         llm_core.prompt_ammendment("user", modified_prompt)
