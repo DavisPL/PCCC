@@ -1,4 +1,6 @@
 # Proof Carrying Code Completions (PC<sup>3</sup>) 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a safety property.
 
 > [!WARNING] 
@@ -153,8 +155,6 @@ Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanfo
 
 
 # License
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-<<<<<<< Updated upstream
-=======
+
 This repository is licensed under [GNU General Public License v3.0](LICENSE)
->>>>>>> Stashed changes
+
