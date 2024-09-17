@@ -39,7 +39,7 @@ PC3 is a research prototype; it has the following current limitations:
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install requiremetns.
 
 Create a virtual environment using `python -m venv /path/to/new/virtual/environment` for instance: `python3 -m venv pccc-venv`
-Activate the virtuale environment using `source pccc-venv/source/bin/activate` for a unix-based system and `pccc-venv\Scripts\activate.bat` for a linux-based system. In case of having any issue or requiring more details please refer to [python doumentation on creation of virtula environments](https://docs.python.org/3/library/venv.html)
+Activate the virtuale environment using `source pccc-venv/bin/activate` for a unix-based system and `pccc-venv\Scripts\activate.bat` for a linux-based system. In case of having any issue or requiring more details please refer to [python doumentation on creation of virtula environments](https://docs.python.org/3/library/venv.html)
 
 To install required packages you can simply use the following command
 ```
