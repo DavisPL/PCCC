@@ -23,7 +23,7 @@ PC<sup>3</sup> (proof carrying code completions) is a Dafny framework for genera
 PC3 is a research prototype; it has the following current limitations:
 
 - Currently, PC3 supports code generation (i.e, full function bodies) and support for code completions is work-in-progress.
-- Our current implementation uses a prompt generation template and a validation step similar to [dafny-synthesis](https://github.com/Mondego/dafny-synthesis?tab=GPL-3.0-1-ov-file#readme) developed by Misu et. al.
+- Our current implementation uses a prompt generation template and a validation step similar to [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) developed by Misu et. al.
 - The safety properties are chosen and converted to verification conditions manually in the current version.
 
 
