@@ -1,5 +1,5 @@
 # Proof Carrying Code Completions (PC<sup>3</sup>) 
-PC<sup>3</sup>: a Dafny framework for generating code together with a proof of a safety property.
+PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a safety property.
 > [!WARNING] 
 > PC<sup>3</sup> is under active development
 
@@ -67,13 +67,13 @@ env.config includes two main parts to set the requirements for the tool executio
     ```
     If you wourd like to switch to another model, simply remove the openai_api_key and add the new_api_key for another model.
 
-    > [!NOTE]  
-    > Currently, our tool only supports openAI and Claude.
-    > Adding lunary_api_key is optional. If you use lunary for logging the prompt and the model's response you need to add it to as below:
-    ```
-        # Lunary API KEY 
-        lunary_api_key = YOUR_API_KEY
-    ```
+> [!NOTE]  
+> Currently, our tool only supports openAI and Claude.
+> Adding lunary_api_key is optional. If you use lunary for logging the prompt and the model's response you need to add it to as below:
+```
+    # Lunary API KEY 
+    lunary_api_key = YOUR_API_KEY
+```
     - Model parameters: LLM parameters including the LLM model, coold down time, temperature (= 0.75), max number of tokens (= 4000)
     - Required files: Set the absolute path for the following files:
         - Set the absolute path for the input task [task 6 json file](./src/tasks/task-6.json)
