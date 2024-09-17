@@ -146,7 +146,7 @@ We welcome any contributions to this repository. Please follow the instructions 
 
 If you would like to cite this repository, please cite our publication.
 ```
-    Parnian Kamran, Premkumar Devanbu, and Caleb Stanford. 2024. Vision Paper: Proof-Carrying Code Completions. In 39th IEEE/ACM International Conference on Automated Software Engineering Workshops (ASEW ’24), Octo- ber 27-November 1, 2024, Sacramento, CA, USA. ACM, New York, NY, USA, 7 pages. https://doi.org/10.1145/3691621.3694932
+Parnian Kamran, Premkumar Devanbu, and Caleb Stanford. 2024. Vision Paper: Proof-Carrying Code Completions. In 39th IEEE/ACM International Conference on Automated Software Engineering Workshops (ASEW ’24), Octo- ber 27-November 1, 2024, Sacramento, CA, USA. ACM, New York, NY, USA, 7 pages. https://doi.org/10.1145/3691621.3694932
 ```
 Alternatively, you may cite this repository directly:
 
@@ -154,17 +154,17 @@ Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanfo
 
 Also, please consider citing [Towards AI-Assisted Synthesis of Verified Dafny Methods](https://arxiv.org/abs/2402.00247)
 ```
-    @article{MRHMisuDafnyFSE24,
-        title = {Towards AI-Assisted Synthesis of Verified Dafny Methods},
-        author = {Md Rakib Hossain Misu, Cristina V. Lopes, Iris Ma, James Noble},
-        journal = {Proc. {ACM} Softw. Eng.},
-        volume  = {1},
-        number  = {{FSE}},
-        year = {2024},
-        doi = {10.1145/3643763},
-        url = {https://doi.org/10.1145/3643763},
-        preprint={https://doi.org/10.48550/arXiv.2402.00247}
-    }
+@article{MRHMisuDafnyFSE24,
+    title = {Towards AI-Assisted Synthesis of Verified Dafny Methods},
+    author = {Md Rakib Hossain Misu, Cristina V. Lopes, Iris Ma, James Noble},
+    journal = {Proc. {ACM} Softw. Eng.},
+    volume  = {1},
+    number  = {{FSE}},
+    year = {2024},
+    doi = {10.1145/3643763},
+    url = {https://doi.org/10.1145/3643763},
+    preprint={https://doi.org/10.48550/arXiv.2402.00247}
+}
 ```
 
 
