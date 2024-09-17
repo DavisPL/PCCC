@@ -1,5 +1,6 @@
 # Proof Carrying Code Completions (PC<sup>3</sup>) 
 PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a safety property.
+
 > [!WARNING] 
 > PC<sup>3</sup> is under active development
 
@@ -149,4 +150,4 @@ Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanfo
 
 
 # License
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
