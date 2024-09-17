@@ -125,7 +125,7 @@ Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt tem
 This repository is maintained actively by:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
 > [!NOTE]  
-> Our current implemenation is mainly built on top of [dafny-synthesis](https://github.com/Mondego/dafny-synthesis?tab=GPL-3.0-1-ov-file#readme) developed by Misu et. al.
+> Our current implemenation is mainly built on top of [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) developed by Misu et. al.
 
 If you have any issues please contact us:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
