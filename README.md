@@ -11,7 +11,7 @@ PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a
 3. [Configuration](#configuration)
 3. [Usage](#usage)
 4. [Repository Structure](#repositoryStructure)
-5. [Authors](#authors)
+5. [Contributors](#contributors)
 6. [Contributing](#contributing)
 7. [License](#license)
 
@@ -21,6 +21,7 @@ PC<sup>3</sup> (proof carrying code completions) is a Dafny framework for genera
 PC3 is a research prototype; it has the following current limitations:
 
 - Currently, PC3 supports code generation (i.e, full function bodies) and support for code completions is work-in-progress.
+- Our current implementation uses a prompt generation template and a validation step similar to [dafny-synthesis](https://github.com/Mondego/dafny-synthesis?tab=GPL-3.0-1-ov-file#readme) developed by Misu et. al.
 - The safety properties are chosen and converted to verification conditions manually in the current version.
 
 
@@ -118,9 +119,11 @@ python3 main.py
 # Repository Structure
 Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt template can be founr in `src/prompts_template/` and the example in our paper is task-6 that can be found in `src/tasks/task-6.json`. The few-shot examples can be found in `benchmark/RAG_samples`.
 
-# Authors
+# Contributors
 This repository is maintained actively by:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
+> [!NOTE]  
+> Our current implemenation is mainly built on top of [dafny-synthesis](https://github.com/Mondego/dafny-synthesis?tab=GPL-3.0-1-ov-file#readme) developed by Misu et. al.
 
 If you have any issues please contact us:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
@@ -151,3 +154,7 @@ Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanfo
 
 # License
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<<<<<<< Updated upstream
+=======
+This repository is licensed under [GNU General Public License v3.0](LICENSE)
+>>>>>>> Stashed changes
