@@ -121,6 +121,8 @@ Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt tem
 # Authors
 This repository is maintained actively by:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
+If you have any issues please contact us:
+- **Parnian Kamran**: [pkamran@ucdavis.edu]
 - **Caleb Stanford**: [cdstanford@ucdavis.edu]
 
 # Contributing
