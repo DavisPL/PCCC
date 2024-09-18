@@ -52,7 +52,7 @@ class CodeGenerator:
             "is_verified": is_verified,
             "code_example_shots": saved_map.get("code_example_shots", []),
             "code_response": saved_map.get("code_response", ""),
-            "code_examples_ids": saved_map.get("code_examples_ids", []),
+            "code_example_ids": saved_map.get("code_example_ids", []),
             "total_errors": total_errors,
         }
 

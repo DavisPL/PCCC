@@ -206,13 +206,13 @@ class Core:
         # spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
         # print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         similar_code_tasks = code_example_selector.select_examples(new_task)
-        code_examples_ids = [t['task_id'] for t in similar_code_tasks]
-        # print(f"\n code_examples_ids \n {code_examples_ids}")
+        code_example_ids = [t['task_id'] for t in similar_code_tasks]
+        # print(f"\n code_example_ids \n {code_example_ids}")
         # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
         api_reference_dict = json.loads(filesystem_api_ref)
         api_reference = api_reference_dict["api_reference"]
         # print(f"\n api_reference: \n {api_reference}")
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template, api_reference)
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_example_ids, example_db_5_tasks, code_prompt_template, api_reference)
         print(f"\n code_prompt: \n {code_prompt}")
         # print(f"new task: {new_task['method_signature']}")
         generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
@@ -326,11 +326,8 @@ class Core:
         
         saved_map = {
             "temperature": temperature,
-            # "vc_example_shots": env_config["vc_shot_count"],
-            "code_example_shots": fewshot_config["code_shot_count"],
-            # "spec_examples_ids": spec_examples_ids,
-            # "specification_response": specification_response,
-            "code_examples_ids": code_examples_ids,
+            "code_example_shots": fewshot_config["few_shot_examples_count"],
+            "code_example_ids": code_example_ids,
             "code_response": code_response
         }
         return saved_map

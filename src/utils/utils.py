@@ -91,55 +91,25 @@ def parse_data_to_dict(data):
 
     return parsed_data
 
+def extract_task_specifications(example_tasks):
+    """Extracts task specifications from example tasks.
 
-def get_examples_db_task_id_spec_pair(example_json):
-    list_of_examples = []
-    for t in example_json:
-        output_task = {
-            "task_id": example_json[t]["task_id"],
-            "task_description": example_json[t]["task_description"],
-            "api_with_preconditions": example_json[t]["api_with_preconditions"],
-            # "safety_properties": example_json[t]["safety_properties"],
-            # "verification_methods_signature": example_json[t]["spec"]["verification_methods_signature"],
-            # "verification_conditions": example_json[t]["spec"]["verification_conditions"],
-        }
-        list_of_examples.append(output_task)
-    return list_of_examples
-    
+    Args:
+        example_tasks (Dict[str, Dict[str, Any]]): A dictionary of example tasks.
 
-def get_examples_id_task_specification_pair(example_json):
-    list_of_examples = []
-    for task in example_json:
-        output_task = {
-            "task_id": example_json[task]['task_id'],
-            "task_description": example_json[task]['task_description'],
-            "method_signature": example_json[task]['method_signature'],
-            "api_with_preconditions": example_json[task]['api_with_preconditions'],
-            # "safety_properties": example_json[task]["safety_properties"],
-            # "verification_methods_signature": example_json[task]["spec"]["verification_methods_signature"],
-            # "verification_conditions": example_json[task]["spec"]["verification_conditions"],
+    Returns:
+        List[Dict[str, Any]]: A list of task specifications.
+    """
+    task_specifications = []
+    for task_id, task_data in example_tasks.items():
+        task_spec = {
+            "task_id": task_data['task_id'],
+            "task_description": task_data['task_description'],
+            "method_signature": task_data['method_signature'],
+            "api_with_preconditions": task_data['api_with_preconditions'],
         }
-        list_of_examples.append(output_task)
-    return list_of_examples
-    #  For cwe_examples.json
-    # list_of_examples = []
-    # for task_id, task_info in example_json.items():
-    #     output_task = {
-    #         "task_id": task_info["task_id"],
-    #         "task_description": task_info["task_description"],
-    #         "method_signature": task_info["method_signature"],
-    #         "verifier_methods": []
-    #     }
-    #     print(f"task_info: {task_info}")    
-    #     if "verifier_methods" in task_info and isinstance(task_info["verifier_methods"], list):
-    #         print(task_info["verifier_methods"])
-    #         for method in task_info["verifier_methods"]:
-    #             output_task["verifier_methods"].append({
-    #                 "method_signature": method["method_signature"],
-    #                 "method_description": method["method_description"]
-    #             })
-    #     list_of_examples.append(output_task)
-    # return list_of_examples
+        task_specifications.append(task_spec)
+    return task_specifications
 
 def format_api_reference(api_ref):
     formatted_ref = ""
@@ -157,17 +127,6 @@ def format_api_reference(api_ref):
     
     return json_output
 
-def get_vc_methods_sp_pair(example_json):
-    list_of_vc_methods = []
-    for t in example_json:
-        output_task = {
-            "sp_id": example_json[t]["sp_id"],
-            "safety_property": example_json[t]["safety_property"],
-            "verification_methods_signature": example_json[t]["verification_methods_signature"],
-            "verification_method_description": example_json[t]["verification_method_description"]
-        }
-        list_of_vc_methods.append(output_task)
-    return list_of_vc_methods
 
 def save_to_json(map, file_path):
     json_string = json.dumps(map)

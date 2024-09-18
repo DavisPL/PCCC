@@ -194,3 +194,4 @@ makefile
 
 # Ignore config files
 dpl.config
+dpl.yaml
