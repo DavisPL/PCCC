@@ -23,7 +23,6 @@ PC<sup>3</sup> (proof carrying code completions) is a Dafny framework for genera
 PC3 is a research prototype; it has the following current limitations:
 
 - Currently, PC3 supports code generation (i.e., full function bodies) and support for code completions is work-in-progress.
-- Our current implementation uses a prompt generation template and a validation step similar to [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) developed by Misu et al.
 - The safety properties are chosen and converted to verification conditions manually in the current version.
 
 
@@ -163,10 +162,12 @@ python3 main.py
 Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt template can be found in `src/prompts_template/` and the example in our paper is task-6 that can be found in `src/tasks/task-6.json`. The few-shot examples can be found in `benchmark/RAG_samples`.
 
 # Contributors
+
+
 This repository is maintained actively by:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
 > [!NOTE]  
-> Our current implementation is mainly built on top of [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) developed by Misu et al.
+> "Some parts of our implementation, including some of the LangChain infrastructure, and prompt template generation reuse code from the dafny-synthesis tool. Please check [that repository](https://github.com/Mondego/dafny-synthesis) for further information."
 
 If you have any issues please contact us:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
@@ -193,25 +194,8 @@ Alternatively, you may cite this repository directly:
 
 Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanford. GitHub repository (2024)[GitHub Link](https://github.com/DavisPL/PCCC.git)
 
-Also, please consider citing [Towards AI-Assisted Synthesis of Verified Dafny Methods](https://arxiv.org/abs/2402.00247)
-```
-@article{MRHMisuDafnyFSE24,
-    title = {Towards AI-Assisted Synthesis of Verified Dafny Methods},
-    author = {Md Rakib Hossain Misu, Cristina V. Lopes, Iris Ma, James Noble},
-    journal = {Proc. {ACM} Softw. Eng.},
-    volume  = {1},
-    number  = {{FSE}},
-    year = {2024},
-    doi = {10.1145/3643763},
-    url = {https://doi.org/10.1145/3643763},
-    preprint={https://doi.org/10.48550/arXiv.2402.00247}
-}
-```
-
-
-
 
 # License
+This repository is licensed under an MIT license. The parts that are reused from [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) are licensed under the [GNU General Public License v3.0](https://github.com/DavisPL/PCCC/blob/main/LICENSE).
 
-This repository is licensed under [GNU General Public License v3.0](LICENSE)
 
