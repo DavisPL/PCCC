@@ -58,8 +58,8 @@ pip install lunary==1.1.3
 ```
 ---
 # Configuration
-Use the [env.config](./env.config) file and modify it to add your desired configurations to work with PCCC.
-env.config includes four main parts that should be modified to set the requirements for the tool execution and the configurations required for the few-shot prompting. 
+Use the [config.yaml](./config.yaml) file and modify it to add your desired configurations to work with PCCC.
+Config file includes four main parts that should be modified to set the requirements for the tool execution and the configurations required for the few-shot prompting. 
 1. API keys: the API keys for the required autoregressive transformer model and also Lunary API for logging the input to the model and the model's response.
       If you only would like to use openAI models you need to add openai_api_key and also set the model
     ```
