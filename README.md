@@ -1,9 +1,9 @@
-# Proof Carrying Code Completions (PC<sup>3</sup>) 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+# Proof Carrying Code Completions (PC<sup>3</sup>)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a safety property.
 
-> [!WARNING] 
+> [!WARNING]
 > PC<sup>3</sup> is under active development.
 
 # Table of Contents
@@ -48,7 +48,7 @@ To install required packages you can simply use the following command
 ```
 pip install -r requirements.txt
 ```
-Or install required packages separately using pip 
+Or install required packages separately using pip
 ```
 pip install openai==1.35.9
 pip install anthropic==0.34.2
@@ -58,7 +58,7 @@ pip install lunary==1.1.3
 ---
 # Configuration
 Use the [config.yaml](./config.yaml) file and modify it to add your desired configurations to work with PCCC.
-Config file includes four main parts that should be modified to set the requirements for the tool execution and the configurations required for the few-shot prompting. 
+Config file includes four main parts that should be modified to set the requirements for the tool execution and the configurations required for the few-shot prompting.
 1. API keys: the API keys for the required autoregressive transformer model and also Lunary API for logging the input to the model and the model's response.
       If you only would like to use openAI models you need to add openai_api_key and also set the model
     ```
@@ -69,11 +69,11 @@ Config file includes four main parts that should be modified to set the requirem
     ```
     If you would like to switch to another model, simply remove the openai_api_key and add the new_api_key for another model.
 
-> [!NOTE]  
+> [!NOTE]
 > Currently, our tool only supports openAI and Claude.
 > Adding the lunary_api_key is optional. If you use Lunary for logging the prompt and the model's response you need to add it to as below:
 ```
-    # Lunary API KEY 
+    # Lunary API KEY
     lunary_api_key = YOUR_API_KEY
 ```
 2. Model parameters: LLM parameters including the LLM model, coold down time, temperature (= 0.75), max number of tokens (= 4000).
@@ -92,7 +92,7 @@ Config file includes four main parts that should be modified to set the requirem
     # Adjustable number of tokens to control response length
     max_tokens = 4000
     # Number of completions to generate
-    n = 1 
+    n = 1
     # Stop completion tokens
     stop = None
     # waiting time
@@ -138,7 +138,7 @@ python3 main.py
 
 2. The output files are available in [output directory](./src/output)
     - files with verification_log suffix shows the status of the generated code at each try
-        - If the generated code is verified the output is 
+        - If the generated code is verified the output is
         ```
             Dafny program verifier finished with 1 verified, 0 errors
         ```
@@ -163,11 +163,11 @@ Most of the source code of PC<sup>3</sup> can be found in `src/.` The prompt tem
 
 # Contributors
 
-
 This repository is maintained actively by:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
-> [!NOTE]  
-> "Some parts of our implementation, including some of the LangChain infrastructure, and prompt template generation reuse code from the dafny-synthesis tool. Please check [that repository](https://github.com/Mondego/dafny-synthesis) for further information."
+
+> [!NOTE]
+> Some parts of our implementation, including some of the LangChain infrastructure and prompt template generation, reuse code from the dafny-synthesis tool. Please check [that repository](https://github.com/Mondego/dafny-synthesis) for further information.
 
 If you have any issues please contact us:
 - **Parnian Kamran**: [pkamran@ucdavis.edu]
@@ -196,6 +196,5 @@ Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanfo
 
 
 # License
-This repository is licensed under an MIT license. The parts that are reused from [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) are licensed under the [GNU General Public License v3.0](https://github.com/DavisPL/PCCC/blob/main/LICENSE).
 
-
+This repository is licensed under an [MIT license](https://github.com/DavisPL/PCCC/blob/main/LICENSE). The parts of this software that are reused from [dafny-synthesis](https://github.com/Mondego/dafny-synthesis) are licensed under the GNU General Public License v3.0.
