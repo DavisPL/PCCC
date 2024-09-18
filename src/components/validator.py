@@ -1,3 +1,5 @@
+
+
 """
 Validates the compilation of generated code in a loop
 
@@ -12,7 +14,7 @@ import time
 import typing
 from subprocess import CalledProcessError, TimeoutExpired, check_output
 
-from components import core as llm_core
+from components.core import Core as llm_core
 
 
 class Validator:
@@ -22,33 +24,6 @@ class Validator:
 
     def __init__(self):
         print("Validator is running!")
-
-    # Add validator for dafny
-    def compile_code(self, generated_code_file, compiler):
-        try:
-            compile_ouput = subprocess.run(
-                [compiler, generated_code_file],
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=300
-            )
-        except TimeoutExpired as e:
-            compile_ouput = e.stdout.decode("utf-8")
-            return -1, -1,  compile_ouput # -1, -1, time_out errors
-        except CalledProcessError as e:
-            compile_ouput = e.stdout.decode("utf-8")
-            if "parsed errors detected" in compile_ouput:
-                return -2, -2, compile_ouput  # -2, -2, parser_errors
-            
-        lines = compile_ouput.strip().split("\n")
-        last_line = lines[len(lines) - 1]
-        if "verifier finished with" in last_line:
-            errors = last_line.split(",")[1].strip().split(" ")[0]
-            verification = last_line.split(",")[0].strip().split(" ")[5]
-            return int(verification), int(errors), compile_ouput
-        else:
-            return -3, -3, compile_ouput  # -3,-3 type resolution or other errors
 
     def extract_errors(self, error_message):
         # Pattern to match "Error:" and capture the error type and content

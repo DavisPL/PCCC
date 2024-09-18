@@ -6,8 +6,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from components import dafny_verifier as verifier
-from components import task_selector, validator, vc_generator
+from components import task_selector, vc_generator
 from components.core import Core
+from components.validator import Validator
 from utils import utils as utils
 from utils.code_generator import CodeGenerator
 from utils.config_reader import ConfigReader
@@ -19,6 +20,7 @@ class PCCC:
         print("PCCC is running!")
         self.config_reader = ConfigReader()
         self.code_generator = CodeGenerator()
+        self.validator = Validator()
         self.llm_core = Core()
         self.api_config, self.model_config, self.env_config, self.fewshot_config = self.config_reader.read_config()
 
@@ -44,7 +46,6 @@ class PCCC:
                 number_of_similar_tasks=few_shot_examples_count
             )
             filesystem_api_ref = self.code_generator.load_api_reference(self.fewshot_config)
-            code_validator = validator.Validator()
             run_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
             all_responses = []
             for task_id, task in tasks.items():
@@ -71,7 +72,6 @@ class PCCC:
                             code_example_selector=code_example_selector,
                             code_prompt_template=code_prompt_template,
                             filesystem_api_ref=filesystem_api_ref,
-                            code_validator=code_validator,
                             interface_path=interface_path,
                             temperature=temperature,
                             model=model
@@ -112,7 +112,6 @@ class PCCC:
         code_example_selector: Any,
         code_prompt_template: str,
         filesystem_api_ref: Any,
-        code_validator: validator.Validator,
         interface_path: str,
         temperature: float,
         model: str
@@ -139,9 +138,10 @@ class PCCC:
             output_paths['dfy_src_path'],
             output_paths['verification_path']
         )
-        validation_result, total_errors = code_validator.validate_code(
+        validation_result, total_errors = self.validator.validate_code(
             error_message=errors,
-            parsed_code=parsed_code
+            parsed_code=output_paths['dfy_src_path'],
+            
         )
         saved_map = self.code_generator.create_model_response(
             task=task_spec,
