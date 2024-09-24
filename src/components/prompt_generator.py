@@ -1,6 +1,6 @@
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
-from langchain.prompts.few_shot import FewShotPromptTemplate
-from langchain.prompts.prompt import PromptTemplate
+from langchain_core.prompts import FewShotPromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 
 class PromptGenerator:
@@ -15,7 +15,7 @@ class PromptGenerator:
             template=prompt_template
         )
         print(f"example_prompt_template: \n {example_prompt_template}")
-       
+
         prompt = FewShotPromptTemplate(
             prefix= f"SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:\n- Must utilize given Safe APIs for file operations.\n- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- You are only limited to the provided method signatures and preconditions.\n\nAPI Reference:\n" + api_reference + "\n\n",
             examples=examples,
@@ -46,7 +46,7 @@ class PromptGenerator:
             # new_obj['verification_conditions'] = obj['spec']['verification_conditions']
             # new_obj['verification_methods_signature'] = obj['spec']['verification_methods_signature']
             # new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
-    
+
             similar_examples.append(new_obj)
             # print(f"simmilar_examples: {similar_examples}")
         return similar_examples
@@ -95,7 +95,7 @@ class PromptGenerator:
     #         new_obj['fileIO_methods_signature'] = obj['fileIO_methods_signature']
     #         # new_obj['verification_method_description'] = obj['spec']['verification_method_description']
     #         similar_examples.append(new_obj)
-      
+
     #     return similar_examples
 
 
@@ -128,15 +128,15 @@ class PromptGenerator:
     #     safety_properties_and_methods = self.format_safety_properties_and_methods(sp_json_data)
     #     safety_properties_and_verifications = self.format_safety_properties_and_verifications(sp_json_data)
     #     safety_property_explanations = self.create_safety_property_explanations(sp_json_data)
-        
+
     #     return  safety_properties_and_methods, safety_properties_and_verifications,safety_property_explanations
-    
+
 
 # # Define a function to format each example using the provided template
 # class PromptGenerator:
 #     def __init__(self) -> None:
 #         pass
-    
+
 #     def format_example(example, template):
 #         return template.format(
 #             task_description=example["task_description"],
@@ -145,25 +145,25 @@ class PromptGenerator:
 #             postconditions=example["postconditions"],
 #             code=example["code"]
 #         )
-        
 
-        
+
+
 #     def create_few_shot_code_prompts(self, examples_task_ids, examples_db, prompt_template):
 #         # Fetch similar tasks based on specifications
         # examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db)
-        
 
-        
+
+
 #         # Format each example using the prompt template
 #         formatted_examples = [self.format_example(ex, prompt_template) for ex in examples]
-        
+
 #         # Define the prefix and suffix
 #         prefix = ("SYSTEM:\nYou are an expert AI assistant that writes Dafny programs. You are very good at writing "
 #                 "verifiable correct code in terms of preconditions and postconditions of methods, and at finding the "
 #                 "appropriate loop invariants for the pre/postconditions to hold.\n\n")
-        
+
 #         example_separator = "\n------------------------------------------------------\n"
-        
+
 #         suffix = "TASK:\n{{task}}\n\nAI ASSISTANT:\n\n"
 
 #         # Combine prefix, formatted examples, and suffix to create the final prompt
@@ -197,10 +197,10 @@ class PromptGenerator:
 #     def create_few_shot_specification_prompts(self, examples_task_ids, examples_db, prompt_template):
 #         # Fetch similar tasks based on task descriptions
 #         examples = self.get_similar_tasks_based_on_task_description(examples_task_ids, examples_db)
-        
+
 #         # Format each example using the prompt template
 #         formatted_examples = [self.format_spec_example(ex, prompt_template) for ex in examples]
-        
+
 #         # Define the suffix
 #         # suffix = "Task:\n{{task}}\n"
 
@@ -209,7 +209,7 @@ class PromptGenerator:
 #         # Combine formatted examples and suffix to create the final prompt
 #         combined_examples = example_separator.join(formatted_examples)
 #         print(f"combined_examples: {combined_examples}")
-        
+
 #         # Append suffix only once at the end
 #         final_prompt_template = combined_examples + example_separator
 
@@ -235,15 +235,15 @@ class PromptGenerator:
 #             {"name": "postconditions", "description": "Postconditions"}
 #         ]
 #         parsed_output = {}
-        
+
 #         for schema in response_schemas:
 #             field_name = schema["name"]
 #             field_description = schema["description"]
-            
+
 #             # Simple heuristic-based parsing
 #             start_marker = f"{field_description}:"
 #             start_index = response_text.find(start_marker)
-            
+
 #             if start_index != -1:
 #                 start_index += len(start_marker)
 #                 end_index = response_text.find("\n", start_index)
@@ -252,5 +252,5 @@ class PromptGenerator:
 #                 parsed_output[field_name] = response_text[start_index:end_index].strip()
 #             else:
 #                 parsed_output[field_name] = None
-        
+
 #         return parsed_output

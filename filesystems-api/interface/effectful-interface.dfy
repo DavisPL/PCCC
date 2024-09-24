@@ -119,8 +119,6 @@ class FileStream
       requires has_absoloute_path(p)
       requires is_valid_file_extension(p)
       requires has_valid_content_length(buffer)     
-      requires is_valid_file_extension(p)
-      requires is_valid_file_extension(p)
       requires IsOpen()
       requires 0 <= start as int <= end as int <= buffer.Length
       modifies buffer
