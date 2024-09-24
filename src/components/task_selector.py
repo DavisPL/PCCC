@@ -1,5 +1,5 @@
-from langchain.prompts import MaxMarginalRelevanceExampleSelector
-from langchain.prompts.example_selector import SemanticSimilarityExampleSelector
+from langchain_core.example_selectors import MaxMarginalRelevanceExampleSelector
+from langchain_core.example_selectors import SemanticSimilarityExampleSelector
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
@@ -80,16 +80,16 @@ def get_max_marginal_relevance_based_example_selector(api_key, example_db_tasks,
 #     # Get embeddings for all tasks
 #     task_embeddings = get_embeddings(api_key, example_db_tasks)
 #     index = build_faiss_index(task_embeddings)
-    
+
 #     # Get embedding for the target task description
 #     target_embedding_response = client.embeddings.create(model="text-embedding-ada-002", input=target_task['task_description'])
 #     target_embedding = target_embedding_response.data[0].embedding
-    
+
 #     if random.choice([True, False]):
 #         # Find similar tasks with cosine similarity
 #         similar_tasks = find_similar_tasks_cosine(task_embeddings, target_embedding, example_db_tasks, number_of_similar_tasks)
 #     else:    
 #         # Find similar tasks with querying the Index
 #         similar_tasks = find_similar_tasks(index, target_embedding, example_db_tasks, number_of_similar_tasks)
-    
+
 #     return {target_task['task_id']: similar_tasks}
