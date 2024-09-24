@@ -120,6 +120,7 @@ def get_dafny_verification_result(dfy_file_path):
         # if detected any parse errors
         if "parse errors detected" in cmd_output:
             return -2, -2, cmd_output  # -2,-2 parser_errors
+    print("cmd_output in get_dafny_verification_result", cmd_output)
     lines = cmd_output.strip().split("\n")
     last_line = lines[len(lines) - 1]
     # Example logs:

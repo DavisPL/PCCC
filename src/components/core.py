@@ -9,7 +9,11 @@ _type_
     _description_
 """
 import json
+import logging
 
+from langchain.callbacks.base import BaseCallbackHandler
+
+# from langchain.errors import ChainError, LLMErrors
 from langchain.globals import set_debug, set_verbose
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
@@ -61,19 +65,19 @@ class Core:
 
         return result, cb.total_tokens
     
-    def initialize_llm(self, api_config):
-        model = api_config['model']
+    def initialize_llm(self, model_config, api_config):
+        model = model_config['model']
         if api_config["lunary_api_key"] is not None:
             self.lunary_handler = LunaryCallbackHandler(app_id=api_config["lunary_api_key"])
     
         if model == "gpt-4":
-            return ChatOpenAI(model_name="gpt-4", temperature=api_config['temp'],
+            return ChatOpenAI(model_name="gpt-4", temperature=model_config['temp'],
                             openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=True)
         if model == "gpt-3.5-turbo-0125":
-            return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=api_config['temp'],
+            return ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=model_config['temp'],
                             openai_api_key=api_config['openai_api_key'], callbacks=[self.lunary_handler], verbose=True)
         if model == "claude":
-            return ChatAnthropic(model="claude-3-opus-20240229", temperature=api_config['temp'],
+            return ChatAnthropic(model="claude-3-opus-20240229", temperature=model_config['temp'],
                             api_key=api_config['claude_api_key'], callbacks=[self.lunary_handler], verbose=True)
     
     # def get_session_history(self, session_id: str) -> BaseChatMessageHistory:
@@ -124,25 +128,37 @@ class Core:
         self.code_memory.chat_memory.add_message(SystemMessage(content=validation_result))
         return error_feedback
     
-    def invoke_llm(self, api_config, env_config, new_task,
+    def invoke_llm(self, api_config, model_config, fewshot_config, new_task,
               example_db_5_tasks,
-            #   vc_example_selector,
-            #   spec_example_selector,
               code_example_selector,
-            #   vc_prompt_template,
               code_prompt_template,
-              K, 
               filesystem_api_ref, 
               validation_result = None):
         print("\n inside invoke_llm")
         store = {}
-        llm = self.initialize_llm(api_config)
-        api_key = api_config['openai_api_key']
-        temperature = api_config['temp']
-        # vc_shot_count = int(env_config["vc_shot_count"])
-        code_shot_count = int(env_config["code_shot_count"])
-     
+        llm = self.initialize_llm(model_config, api_config)
+        temperature = model_config ['temp']
+        # Configure logging
+        logging.basicConfig(
+            level=logging.ERROR,
+            format='%(asctime)s %(levelname)s %(name)s %(message)s',
+            handlers=[
+                logging.FileHandler("langchain_errors.log"),
+                logging.StreamHandler()
+            ]
+        )
 
+        # Custom callback handler
+        class ErrorLoggingCallbackHandler(BaseCallbackHandler):
+            def on_chain_error(self, error: Exception, **kwargs):
+                logging.error(f"Chain error: {str(error)}", exc_info=True)
+            def on_tool_error(self, error: Exception, **kwargs):
+                logging.error(f"Tool error: {str(error)}", exc_info=True)
+            def on_llm_error(self, error: Exception, **kwargs):
+                logging.error(f"LLM error: {str(error)}", exc_info=True)
+
+
+        
         # Required for similarity_example_selector without lanchain
         # spec_examples_ids = []
         # for key, task_list in similar_tasks.items():
@@ -190,16 +206,18 @@ class Core:
         # spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
         # print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
         similar_code_tasks = code_example_selector.select_examples(new_task)
-        code_examples_ids = [t['task_id'] for t in similar_code_tasks]
-        # print(f"\n code_examples_ids \n {code_examples_ids}")
+        code_example_ids = [t['task_id'] for t in similar_code_tasks]
+        # print(f"\n code_example_ids \n {code_example_ids}")
         # print(f"\n example_db_5_tasks: \n {example_db_5_tasks}")
         api_reference_dict = json.loads(filesystem_api_ref)
         api_reference = api_reference_dict["api_reference"]
         # print(f"\n api_reference: \n {api_reference}")
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_examples_ids, example_db_5_tasks, code_prompt_template, api_reference)
-    
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_example_ids, example_db_5_tasks, code_prompt_template, api_reference)
+        print(f"\n code_prompt: \n {code_prompt}")
         # print(f"new task: {new_task['method_signature']}")
         generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
+        print(f"\n generated_prompt: \n {generated_prompt}")
+
         # print(f"\n ================================\n code_prompt")                                                            
         # print(f"{code_prompt}")
         # print(f"\n ================================") 
@@ -261,7 +279,16 @@ class Core:
     
 
         # code_response = code_chain.run(method_signature=new_task['method_signature'], task=new_task['task_description'])
-        code_response = code_runnable.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']}, config)
+        try: 
+            code_response = code_runnable.invoke({"method_signature": new_task['method_signature'], "task": new_task['task_description']}, config)
+        # except LangchainError as le:
+        #     logging.error(f"Langchain error: {le}")       
+        # except LLMErrors as lme:
+        #     logging.error(f"LLM error: {lme}")
+        # except ChainError as ce:
+        #     logging.error(f"Chain error: {ce}")
+        except Exception as e:
+            logging.error(f"Error: {e}")
         # print(f"\n code_response: {code_response} \n")
         # memory_contents = self.code_memory.load_memory_variables({})
         # formatted_history = memory_contents.get('chat_history', [])
@@ -299,11 +326,8 @@ class Core:
         
         saved_map = {
             "temperature": temperature,
-            # "vc_example_shots": env_config["vc_shot_count"],
-            "code_example_shots": env_config["code_shot_count"],
-            # "spec_examples_ids": spec_examples_ids,
-            # "specification_response": specification_response,
-            "code_examples_ids": code_examples_ids,
+            "code_example_shots": fewshot_config["few_shot_examples_count"],
+            "code_example_ids": code_example_ids,
             "code_response": code_response
         }
         return saved_map
