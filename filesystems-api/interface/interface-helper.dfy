@@ -16,8 +16,14 @@ newtype nat64 = i:int | 0 <= i < 0x10000000000000000
 datatype PathOrFile = Path(p: seq<char>) | File(f: seq<char>)
 // Constants for sensitive paths and files
 const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-const sensitivePaths := ["~/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets"]
+const sensitivePaths := ["/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets", "/etc/passwd"]
 const currWDir := ["/Users/pari/pcc-llms/src/playground"]
+const allowedServices: map<string, seq<string>> := map[
+    "apache" := ["access.log", "error.log"],
+    "mysql" := ["query.log", "slow.log"],
+    "ssh" := ["auth.log"]
+    // Add more services and their allowed log files as needed
+]
 // const SensitiveFilesList : seq<seq<char>> := ["~/id_rsa.pub","/user-data/shared-data.txt",
 // "/user-data/public-info.txt", "/user-data/public-key.txt","shared-data.txt","public-info.txt", 
 // "/company-docs/instructions.txt", "/company-docs/public-info.txt", "/company-docs/employee-handbook.txt", "company-docs/annual-report.txt",
@@ -35,6 +41,10 @@ predicate alpha_numeric(c: char)
     (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
 }
 
+predicate is_alpha_numeric(s: string)
+{
+    forall c :: c in s ==> alpha_numeric(c)
+}
 
 predicate is_valid_char(c: char)
 ensures is_valid_char(c) <==> alpha_numeric(c) || c in validPathCharacters
@@ -685,11 +695,7 @@ predicate contains_encoded_periods(s: seq<char>)
 // }
 
 
-// predicate str_alpha_numeric(s: seq<char>)
-// ensures forall i :: 0 <= i < |s| ==> alpha_numeric(s[i])
-// {
-//     forall i :: 0 <= i < |s| ==> alpha_numeric(s[i])
-// }
+
 
 // predicate validate_file(f: file)
 // requires 0 <= |f| <= fileMaxLength
@@ -739,3 +745,4 @@ predicate contains_encoded_periods(s: seq<char>)
 // {
 //     exists i :: 0 <= i < |s| - 1 && s[i] == '.' && s[i + 1] == '.' && (i + 2 == |s| || is_separator(s[i + 2]))
 // }
+

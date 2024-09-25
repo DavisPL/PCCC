@@ -1,0 +1,17 @@
+Vulnerability Analysis: User Score Updater
+The primary vulnerability in this code is a race condition due to lack of proper synchronization (CWE-662). This can occur in a multi-threaded or multi-process environment where multiple instances of the function might try to update the same user's score simultaneously.
+
+How It Could Be Exploited
+Consider this scenario:
+
+User Alice has a current score of 100.
+Two separate processes call update_user_score("alice", 10) at nearly the same time.
+
+What could happen:
+
+Process A reads the current score (100)
+Process B reads the current score (100)
+Process A calculates new score (110) and writes it
+Process B calculates new score (110) and writes it
+
+The end result is that Alice's score is 110, even though it should be 120 (100 + 10 + 10).

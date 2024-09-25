@@ -10,7 +10,7 @@ class CodeGenerator:
         """Generates output paths for a task based on model parameters."""
 
         task_id = task['task_id']
-        
+        #TODO:  Check if the base path is an absolute path
         # Create the task base path
         task_base_path = os.path.join(base_path, f"task_id_{task_id}_generated@{run_time}")
         os.makedirs(task_base_path, exist_ok=True)

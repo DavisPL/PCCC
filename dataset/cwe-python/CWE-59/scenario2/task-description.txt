@@ -1,5 +1,0 @@
-File retrieval and file upload for a username
-
-1. Take a username as input
-2. Construct a path to a file named "user_data.txt" in the user's home directory
-3. If the file exists, read and return its contents

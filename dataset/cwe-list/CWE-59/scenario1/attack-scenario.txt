@@ -1,0 +1,5 @@
+The attacker registers an account on the system (let's say with username 'eve').
+They upload a file named 'link' to their directory, which is actually a symbolic link to '/etc/passwd'.
+They then request this file through the web interface: '/files/link'.
+If the system doesn't properly resolve and validate the file path, it might follow the symlink and return the contents of '/etc/passwd'.
+The attacker now has access to sensitive system information, including usernames and other data.

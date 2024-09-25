@@ -1,5 +1,36 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+include "../../filesystems-api/interface/effectful-interface.dfy"
+// Method to test the is_alpha_numeric predicate
+method TestIsAlphaNumeric()
+{
+    assert alpha_numeric('a');
+    assert !alpha_numeric(' ');
+    assert !alpha_numeric('.');
+    assert !alpha_numeric('-');
+    assert !alpha_numeric('#'); 
+    // Test case 1: Only alphanumeric characters
+    var test1 := "Abc123";
+    assert is_alpha_numeric(test1);
 
+    // Test case 2: Contains a non-alphanumeric character
+    var test2 := "Abc-123";
+    assert !is_alpha_numeric(test2);
+
+    // Test case 3: Empty string should ideally return true, assuming empty is valid
+    var test3 := "";
+    assert is_alpha_numeric(test3);
+
+    // Test case 4: Numeric characters only
+    var test4 := "123456";
+    assert is_alpha_numeric(test4);
+
+    // Test case 5: Alphabets only
+    var test5 := "ABCabc";
+    assert is_alpha_numeric(test5);
+
+    // Test case 6: Special characters only
+    var test6 := "!@#$%";
+    assert !is_alpha_numeric(test6);
+}
 // method TestAlphaNumeric()
 // {
 //     var c1 := 'a';
@@ -354,70 +385,67 @@ include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.
 //         // print "All tests passed successfully!\n";
 //     }
 
-<<<<<<< HEAD
-  method TestJoin() {
-    var p1: seq<char> := "path/to";
-    var f1: seq<char> := "file.txt";
-    var result1 := Join(p1, f1);
-    assert p1 == "path/to";
-    assert f1 == "file.txt";
-    assert p1 + "/" + f1 == "path/to/file.txt";
-    assert result1 == "path/to/file.txt";
-    var p2: seq<char> := "path/to/";
-    var f2: seq<char> := "../../file.txt";
-    var result2 := Join(p2, f2);
-    assert result2 == "path/to/";
-  } 
+//   method TestJoin() {
+//     var p1: seq<char> := "path/to";
+//     var f1: seq<char> := "file.txt";
+//     var result1 := Join(p1, f1);
+//     assert p1 == "path/to";
+//     assert f1 == "file.txt";
+//     assert p1 + "/" + f1 == "path/to/file.txt";
+//     assert result1 == "path/to/file.txt";
+//     var p2: seq<char> := "path/to/";
+//     var f2: seq<char> := "../../file.txt";
+//     var result2 := Join(p2, f2);
+//     assert result2 == "path/to/";
+//   } 
 
-=======
->>>>>>> main
-method TestIsValidFileExtension()
-    {
-        // Test case 1: Valid file extension
-        var filename1 := "document.txt";
-        // assert LastIndexOf(filename1, '.') == 8;
-        // assert IsValidFileExtension(filename1);
-        print "Test 1 passed: ", filename1, " is valid\n";
+// method TestIsValidFileExtension()
+//     {
+//         // Test case 1: Valid file extension
+//         var filename1 := "document.txt";
+//         // assert LastIndexOf(filename1, '.') == 8;
+//         // assert IsValidFileExtension(filename1);
+//         print "Test 1 passed: ", filename1, " is valid\n";
 
 
-        // Test case 2: No file extension
-        var filename2 := "document";
-        assert !IsValidFileExtension(filename2);
-        print "Test 2 passed: ", filename2, " is invalid\n";
+//         // Test case 2: No file extension
+//         var filename2 := "document";
+//         assert !IsValidFileExtension(filename2);
+//         print "Test 2 passed: ", filename2, " is invalid\n";
 
-        // Test case 3: File extension with multiple dots
-        var filename3 := "archive.tar.gz";
-        // assert IsValidFileExtension(filename3);
-        print "Test 3 passed: ", filename3, " is valid\n";
-        var extention3 := GetFileExtension(filename3);
+//         // Test case 3: File extension with multiple dots
+//         var filename3 := "archive.tar.gz";
+//         // assert IsValidFileExtension(filename3);
+//         print "Test 3 passed: ", filename3, " is valid\n";
+//         var extention3 := GetFileExtension(filename3);
 
-        // Test case 4: Hidden file (starting with a dot)
-        var filename4 := ".hidden";
-        // assert !IsValidFileExtension(filename4);
-        print "Test 4 passed: ", filename4, " is invalid\n";
+//         // Test case 4: Hidden file (starting with a dot)
+//         var filename4 := ".hidden";
+//         // assert !IsValidFileExtension(filename4);
+//         print "Test 4 passed: ", filename4, " is invalid\n";
 
-        // Test case 5: File with path and valid extension
-        var filename5 := "/path/to/file.jpg";
-        // assert IsValidFileExtension(filename5);
-        print "Test 5 passed: ", filename5, " is valid\n";
+//         // Test case 5: File with path and valid extension
+//         var filename5 := "/path/to/file.jpg";
+//         // assert IsValidFileExtension(filename5);
+//         print "Test 5 passed: ", filename5, " is valid\n";
 
-        // Test case 6: File with path and no extension
-        var filename6 := "/path/to/file";
-        assert !IsValidFileExtension(filename6);
-        print "Test 6 passed: ", filename6, " is invalid\n";
+//         // Test case 6: File with path and no extension
+//         var filename6 := "/path/to/file";
+//         assert !IsValidFileExtension(filename6);
+//         print "Test 6 passed: ", filename6, " is invalid\n";
 
-        // Test case 7: File with extension but ending in a path separator
-        var filename7 := "file.txt/";
-        assert !IsValidFileExtension(filename7);
-        print "Test 7 passed: ", filename7, " is invalid\n";
+//         // Test case 7: File with extension but ending in a path separator
+//         var filename7 := "file.txt/";
+//         assert !IsValidFileExtension(filename7);
+//         print "Test 7 passed: ", filename7, " is invalid\n";
 
-        // Test case 8: Empty string (edge case)
-        var filename8 := "";
-        // Note: This will not be checked due to the precondition
-        print "Test 8: Empty string is not checked due to precondition\n";
+//         // Test case 8: Empty string (edge case)
+//         var filename8 := "";
+//         // Note: This will not be checked due to the precondition
+//         print "Test 8: Empty string is not checked due to precondition\n";
 
-        print "All tests completed.\n";
-    }
+//         print "All tests completed.\n";
+//     }
 
 
 // method TestContainsDangerousPattern()
@@ -547,21 +575,21 @@ method LastIndex(s: string, c: char) returns (index: int)
     index := -1;
 }
 
-method TestLastDotIndex() {
-     var s1 := "example.txt";
-  var index1 := LastIndexOf(s1, '.');
-//   assert index1 == 7;
-  print "Last dot index in '", s1, "': ", index1, "\n";
+// method TestLastDotIndex() {
+//      var s1 := "example.txt";
+//   var index1 := LastIndexOf(s1, '.');
+// //   assert index1 == 7;
+//   print "Last dot index in '", s1, "': ", index1, "\n";
 
-  var s2 := "no_extension";
-  var index2 := LastIndexOf(s2, '.');
-  assert index2 == -1;
-  print "Last dot index in '", s2, "': ", index2, "\n";
+//   var s2 := "no_extension";
+//   var index2 := LastIndexOf(s2, '.');
+//   assert index2 == -1;
+//   print "Last dot index in '", s2, "': ", index2, "\n";
 
-  var s3 := "multiple.dots.in.filename.txt";
-  var index3 := LastIndexOf(s3, '.');
-  print "Last dot index in '", s3, "': ", index3, "\n";
-}
+//   var s3 := "multiple.dots.in.filename.txt";
+//   var index3 := LastIndexOf(s3, '.');
+//   print "Last dot index in '", s3, "': ", index3, "\n";
+// }
 
 method TestLastIndex() {
     // Test case 1: Character present in the string
@@ -606,8 +634,9 @@ method Main(){
 //   TestHasNoLeadingOrTrailingSpaces();
 //   TestDoesNotStartWithPeriod();
     // TestPathJoin();
-    TestIsValidFileExtension();
+    // TestIsValidFileExtension();
     // TestContainsDangerousPattern();
     // TestFileExtention();
-    TestLastDotIndex();
+    // TestLastDotIndex();
+    TestIsAlphaNumeric();
 }
