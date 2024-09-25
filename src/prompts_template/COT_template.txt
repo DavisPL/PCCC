@@ -1,0 +1,21 @@
+# Task Description
+{task_description}
+
+## Method Signature
+{method_signature}
+
+## AI Assistant Instructions
+
+Follow these steps to complete the task:
+
+1. **Analyze and select required APIs:**
+   Review the following API reference and their preconditions:
+   {api_with_preconditions}
+
+2. **Implement the Dafny code:**
+   Create the Dafny implementation for the described task, adhering to the provided structure for each API. Utilize the provided API list and their specifications.
+
+   Provide your implementation in Dafny syntax as follows:
+
+   ```dafny
+   {code}

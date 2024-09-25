@@ -56,6 +56,8 @@ class ConfigReader:
         # Read Environment Variables
         env_keys = ['task_path', 'base_output_path', 'interface_path']
         env_config = get_config_values('ENVIRONMENT', env_keys)
+        
+         #TODO:  Check if all the paths are absolute paths
 
         # Read Few-Shot Prompting Config
         fewshot_keys = ['RAG_json_path', 'api_reference_path', 'few_shot_examples_count']

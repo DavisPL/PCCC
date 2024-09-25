@@ -4,7 +4,7 @@ import tempfile
 
 def process_sensitive_data(data):
     # Create a temporary file with default permissions
-    temp_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+    temp_file = tempfile.NamedTemporaryFile(mode='w+t', delete=False) # Add a temp txt file
     temp_file.write(data)
     temp_file.close()
     
@@ -21,6 +21,7 @@ def process_sensitive_data(data):
 sensitive_info = "password123"
 result = process_sensitive_data(sensitive_info)
 
+#TODO separate the safe code from the unsafe code and task description and add safe dafny version and a code completion sample in Dafny
 # A program that creates a temporary file to store sensitive data 
 # The temporary file is created with default permissions, which might be 
 # too permissive and allow other users on the system to read the sensitive data

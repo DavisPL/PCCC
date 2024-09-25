@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+include "../../filesystems-api/interface/effectful-interface.dfy"
 
 
 method JoinFileToPath(path: seq<char>,  fname: seq<char>) returns (jointPath: path)
