@@ -10,22 +10,24 @@ class CodeGenerator:
         """Generates output paths for a task based on model parameters."""
 
         task_id = task['task_id']
-        #TODO:  Check if the base path is an absolute path
         # Create the task base path
-        task_base_path = os.path.join(base_path, f"task_id_{task_id}_generated@{run_time}")
-        os.makedirs(task_base_path, exist_ok=True)
-        
-        # Common base path for outputs
-        common_filename = f"task_id_{task_id}-{model}-temp_{temp}-k_{k_runs}"
-        
-        # Create the output paths
-        output_paths = {
-            "saved_path": os.path.join(task_base_path, f"{common_filename}.json"),
-            "dfy_src_path": os.path.join(task_base_path, f"{common_filename}.dfy"),
-            "verification_path": os.path.join(task_base_path, f"{common_filename}_verification_log.txt")
-        }
-        
-        return output_paths
+        if (os.path.isabs(base_path) & os.path.exists(base_path) & os.path.realpath(base_path)):
+            task_base_path = os.path.join(base_path, f"task_id_{task_id}_generated@{run_time}")
+            os.makedirs(task_base_path, exist_ok=True)
+            
+            # Common base path for outputs
+            common_filename = f"task_id_{task_id}-{model}-temp_{temp}-k_{k_runs}"
+            
+            # Create the output paths
+            output_paths = {
+                "saved_path": os.path.join(task_base_path, f"{common_filename}.json"),
+                "dfy_src_path": os.path.join(task_base_path, f"{common_filename}.dfy"),
+                "verification_path": os.path.join(task_base_path, f"{common_filename}_verification_log.txt")
+            }
+            
+            return output_paths
+        else:
+            raise ValueError("Base path must be an absolute path. Please provide a valid path that exists and is not a symbolic link.")
 
     
     @staticmethod
@@ -61,7 +63,10 @@ class CodeGenerator:
     def load_api_reference(env_config):
         """Loads and formats the API reference from the filesystem."""
         api_reference_path = env_config["api_reference_path"]
-        api_ref_data = utils.load_json(api_reference_path)
-        
-        # Format the API reference using the utility function
-        return utils.format_api_reference(api_ref_data)
+        if (os.path.isabs(api_reference_path) & os.path.exists(api_reference_path) & os.path.realpath(api_reference_path)):
+            api_ref_data = utils.load_json(api_reference_path)
+            
+            # Format the API reference using the utility function
+            return utils.format_api_reference(api_ref_data)
+        else:
+            raise ValueError("API reference path must be an absolute path. Please provide a valid path that exists and is not a symbolic link.")
