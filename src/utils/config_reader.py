@@ -7,13 +7,28 @@ import yaml
 
 
 class ConfigReader:
-    def __init__(self, config_filename='dpl.yaml'):
+    def __init__(self):
+        current_dir = os.getcwd()
+        print(f"Current directory: {current_dir}")
+
+        # Change to the src/ subdirectory
+        # try:
+        #     current_dir = os.chdir("src")
+        #     print(f"Changed directory to: {os.getcwd()}")
+        # except FileNotFoundError:
+        #     print("Error: 'src' directory not found")
+        # except PermissionError:
+        #     print("Error: Permission denied to access 'src' directory")
+        self.config_file = "dpl.yaml"
+        print(f"self.config_file {self.config_file}")
         self.src_dir_path = Path(os.getcwd()).parent
-        self.config_path = self.src_dir_path / config_filename
+        print(f"self.src_dir_path {self.src_dir_path}")
+        self.config_path = os.path.join(self.src_dir_path, self.config_file)
+        print(f" self.config_path  { self.config_path }")
 
     def read_config(self):
         # Check if the config file exists
-        if not self.config_path.exists():
+        if not Path(self.config_path).exists():
             logging.error(f"Config file not found at {self.config_path}")
             return None, None, None, None  # Adjusted to match the number of return variables
 
@@ -56,7 +71,7 @@ class ConfigReader:
         # Read Environment Variables
         env_keys = ['task_path', 'base_output_path', 'interface_path']
         env_config = get_config_values('ENVIRONMENT', env_keys)
-
+        
         # Read Few-Shot Prompting Config
         fewshot_keys = ['RAG_json_path', 'api_reference_path', 'few_shot_examples_count']
         fewshot_config = get_config_values('FEWSHOT', fewshot_keys)
