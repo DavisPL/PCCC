@@ -3,6 +3,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from components import dafny_verifier as verifier
@@ -13,7 +14,8 @@ from utils import utils as utils
 from utils.code_generator import CodeGenerator
 from utils.config_reader import ConfigReader
 
-# PCCC class is the main class that runs the code validator and vc_generator
+# PCCC class is the main class that runs the code validator and vc_generator and invoke LLM
+
 
 class PCCC:
     def __init__(self):
@@ -27,81 +29,87 @@ class PCCC:
     def process_tasks_with_llm(self) -> None:
             """Executes dynamic few-shot prompts for tasks using LLM and validates the responses."""
             # Load initial data
-            example_db_tasks = utils.load_json(self.fewshot_config['RAG_json_path'])
-            examples_db_for_cot_prompt = utils.extract_task_specifications(example_db_tasks)
-            code_prompt_template = self.code_generator.load_code_template(
-                'src/prompts_template/COT_TEMPLATE.file'
-            )
-            tasks = utils.load_json(self.env_config['task_path'])
-            model = self.model_config['model']
-            few_shot_examples_count = int(self.fewshot_config['few_shot_examples_count'])
-            k_run = int(self.model_config["K_run"])
-            cool_down_time = int(self.model_config['cool_down_time'])
-            temperature = self.model_config['temp']
-            base_output_path = self.env_config["base_output_path"]
-            interface_path = os.path.join(self.env_config["interface_path"])
-            code_example_selector = task_selector.get_semantic_similarity_example_selector(
-                self.api_config['openai_api_key'],
-                example_db_tasks=examples_db_for_cot_prompt,
-                number_of_similar_tasks=few_shot_examples_count
-            )
-            filesystem_api_ref = self.code_generator.load_api_reference(self.fewshot_config)
-            run_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
-            all_responses = []
-            for task_id, task in tasks.items():
-                task_spec = {
-                    "task_id": task['task_id'],
-                    "task_description": task['task_description'],
-                    "method_signature": task['method_signature'],
-                }
-                for run_count in range(1, k_run + 1):
-                    output_paths = self.code_generator.generate_task_output_paths(
-                        task=task_spec,
-                        temp=temperature,
-                        k_runs=run_count,
-                        model=model,
-                        base_path=base_output_path,
-                        run_time=run_time
-                    )
-                    try:
-                        saved_map, is_verified = self.process_task_run(
-                            task_spec=task_spec,
-                            run_count=run_count,
-                            output_paths=output_paths,
-                            example_db_tasks=example_db_tasks,
-                            code_example_selector=code_example_selector,
-                            code_prompt_template=code_prompt_template,
-                            filesystem_api_ref=filesystem_api_ref,
-                            interface_path=interface_path,
-                            temperature=temperature,
-                            model=model
+            if (os.path.exists(Path(self.fewshot_config['RAG_json_path'])) & self.fewshot_config['RAG_json_path'].endswith('.json')) is False:
+                logging.error(
+                    f"Output path {self.fewshot_config['RAG_json_path']} does not exist. Exiting."
+                )
+                return None
+            else:
+                example_db_tasks = utils.load_json(self.fewshot_config['RAG_json_path'])
+                examples_db_for_cot_prompt = utils.extract_task_specifications(example_db_tasks)
+                code_prompt_template = self.code_generator.load_code_template(
+                    'src/prompts_template/COT_TEMPLATE.file'
+                )
+                tasks = utils.load_json(self.env_config['task_path'])
+                model = self.model_config['model']
+                few_shot_examples_count = int(self.fewshot_config['few_shot_examples_count'])
+                k_run = int(self.model_config["K_run"])
+                cool_down_time = int(self.model_config['cool_down_time'])
+                temperature = self.model_config['temp']
+                base_output_path = self.env_config["base_output_path"]
+                interface_path = os.path.join(self.env_config["interface_path"])
+                code_example_selector = task_selector.get_semantic_similarity_example_selector(
+                    self.api_config['openai_api_key'],
+                    example_db_tasks=examples_db_for_cot_prompt,
+                    number_of_similar_tasks=few_shot_examples_count
+                )
+                filesystem_api_ref = self.code_generator.load_api_reference(self.fewshot_config)
+                run_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
+                all_responses = []
+                for task_id, task in tasks.items():
+                    task_spec = {
+                        "task_id": task['task_id'],
+                        "task_description": task['task_description'],
+                        "method_signature": task['method_signature'],
+                    }
+                    for run_count in range(1, k_run + 1):
+                        output_paths = self.code_generator.generate_task_output_paths(
+                            task=task_spec,
+                            temp=temperature,
+                            k_runs=run_count,
+                            model=model,
+                            base_path=base_output_path,
+                            run_time=run_time
                         )
-                        utils.save_to_json(saved_map, output_paths["saved_path"])
-                        if is_verified:
-                            all_responses.append(saved_map)
-                            logging.info(
-                                f"Task {task['task_id']} verified at run {run_count}, saved, ignoring next runs."
+                        try:
+                            saved_map, is_verified = self.process_task_run(
+                                task_spec=task_spec,
+                                run_count=run_count,
+                                output_paths=output_paths,
+                                example_db_tasks=example_db_tasks,
+                                code_example_selector=code_example_selector,
+                                code_prompt_template=code_prompt_template,
+                                filesystem_api_ref=filesystem_api_ref,
+                                interface_path=interface_path,
+                                temperature=temperature,
+                                model=model
                             )
-                            break
-                        elif run_count == k_run:
-                            all_responses.append(saved_map)
-                            logging.info(
-                                f"Task {task['task_id']} not verified after {k_run} runs, saved."
+                            utils.save_to_json(saved_map, output_paths["saved_path"])
+                            if is_verified:
+                                all_responses.append(saved_map)
+                                logging.info(
+                                    f"Task {task['task_id']} verified at run {run_count}, saved, ignoring next runs."
+                                )
+                                break
+                            elif run_count == k_run:
+                                all_responses.append(saved_map)
+                                logging.info(
+                                    f"Task {task['task_id']} not verified after {k_run} runs, saved."
+                                )
+                            else:
+                                logging.info(
+                                    f"Task {task['task_id']} not verified, saved, continuing to next run."
+                                )
+                        except Exception as e:
+                            logging.error(
+                                f"Error while processing task {task['task_id']} at temperature {temperature}",
+                                exc_info=True
                             )
-                        else:
-                            logging.info(
-                                f"Task {task['task_id']} not verified, saved, continuing to next run."
-                            )
-                    except Exception as e:
-                        logging.error(
-                            f"Error while processing task {task['task_id']} at temperature {temperature}",
-                            exc_info=True
-                        )
-                    time.sleep(cool_down_time)
-            output_file_path = os.path.join(
-                base_output_path, f"few-shot-prompt-{model}.json"
-            )
-            utils.save_to_json(all_responses, output_file_path)
+                        time.sleep(cool_down_time)
+                output_file_path = os.path.join(
+                    base_output_path, f"few-shot-prompt-{model}.json"
+                )
+                utils.save_to_json(all_responses, output_file_path)
 
     def process_task_run(
         self,

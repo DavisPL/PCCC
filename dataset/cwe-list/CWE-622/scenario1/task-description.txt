@@ -1,0 +1,12 @@
+# CWE-622: Improper Validation of Function Hook Arguments
+# Update User Score Function
+
+Create a Python function update_user_score(username, score) that:
+
+1. Takes a username and a score increment as parameters
+2. Reads the current score from the user's file
+3. Adds the new score to the current score
+4. Writes the updated score back to the file
+5. The score files are stored in a user_scores directory, with each file named {username}.txt
+6. If the user's file doesn't exist, print an error message
+7. The function should print the user's new score after updating

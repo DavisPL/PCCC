@@ -1,4 +1,4 @@
-include "../../filesystems-api/interface/effectful-interface.dfy"
+include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
 method Copy(srcFile: seq<char>, dstFile: seq<char>)
 requires is_valid_path_name(srcFile)
 requires is_valid_path_name(dstFile)
@@ -11,7 +11,6 @@ requires !has_dangerous_pattern(dstFile)
 requires has_valid_path_length(srcFile)
 requires has_valid_path_length(dstFile)
 requires is_valid_file_extension(srcFile)
-requires is_valid_file_extension(dstFile)
 {
   var f: FileStream;
   var ok: bool;

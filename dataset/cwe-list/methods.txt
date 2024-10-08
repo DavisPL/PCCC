@@ -1,0 +1,3 @@
+1. add preconditions to JoinFileToPath
+2. use if (...) checks to guard the function call to FileStream.Open
+3. use expect (...) checks to add runtime checks that the preconditions hold

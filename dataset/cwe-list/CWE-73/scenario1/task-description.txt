@@ -1,0 +1,8 @@
+# CWE-73: External Control of File Name or Path
+# Log Reader Function
+
+Create a function read_log_file(service, log_name) that:
+
+1. Constructs the path to the log file based on the service and log name
+2. Reads and returns the contents of the log file
+3. Handles errors (file not found, permission issues, etc.)

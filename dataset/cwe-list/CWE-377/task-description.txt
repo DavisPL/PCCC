@@ -1,0 +1,12 @@
+
+# CWE-377: Insecure Temporary File
+
+Implement a Python function considering the following instructions:
+
+1. Define a function create_temp_file() that creates a temporary file.
+
+2. The function uses a fixed filename /tmp/mytempfile.txt to create the file.
+
+3. The function writes "Temporary data" to the filed.
+
+4. The script calls create_temp_file() to execute the operation.
