@@ -1,0 +1,13 @@
+
+# CWE-276: Incorrect Default Permissions
+
+Implement a Python function considering the following instructions:
+
+1. Define a function create_file() that creates a file.
+
+2. The function opens a file named output.txt for writing.
+
+3. The function writes "Sensitive data" to the file.
+
+4. The script calls create_file() to execute the operation.
+

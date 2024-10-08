@@ -1,29 +1,18 @@
 import os
 
 
-def get_file(filename):
-    base_dir = "/var/www/files/"
-    file_path = os.path.join(base_dir, filename)
-    
-    with open(file_path, 'rb') as file:
-        return file.read()
+def read_file(filename):
+    base_dir = '/var/data/'
+    safe_filename = os.path.normpath(os.path.join(base_dir, filename))
 
-# Vulnerable usage
-user_input = "../../etc/passwd"
-content = get_file(user_input)
+    # Prevent path traversal
+    if not safe_filename.startswith(os.path.abspath(base_dir)):
+        raise ValueError("Invalid filename")
 
-# Example: A web application that allows users to download files from a specific directory
+    with open(safe_filename, 'r') as f:
+        return f.read()
 
-# --------- Safe version ---------
-# import os
-
-# def get_file(filename):
-#     base_dir = "/var/www/files/"
-    
-#     # Normalize the path and ensure it's within the base directory
-#     file_path = os.path.normpath(os.path.join(base_dir, filename))
-#     if not file_path.startswith(base_dir):
-#         raise ValueError("Access denied")
-    
-#     with open(file_path, 'rb') as file:
-#         return file.read()
+# Usage
+user_input = input("Enter the filename to read: ")
+content = read_file(user_input)
+print(content)

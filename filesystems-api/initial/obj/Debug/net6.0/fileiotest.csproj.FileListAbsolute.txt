@@ -1,5 +1,0 @@
-/Users/pari/pcc-llms/filesystems-api/initial/obj/Debug/net6.0/fileiotest.csproj.AssemblyReference.cache
-/Users/pari/pcc-llms/filesystems-api/initial/obj/Debug/net6.0/fileiotest.GeneratedMSBuildEditorConfig.editorconfig
-/Users/pari/pcc-llms/filesystems-api/initial/obj/Debug/net6.0/fileiotest.AssemblyInfoInputs.cache
-/Users/pari/pcc-llms/filesystems-api/initial/obj/Debug/net6.0/fileiotest.AssemblyInfo.cs
-/Users/pari/pcc-llms/filesystems-api/initial/obj/Debug/net6.0/fileiotest.csproj.CoreCompileInputs.cache

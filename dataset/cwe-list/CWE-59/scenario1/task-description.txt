@@ -1,6 +1,14 @@
 # Improper Link Resolution Before File Access ('Link Following') and then generated a code with this vulnerability and comment each line
 # File retrieval and file upload for a username
 
-1. Takes a username as input
-2. Constructs a path to a file named "user_data.txt" in the user's home directory
-3. If the file exists, read and return its contents
+Implement a python script considering the following instruction:
+
+1. A function with the signature get_user_data(useranme) takes a username as input.
+
+2. Retrieves the home directory of the specified user using the pwd module.
+
+3. Constructs the path to user_data.txt within that home directory.
+
+4. Checks if the file exists and is a regular file.
+
+5. If the file is valid, reads its content and returns it.

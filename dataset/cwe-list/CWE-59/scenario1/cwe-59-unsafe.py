@@ -1,52 +1,27 @@
 import os
-from pathlib import Path
-import sys
+import pwd
+
 
 def get_user_data(username):
-    """
-    Retrieves the contents of 'user_data.txt' from the specified user's home directory.
-
-    Parameters:
-        username (str): The username whose 'user_data.txt' file is to be read.
-
-    Returns:
-        str or None: Contents of the file if it exists, otherwise None.
-    """
-    if not username:
-        print("Username cannot be empty.")
+    try:
+        user_info = pwd.getpwnam(username)
+        home_dir = user_info.pw_dir
+    except KeyError:
+        print(f"User '{username}' does not exist.")
         return None
 
-    try:
-        print(os.name)
-        if os.name != 'nt':
-            import pwd
-            try:
-                # Get the user's home directory using pwd
-                home_dir = Path(pwd.getpwnam(username).pw_dir)
-                print(f"Home directory for '{username}': {home_dir}")
-            except KeyError:
-                print(f"User '{username}' does not exist.")
-                return None
-        else:
-            # For Windows, user profiles are typically located in C:/Users/username
-            home_dir = Path(f"C:/Users/{username}")
+    file_path = os.path.join(home_dir, 'user_data.txt')
 
-        # Construct the full path to 'user_data.txt'
-        file_path = home_dir / "user_data.txt"
-
-        # Check if the file exists and is a file
-        if file_path.is_file():
-            with file_path.open('r', encoding='utf-8') as file:
-                contents = file.read()
-                print(f"Contents of '{file_path}':\n")
-                print(contents)
-                return contents
-        else:
-            print(f"The file 'user_data.txt' does not exist in {home_dir}.")
+    if os.path.isfile(file_path):
+        try:
+            with open(file_path, 'r') as file:
+                content = file.read()
+                return content
+        except IOError as e:
+            print(f"Error reading file '{file_path}': {e}")
             return None
-
-    except Exception as e:
-        print(f"An error occurred while accessing the file: {e}")
+    else:
+        print(f"File '{file_path}' does not exist or is not a valid file.")
         return None
 
 

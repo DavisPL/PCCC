@@ -14,7 +14,8 @@ from utils import utils as utils
 from utils.code_generator import CodeGenerator
 from utils.config_reader import ConfigReader
 
-# PCCC class is the main class that runs the code validator and vc_generator
+# PCCC class is the main class that runs the code validator and vc_generator and invoke LLM
+
 
 class PCCC:
     def __init__(self):

@@ -1,4 +1,4 @@
-include "../../filesystems-api/interface/effectful-interface.dfy"
+include "../../FilesystemsAPI/interface/effectful-interface.dfy"
 method SaveToFile(path: seq<char>, userData: seq<char>)
 requires !has_dangerous_pattern(path)
 requires has_valid_path_length(path)

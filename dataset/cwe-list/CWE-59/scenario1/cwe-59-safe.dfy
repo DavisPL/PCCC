@@ -11,7 +11,8 @@ requires |userName| > 0
     var finalPath := JoinPaths(pathArray, "/");
     var f: FileStream;
     var ok: bool;
-    if (finalPath !in sensitivePaths && !non_empty_string(finalPath) && !has_dangerous_pattern(finalPath)) {
+    var isReal := IsRealLink(finalPath);
+    if (finalPath !in sensitivePaths && !non_empty_string(finalPath) && !has_dangerous_pattern(finalPath) && isReal) {
         print "Safe path";
         ok, f := FileStream.Open(finalPath);
         if !ok { print "open failed"; return; }

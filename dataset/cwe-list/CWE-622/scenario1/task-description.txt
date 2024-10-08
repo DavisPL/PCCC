@@ -1,5 +1,5 @@
 # CWE-622: Improper Validation of Function Hook Arguments
-# Score Update Function
+# Update User Score Function
 
 Create a Python function update_user_score(username, score) that:
 

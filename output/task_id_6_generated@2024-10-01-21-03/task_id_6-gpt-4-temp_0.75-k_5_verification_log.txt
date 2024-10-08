@@ -1,0 +1,8 @@
+/Users/pari/pcc-llms/filesystems-api/interface/effectful-interface.dfy(307,17): Warning: the type of the other operand is a non-null type, so this comparison with 'null' will always return 'true' (to make it possible for variable 'paths' to have the value 'null', declare its type to be 'array?<string>')
+    |
+307 |   requires paths != null && paths.Length > 2  // Check for non-null and non-empty array
+    |                  ^^
+
+
+Dafny program verifier finished with 2 verified, 0 errors
+Compilation failed because warnings were found and --allow-warnings is false

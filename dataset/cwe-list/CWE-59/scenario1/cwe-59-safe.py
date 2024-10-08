@@ -10,7 +10,7 @@ def get_user_data(username):
 
     # Resolve any symbolic links
     real_path = os.path.realpath(user_file_path)
-
+    
     # Check if the resolved path is still within the user's home directory
     if not real_path.startswith(os.path.join("/home", username)):
         return "Access denied: File is outside of user's home directory"
