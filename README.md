@@ -20,9 +20,9 @@ PC<sup>3</sup>: A Dafny framework for generating code together with a proof of a
 
 # Introduction
 PC<sup>3</sup> (proof carrying code completions) is a Dafny framework for generating code together with a proof of a safety property selected by the user.
-PC3 is a research prototype; it has the following current limitations:
+PC<sup>3</sup>  is a research prototype; it has the following current limitations:
 
-- Currently, PC3 supports code generation (i.e., full function bodies) and support for code completions is work-in-progress.
+- Currently, PC<sup>3</sup> supports code generation (i.e., full function bodies) and support for code completions is work-in-progress.
 - The safety properties are chosen and converted to verification conditions manually in the current version.
 
 
@@ -50,10 +50,16 @@ pip install -r requirements.txt
 ```
 Or install required packages separately using pip
 ```
-pip install openai==1.35.9
-pip install anthropic==0.34.2
-pip install langchain==0.2.7
-pip install lunary==1.1.3
+pip install openai
+pip install anthropic
+pip install langchain
+pip install langchain-anthropic
+pip install langchain-community
+pip install langchain-core
+pip install langchain-openai
+pip install langchain-text-splitters
+pip install langsmith
+pip install lunary
 ```
 ---
 # Configuration
@@ -79,24 +85,23 @@ Config file includes four main parts that should be modified to set the requirem
 2. Model parameters: LLM parameters including the LLM model, coold down time, temperature (= 0.75), max number of tokens (= 4000).
     For this part you only need to modify the model name. However, you can also modify the temperature and other model parameters.
     ```
-    # MODEL PARAMETERS
-    [MODEL]
+    MODEL:
     # LLM to be used 'gpt-4'
-    model = gpt-4
-    # model temperature
-    temp = 0.75
-    # number of attempts/samples
-    K_run = 5
+    model: gpt-4
+    # Model temperature
+    temp: 0.75
+    # Number of attempts/samples
+    K_run: 5
     # top_p (0,1) default: 1
-    top_p = 1
+    top_p: 1
     # Adjustable number of tokens to control response length
-    max_tokens = 4000
+    max_tokens: 4000
     # Number of completions to generate
-    n = 1
+    n: 1
     # Stop completion tokens
-    stop = None
-    # waiting time
-    cool_down_time = 3
+    stop: null
+    # Waiting time
+    cool_down_time: 3
     ```
 3. Environment: Set the absolute path for the following files:
         - Set the absolute path for the input task [task 6 json file](./src/tasks/task-6.json)
