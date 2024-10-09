@@ -2,6 +2,7 @@
  *  Copyright by the contributors to the Dafny Project
  *  SPDX-License-Identifier: MIT
  *******************************************************************************/
+ // ToDo: modify this to work with the FileIO.dfy and dafny test command
 include "./FileIO.dfy"
 module ReadBytesFromFile {
   import FileIO
