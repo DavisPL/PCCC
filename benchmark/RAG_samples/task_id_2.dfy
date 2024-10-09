@@ -1,10 +1,10 @@
-include "../../FilesystemsAPI/interface/effectful-interface.dfy"
+include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
 method SaveToFile(path: seq<char>, userData: seq<char>)
 requires !has_dangerous_pattern(path)
 requires has_valid_path_length(path)
 requires non_empty_string(path)
 requires is_valid_str_length(userData)
-requires has_absoloute_path(path)
+requires has_absolute_path(path)
 requires is_valid_path_name(path)
 requires is_valid_file_name(userData)
 requires is_valid_file_extension(path)

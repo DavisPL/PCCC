@@ -5,7 +5,7 @@ requires is_valid_path_name(path)
 requires non_empty_string(path)
 requires is_valid_file_extension(path)
 requires has_valid_path_length(path)
-requires has_absoloute_path(path)
+requires has_absolute_path(path)
 requires has_valid_path_length(path)
 requires is_valid_file_extension(path)
 {
