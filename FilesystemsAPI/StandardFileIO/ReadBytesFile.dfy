@@ -3,28 +3,15 @@
  *  SPDX-License-Identifier: MIT
  *******************************************************************************/
 include "./FileIO.dfy"
-
-/*******************************************************************************
- *  Copyright by the contributors to the Dafny Project
- *  SPDX-License-Identifier: MIT
- *******************************************************************************/
-
-// RUN: %verify "%s"
-
-// #RUN: %run --no-verify --unicode-char:false --target:cs "%s" --input "%S/../../src/FileIO/FileIO.cs" -- "%S/data.txt" "System.ArgumentException:"
-// #RUN: %run --no-verify --unicode-char:false --target:java "%s" --input "%S/../../src/FileIO/FileIO.java" -- "%S/data.txt" "java.io.IOException:"
-// #RUN: %run --no-verify --unicode-char:false --target:js "%s" --input "%S/../../src/FileIO/FileIO.js" -- "%S/data.txt" "Error: ENOENT"
-
-include "./FileIO.dfy"
-
 module ReadBytesFromFile {
   import FileIO
 
-  method Main(args: seq<string>) {
-    expect |args| > 0;
-    expect |args| == 3, "usage: " + args[0] + " DATA_PATH EXPECTED_ERROR_PREFIX";
-    var dataPath := args[1];
-    var expectedErrorPrefix := args[2];
+  method {:test} Test() {
+    // TODO: extern function for the expected error prefix
+    theMain("/Users/pari/pcc-llms/FilesystemsAPI/StandardFileIO/input.txt", "");
+  }
+
+  method theMain(dataPath: string, expectedErrorPrefix: string) {
 
       // Happy path: read from the data file, and check that we see the expected content.
     {

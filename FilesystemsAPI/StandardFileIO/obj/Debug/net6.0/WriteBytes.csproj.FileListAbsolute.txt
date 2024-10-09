@@ -1,0 +1,15 @@
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.csproj.AssemblyReference.cache
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.GeneratedMSBuildEditorConfig.editorconfig
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.AssemblyInfoInputs.cache
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.AssemblyInfo.cs
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.csproj.CoreCompileInputs.cache
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/WriteBytes
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.dll
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/ref/WriteBytes.dll
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.pdb
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/WriteBytes.deps.json
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/obj/Debug/net6.0/WriteBytes.genruntimeconfig.cache
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/WriteBytes.runtimeconfig.json
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/WriteBytes.dll
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/ref/WriteBytes.dll
+/Users/pari/pcc-llms/FilesystemsAPI/Standard-fileIO/WriteBytes.pdb

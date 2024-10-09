@@ -204,13 +204,13 @@ function get_path_length(pof: PathOrFile): nat
 predicate has_dangerous_pattern(p: path)
 
 {
-    contains_consecutive_periods(p) || !has_absoloute_path(p) ||
+    contains_consecutive_periods(p) || !has_absolute_path(p) ||
     contains_encoded_periods(p)
     || contains_dangerous_pattern(p)
 }
 
-predicate has_absoloute_path(p: path)
-ensures has_absoloute_path(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && is_valid_char(p[2])))
+predicate has_absolute_path(p: path)
+ensures has_absolute_path(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && is_valid_char(p[2])))
 {
     |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && is_valid_char(p[2])))
 }

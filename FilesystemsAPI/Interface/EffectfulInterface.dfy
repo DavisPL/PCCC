@@ -102,7 +102,7 @@ class FileStream
   static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)
     requires non_empty_string(name)
     requires !has_dangerous_pattern(name)
-    requires has_absoloute_path(name)
+    requires has_absolute_path(name)
     requires is_valid_path_name(name)
     ensures  ok ==> fresh(f) && f.IsOpen() && f.Name() == name[..]
 
@@ -116,7 +116,7 @@ class FileStream
       requires non_empty_string(p)
       requires !has_dangerous_pattern(p)
       requires has_valid_path_length(p)
-      requires has_absoloute_path(p)
+      requires has_absolute_path(p)
       requires is_valid_file_extension(p)
       requires has_valid_content_length(buffer)     
       requires IsOpen()
@@ -129,7 +129,7 @@ class FileStream
   method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)
       requires !has_dangerous_pattern(p)
       requires has_valid_path_length(p)
-      requires has_absoloute_path(p)
+      requires has_absolute_path(p)
       requires is_valid_path_name(p)
       requires has_valid_content_length(buffer)
       requires is_valid_file_extension(p)
@@ -143,7 +143,7 @@ class FileStream
     requires non_empty_string(f)
     requires !has_dangerous_pattern(f)
     requires !contains_consecutive_periods(f)
-    requires has_absoloute_path(f)
+    requires has_absolute_path(f)
     requires is_valid_file_name(f)
 
   method{:axiom} Copy(dstFile: path, data: seq<char>) returns(ok:bool)
@@ -172,13 +172,13 @@ class FileStream
     // requires is_valid_dir(p)
     // requires !list_contains_string(sensitivePaths, f) || (f !in sensitivePaths)
     // requires f[(|f| - 4)..] !in invalidFileTypes
-    // requires has_absoloute_path(p) && p[..] !in sensitivePaths
+    // requires has_absolute_path(p) && p[..] !in sensitivePaths
     // requires IsOpen()
     // modifies this
     // ensures  Name() == old(Name())
     // ensures result == path_join(p, f)
-    // ensures has_absoloute_path(result) && result[..] !in sensitivePaths
-    // ensures  ok ==> path_join(p, f) == result && has_absoloute_path(result) && result[..] !in sensitivePaths
+    // ensures has_absolute_path(result) && result[..] !in sensitivePaths
+    // ensures  ok ==> path_join(p, f) == result && has_absolute_path(result) && result[..] !in sensitivePaths
 
 
 
@@ -186,7 +186,7 @@ class FileStream
     // Method to get the current working directory
     requires !has_dangerous_pattern(p)
     requires has_valid_path_length(p)
-    requires has_absoloute_path(p)
+    requires has_absolute_path(p)
     requires is_valid_path_name(p)
     ensures cwd !in sensitivePaths
     ensures cwd in fs.Keys && fs[cwd].Directory?
@@ -282,7 +282,7 @@ class FileStream
     requires non_empty_string(f)
     requires non_empty_string(p)
     requires !has_dangerous_pattern(f)
-    requires has_absoloute_path(f)
+    requires has_absolute_path(f)
     requires is_valid_file_name(f)
     requires is_valid_path_name(p)
     requires has_valid_file_length(f)
