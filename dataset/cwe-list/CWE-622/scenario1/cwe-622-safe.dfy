@@ -1,4 +1,4 @@
-include "../../../../filesystems-api/interface/effectful-interface.dfy"
+include "../../../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
 method ReadLogFile(service: seq<char>, logName: seq<char>) returns (userData: seq<char>)
 requires service in allowedServices
 requires |logName| > 0

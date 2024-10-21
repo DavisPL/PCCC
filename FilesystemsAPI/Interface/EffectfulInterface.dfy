@@ -72,7 +72,7 @@ class HostEnvironment
 
 class FileStream
   {
-  var env:HostEnvironment
+  ghost var env:HostEnvironment
   // The file system is a map from paths to FSEntries
   var fs: map<path, FSEntry>
   // var locks: map<path, ReadWriteLock>
@@ -276,6 +276,22 @@ class FileStream
     ensures ok ==> fresh(data)
 // TODO: How to link axioms to python functions
 
+  method{:axiom} WriteAll(data:array<byte>) returns (ok:bool)
+    requires IsOpen()
+    requires has_valid_content_length(data)
+    modifies this
+    ensures Name() == old(Name())
+    ensures ok ==> IsOpen()
+
+  method{:extern} IsSymlink(p: path) returns (isSymlink: bool)
+    requires is_absolute_path(p)
+    requires is_canonical_path(p) // srcLink -> dstLink
+    ensures isSymlink ==> is_absolute_path(p) && is_canonical_path(p)
+    ensures !isSymlink ==> !is_absolute_path(p) || !is_canonical_path(p)
+    {
+      isSymlink := is_absolute_path(p) && is_canonical_path(p);
+
+    }
   }
 
   method Join(p: path, f: file) returns(fullPath: path)
@@ -331,7 +347,7 @@ class FileStream
       }
   }
 
-  method IsRealLink(p: path) returns (isLink: bool)
+  method IsSymbolicLink(p: path) returns (isLink: bool)
     requires is_absolute_path(p)
     requires is_canonical_path(p) // srcLink -> dstLink
     ensures isLink ==> is_absolute_path(p) && is_canonical_path(p)
