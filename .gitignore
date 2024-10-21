@@ -188,6 +188,8 @@ pccc-venv/
 *.vscode/*
 LICENSE
 makefile
+*.sln
+*.editorconfig
 
 # Local development files
 /Users/pari/pcc-llms/output
