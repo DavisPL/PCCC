@@ -34,7 +34,8 @@ module {:options "-functionSyntax:4"} FileIO {
     * NOTE: See the module description for limitations on the path argument.
     */
   method Open(path: string) returns (res: Result<object, string>)
-  requires path != "" && |path| > 0 // Utils.non_empty_path(path)
+  requires path != "" && |path| > 0 //
+  // requires Utils.non_empty_path(path)
   {
       var non_empty_path := Utils.non_empty_path(path);
       var isError, fileStream, errorMsg := INTERNAL_Open(path);
@@ -100,9 +101,10 @@ module {:options "-functionSyntax:4"} FileIO {
    * Private API - these are intentionally not exported from the module and should not be used elsewhere
   */
   method
-    {:extern "DafnyLibraries.FileIO", "INTERNAL_Open"}
+    {:axiom "DafnyLibraries.FileIO", "INTERNAL_Open"}
   INTERNAL_Open(path: string)
     returns (isError: bool, fs: object, errorMsg: string)
+    requires path != "" && |path| > 0
 
   method
     {:extern "DafnyLibraries.FileIO", "INTERNAL_ReadBytesFromFile"}
