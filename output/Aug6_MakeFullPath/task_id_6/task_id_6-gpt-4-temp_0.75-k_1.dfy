@@ -1,5 +1,4 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
-
+include "../../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
 method MakeFullPath(filename: seq<char>) returns (fullPath: seq<char>)
  requires non_empty_string(filename)
  requires !has_dangerous_pattern(filename)
