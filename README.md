@@ -24,7 +24,7 @@ PC<sup>3</sup>  is a research prototype; it has the following current limitation
 
 - Currently, PC<sup>3</sup> supports code generation (i.e., full function bodies) and support for code completions is work-in-progress.
 - The safety properties are chosen and converted to verification conditions manually in the current version.
-
+![PCCC Workflow](images/PCCC-workflow.jpg)
 
 # Installation
 ## Clone PC<sup>3</sup> Repository
@@ -194,7 +194,7 @@ We welcome any contributions to this repository. Please follow the instructions 
 If you would like to cite this repository, please cite our publication.
 ```
 Parnian Kamran, Premkumar Devanbu, and Caleb Stanford. 2024. Vision Paper: Proof-Carrying Code Completions. In 39th IEEE/ACM International Conference on Automated Software Engineering Workshops (ASEW ’24), Octo- ber 27-November 1, 2024, Sacramento, CA, USA. ACM, New York, NY, USA, 7 pages. https://doi.org/10.1145/3691621.3694932
-```
+```[Paper Link](https://web.cs.ucdavis.edu/~cdstanford/doc/2024/ASEW24b.pdf)
 Alternatively, you may cite this repository directly:
 
 Proof-Carrying Code Completions. Parnian Kamran, Premkumar Devanbu, Caleb Stanford. GitHub repository (2024)[GitHub Link](https://github.com/DavisPL/PCCC.git)
