@@ -125,7 +125,7 @@ module Utils
     //   }
     // }
 
-    predicate {:ghost} non_empty_path(f: file)
+    predicate non_empty_path(f: file)
     {
         f != "" && |f| > 0
     }
@@ -206,9 +206,8 @@ module Utils
     }
     }
 
-
+// TODO: fix this to accept C:/ as a valid path
     predicate has_dangerous_pattern(p: path)
-
     {
         contains_consecutive_periods(p) || !has_absolute_path(p) ||
         contains_encoded_periods(p)
@@ -561,9 +560,8 @@ module Utils
 
     // Check 1: Path is not empty
     predicate non_empty_string(s: string)
-    ensures non_empty_string(s) ==> |s| > 0 && s != ""
     {
-    |s| > 0 && s != ""
+        |s| > 0 && s != ""
     }
 
     // Check 3: Path does not contain reserved names

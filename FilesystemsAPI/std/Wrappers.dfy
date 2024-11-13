@@ -1,3 +1,4 @@
+
 // RUN: %verify "%s"
 /*******************************************************************************
  *  Copyright by the contributors to the Dafny Project

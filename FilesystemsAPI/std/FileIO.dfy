@@ -6,7 +6,7 @@
 // RUN: %verify "%s"
 
 include "./Wrappers.dfy"
-include "./utils.dfy"
+include "./Utils.dfy"
 
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
@@ -21,7 +21,7 @@ include "./utils.dfy"
 module {:options "-functionSyntax:4"} FileIO {
   import opened Wrappers
   import Utils
-  export provides ReadBytesFromFile, WriteBytesToFile, Wrappers, IsLink, Open
+  export provides ReadBytesFromFile, WriteBytesToFile, Wrappers, IsLink, Open, Utils, JoinPaths
   datatype Error =  Noent | Exist
   datatype Ok<T> = Ok(v: T)
 
@@ -34,10 +34,10 @@ module {:options "-functionSyntax:4"} FileIO {
     * NOTE: See the module description for limitations on the path argument.
     */
   method Open(path: string) returns (res: Result<object, string>)
-  requires path != "" && |path| > 0 //
-  // requires Utils.non_empty_path(path)
+  // requires path != "" && |path| > 0
+    requires !Utils.has_dangerous_pattern(path)
+    requires Utils.non_empty_path(path)
   {
-      var non_empty_path := Utils.non_empty_path(path);
       var isError, fileStream, errorMsg := INTERNAL_Open(path);
       return if isError then Failure(errorMsg) else Success(fileStream);
   }
@@ -84,10 +84,10 @@ module {:options "-functionSyntax:4"} FileIO {
   }
 
 
-  // method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>) {
-  //   var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-  //   return if isError then Failure(errorMsg) else Success(fullPath);
-  // }
+  method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>) {
+    var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
+    return if isError then Failure(errorMsg) else Success(fullPath);
+  }
   
 
   // method isFile(path: string) returns (res: Result<bool, string>) {
@@ -101,10 +101,12 @@ module {:options "-functionSyntax:4"} FileIO {
    * Private API - these are intentionally not exported from the module and should not be used elsewhere
   */
   method
-    {:axiom "DafnyLibraries.FileIO", "INTERNAL_Open"}
+    {:extern "DafnyLibraries.FileIO", "INTERNAL_Open"}
   INTERNAL_Open(path: string)
     returns (isError: bool, fs: object, errorMsg: string)
-    requires path != "" && |path| > 0
+    requires !Utils.has_dangerous_pattern(path)
+    requires Utils.non_empty_path(path)
+
 
   method
     {:extern "DafnyLibraries.FileIO", "INTERNAL_ReadBytesFromFile"}
@@ -121,9 +123,9 @@ module {:options "-functionSyntax:4"} FileIO {
   INTERNAL_IsLink(path: string)
   returns ( isError: bool, isLink: bool, errorMsg: string)
 
-  // method
-  //   {:extern "DafnyLibraries.FileIO", "INTERNAL_JoinPaths"}
-  // INTERNAL_JoinPaths(paths: seq<string>, separator: string)
-  // returns (isError: bool, fullPath: string, errorMsg: string)
+  method
+    {:extern "DafnyLibraries.FileIO", "INTERNAL_JoinPaths"}
+  INTERNAL_JoinPaths(paths: seq<string>, separator: string)
+  returns (isError: bool, fullPath: string, errorMsg: string)
 
 }

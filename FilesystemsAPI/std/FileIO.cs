@@ -178,6 +178,29 @@ namespace DafnyLibraries
                 errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
             }
         }
+        public static void INTERNAL_JoinPaths (ISequence<ISequence<char>> paths, ISequence<char> separator, out bool isError, out ISequence<char> fullPath, out ISequence<char> errorMsg)
+        {
+            isError = true;
+            fullPath = Sequence<char>.Empty;
+            errorMsg = Sequence<char>.Empty;
+            try
+            {
+                string separatorStr = separator?.ToString();
+                string[] pathStrs = new string[paths.Length];
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    pathStrs[i] = paths[i].ToString();
+                }
+                fullPath = Helpers.SeqFromArray(Path.Combine(pathStrs).ToCharArray());
+                isError = false;
+            }
+            catch (Exception e)
+            {
+                errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
+            }
+        }
+
+
 
         // private static bool FileExists(string path, out bool exists)
         // {
