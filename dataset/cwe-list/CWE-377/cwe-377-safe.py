@@ -1,19 +1,11 @@
 import os
+import tempfile
 
 
-def check_and_create(filename):
-    if not os.path.exists(filename):
-        with open(filename, 'w') as f:
-            f.write("New file created.")
+def create_temp_file():
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        f.write("Temporary data")
+        print(f"Temporary file created at: {f.name}")
 
-check_and_create('/tmp/data.txt')
+create_temp_file()
 
-
-# Exploit Example
-# Between the exists check and file creation, an attacker could create a symbolic
-# link at /tmp/data.txt pointing to another file, causing the script to overwrite unintended files.
-
-# Time window between os.path.exists() and open()
-
-# Attacker creates a symlink:
-# ln -s /etc/passwd /tmp/data.txt

@@ -17,3 +17,11 @@ method SafeJoin(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char
     expect joinRes.Success?, "unexpected failure: " + joinRes.error;
     jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char);
 }
+
+method TestSafeJoin()
+{
+    var path := "/Users/JohnDoe/Documents";
+    var fname := "file.txt";
+    var res := SafeJoin(path, fname);
+    print "SafeJoin test passed!";
+}
