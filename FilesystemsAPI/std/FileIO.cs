@@ -50,9 +50,6 @@ namespace DafnyLibraries
                 // Open the file in read/write mode (adjust FileAccess as needed)
                 FileStream fs = new FileStream(fullPath, FileMode.Open, FileAccess.ReadWrite);
 
-                // Store the FileStream in a Dafny-compatible wrapper
-                fileHandle = new FileHandleWrapper(fs);
-
                 isError = false;
             }
             catch (Exception e)
@@ -178,20 +175,45 @@ namespace DafnyLibraries
                 errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
             }
         }
-        public static void INTERNAL_JoinPaths (ISequence<ISequence<char>> paths, ISequence<char> separator, out bool isError, out ISequence<char> fullPath, out ISequence<char> errorMsg)
+        public static void INTERNAL_JoinPaths(ISequence<ISequence<char>> paths, ISequence<char> separator, out bool isError, out ISequence<char> fullPath, out ISequence<char> errorMsg)
         {
             isError = true;
             fullPath = Sequence<char>.Empty;
             errorMsg = Sequence<char>.Empty;
+
             try
             {
-                string separatorStr = separator?.ToString();
-                string[] pathStrs = new string[paths.Length];
-                for (int i = 0; i < paths.Length; i++)
+                if (paths == null || separator == null)
                 {
-                    pathStrs[i] = paths[i].ToString();
+                    errorMsg = Helpers.SeqFromArray("Paths or separator cannot be null.".ToCharArray());
+                    return;
                 }
-                fullPath = Helpers.SeqFromArray(Path.Combine(pathStrs).ToCharArray());
+
+                // Check if the sequence is empty
+                if (!paths.Elements.Any())
+                {
+                    errorMsg = Helpers.SeqFromArray("No paths provided to join.".ToCharArray());
+                    return;
+                }
+
+                string separatorStr = separator.ToString();
+                List<string> pathStrs = new List<string>();
+
+                // Iterate through each path in the sequence
+                foreach (var currentPath in paths.Elements)
+                {
+                    if (currentPath == null)
+                    {
+                        errorMsg = Helpers.SeqFromArray("One of the paths is null.".ToCharArray());
+                        return;
+                    }
+
+                    pathStrs.Add(currentPath.ToString());
+                }
+
+                // Use the separator explicitly to join paths
+                string combinedPath = string.Join(separatorStr, pathStrs);
+                fullPath = Helpers.SeqFromArray(combinedPath.ToCharArray());
                 isError = false;
             }
             catch (Exception e)

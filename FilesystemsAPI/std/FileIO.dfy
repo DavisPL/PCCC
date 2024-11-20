@@ -21,6 +21,7 @@ include "./Utils.dfy"
 module {:options "-functionSyntax:4"} FileIO {
   import opened Wrappers
   import Utils
+  // export provides ReadBytesFromFile, WriteBytesToFile, Wrappers, IsLink, Open, Utils
   export provides ReadBytesFromFile, WriteBytesToFile, Wrappers, IsLink, Open, Utils, JoinPaths
   datatype Error =  Noent | Exist
   datatype Ok<T> = Ok(v: T)

@@ -9,7 +9,7 @@ using System;
 using System.Numerics;
 using System.Collections;
 [assembly: DafnyAssembly.DafnySourceAttribute(@"// dafny 4.8.1.0
-// Command-line arguments: run /Users/pari/pcc-llms/FilesystemsAPI/std/tests/write/WriteBytes.dfy --no-verify --unicode-char false --target cs --input /Users/pari/pcc-llms/FilesystemsAPI/std/FileIO.cs -- /Users/pari/pcc-llms/FilesystemsAPI/std/tests/write/data.txt System.ArgumentException:
+// Command-line arguments: run ./WriteBytes.dfy --allow-warnings --no-verify --unicode-char false --target cs --input ../../FileIO.cs -- ./data.txt System.ArgumentException:
 // WriteBytes.dfy
 
 
@@ -49,6 +49,15 @@ module WriteBytesToFile {
 }
 
 module {:options ""-functionSyntax:4""} FileIO {
+  method Open(path: string) returns (res: Result<object, string>)
+    requires !Utils.has_dangerous_pattern(path)
+    requires Utils.non_empty_path(path)
+    decreases path
+  {
+    var isError, fileStream, errorMsg := INTERNAL_Open(path);
+    return if isError then Failure(errorMsg) else Success(fileStream);
+  }
+
   method ReadBytesFromFile(path: string) returns (res: Result<seq<bv8>, string>)
     decreases path
   {
@@ -63,6 +72,30 @@ module {:options ""-functionSyntax:4""} FileIO {
     return if isError then Failure(errorMsg) else Success(());
   }
 
+  method IsLink(path: string) returns (res: Result<bool, string>)
+    decreases path
+  {
+    var isError, isLink, errorMsg := INTERNAL_IsLink(path);
+    if isError {
+      res := Failure(errorMsg);
+    } else {
+      res := Success(isLink);
+    }
+  }
+
+  method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>)
+    decreases paths, separator
+  {
+    var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
+    return if isError then Failure(errorMsg) else Success(fullPath);
+  }
+
+  method {:extern ""DafnyLibraries.FileIO"", ""INTERNAL_Open""} INTERNAL_Open(path: string)
+      returns (isError: bool, fs: object, errorMsg: string)
+    requires !Utils.has_dangerous_pattern(path)
+    requires Utils.non_empty_path(path)
+    decreases path
+
   method {:extern ""DafnyLibraries.FileIO"", ""INTERNAL_ReadBytesFromFile""} INTERNAL_ReadBytesFromFile(path: string)
       returns (isError: bool, bytesRead: seq<bv8>, errorMsg: string)
     decreases path
@@ -71,12 +104,20 @@ module {:options ""-functionSyntax:4""} FileIO {
       returns (isError: bool, errorMsg: string)
     decreases path, bytes
 
+  method {:extern ""DafnyLibraries.FileIO"", ""INTERNAL_IsLink""} INTERNAL_IsLink(path: string)
+      returns (isError: bool, isLink: bool, errorMsg: string)
+    decreases path
+
+  method {:extern ""DafnyLibraries.FileIO"", ""INTERNAL_JoinPaths""} INTERNAL_JoinPaths(paths: seq<string>, separator: string)
+      returns (isError: bool, fullPath: string, errorMsg: string)
+    decreases paths, separator
+
   import opened Wrappers
 
-  import opened Utils
+  import Utils
 
   export
-    provides ReadBytesFromFile, WriteBytesToFile, Wrappers
+    provides ReadBytesFromFile, WriteBytesToFile, Wrappers, IsLink, Open, Utils, JoinPaths
 
 
   datatype Error = Noent | Exist
@@ -196,6 +237,13 @@ module Utils {
     decreases p
   {
     0 <= |p| < pathMaxLength
+  }
+
+  predicate non_empty_path(f: file)
+    decreases f
+  {
+    f != """" &&
+    |f| > 0
   }
 
   predicate validate_file_type(f: file)
@@ -637,7 +685,6 @@ module Utils {
   }
 
   predicate non_empty_string(s: string)
-    ensures non_empty_string(s) ==> |s| > 0 && s != """"
     decreases s
   {
     |s| > 0 &&
@@ -757,15 +804,6 @@ module Utils {
     decreases p
   {
     false
-  }
-
-  ghost predicate file_exists(p: string)
-    decreases p
-  {
-    if p == ""/etc/passwd"" then
-      true
-    else
-      false
   }
 
   type path = seq<char>
@@ -7032,6 +7070,9 @@ namespace Utils {
     public static bool has__valid__path__length(Dafny.ISequence<char> p) {
       return ((new BigInteger((p).Count)).Sign != -1) && ((new BigInteger((p).Count)) < (Utils.__default.pathMaxLength));
     }
+    public static bool non__empty__path(Dafny.ISequence<char> f) {
+      return (!(f).Equals(Dafny.Sequence<char>.FromString(""))) && ((new BigInteger((f).Count)).Sign == 1);
+    }
     public static bool validate__file__type(Dafny.ISequence<char> f) {
       Dafny.ISequence<char> _0_extension = Utils.__default.get__file__extension(f);
       if (((Utils.__default.allowedExtensionsForRead).Contains(_0_extension)) && (!(Utils.__default.invalidFileTypes).Contains(_0_extension))) {
@@ -7767,6 +7808,27 @@ namespace Utils {
 namespace FileIO {
 
   public partial class __default {
+    public static Wrappers._IResult<object, Dafny.ISequence<char>> Open(Dafny.ISequence<char> path)
+    {
+      Wrappers._IResult<object, Dafny.ISequence<char>> res = default(Wrappers._IResult<object, Dafny.ISequence<char>>);
+      bool _0_isError;
+      object _1_fileStream;
+      Dafny.ISequence<char> _2_errorMsg;
+      bool _out0;
+      object _out1;
+      Dafny.ISequence<char> _out2;
+      DafnyLibraries.FileIO.INTERNAL_Open(path, out _out0, out _out1, out _out2);
+      _0_isError = _out0;
+      _1_fileStream = _out1;
+      _2_errorMsg = _out2;
+      if (_0_isError) {
+        res = Wrappers.Result<object, Dafny.ISequence<char>>.create_Failure(_2_errorMsg);
+      } else {
+        res = Wrappers.Result<object, Dafny.ISequence<char>>.create_Success(_1_fileStream);
+      }
+      return res;
+      return res;
+    }
     public static Wrappers._IResult<Dafny.ISequence<byte>, Dafny.ISequence<char>> ReadBytesFromFile(Dafny.ISequence<char> path)
     {
       Wrappers._IResult<Dafny.ISequence<byte>, Dafny.ISequence<char>> res = Wrappers.Result<Dafny.ISequence<byte>, Dafny.ISequence<char>>.Default(Dafny.Sequence<byte>.Empty);
@@ -7802,6 +7864,47 @@ namespace FileIO {
         res = Wrappers.Result<_System._ITuple0, Dafny.ISequence<char>>.create_Failure(_1_errorMsg);
       } else {
         res = Wrappers.Result<_System._ITuple0, Dafny.ISequence<char>>.create_Success(_System.Tuple0.create());
+      }
+      return res;
+      return res;
+    }
+    public static Wrappers._IResult<bool, Dafny.ISequence<char>> IsLink(Dafny.ISequence<char> path)
+    {
+      Wrappers._IResult<bool, Dafny.ISequence<char>> res = Wrappers.Result<bool, Dafny.ISequence<char>>.Default(false);
+      bool _0_isError;
+      bool _1_isLink;
+      Dafny.ISequence<char> _2_errorMsg;
+      bool _out0;
+      bool _out1;
+      Dafny.ISequence<char> _out2;
+      DafnyLibraries.FileIO.INTERNAL_IsLink(path, out _out0, out _out1, out _out2);
+      _0_isError = _out0;
+      _1_isLink = _out1;
+      _2_errorMsg = _out2;
+      if (_0_isError) {
+        res = Wrappers.Result<bool, Dafny.ISequence<char>>.create_Failure(_2_errorMsg);
+      } else {
+        res = Wrappers.Result<bool, Dafny.ISequence<char>>.create_Success(_1_isLink);
+      }
+      return res;
+    }
+    public static Wrappers._IResult<Dafny.ISequence<char>, Dafny.ISequence<char>> JoinPaths(Dafny.ISequence<Dafny.ISequence<char>> paths, Dafny.ISequence<char> separator)
+    {
+      Wrappers._IResult<Dafny.ISequence<char>, Dafny.ISequence<char>> res = Wrappers.Result<Dafny.ISequence<char>, Dafny.ISequence<char>>.Default(Dafny.Sequence<char>.Empty);
+      bool _0_isError;
+      Dafny.ISequence<char> _1_fullPath;
+      Dafny.ISequence<char> _2_errorMsg;
+      bool _out0;
+      Dafny.ISequence<char> _out1;
+      Dafny.ISequence<char> _out2;
+      DafnyLibraries.FileIO.INTERNAL_JoinPaths(paths, separator, out _out0, out _out1, out _out2);
+      _0_isError = _out0;
+      _1_fullPath = _out1;
+      _2_errorMsg = _out2;
+      if (_0_isError) {
+        res = Wrappers.Result<Dafny.ISequence<char>, Dafny.ISequence<char>>.create_Failure(_2_errorMsg);
+      } else {
+        res = Wrappers.Result<Dafny.ISequence<char>, Dafny.ISequence<char>>.create_Success(_1_fullPath);
       }
       return res;
       return res;
@@ -7938,9 +8041,9 @@ namespace WriteBytesToFile {
     public static void _Main(Dafny.ISequence<Dafny.ISequence<char>> args)
     {
       if (!((new BigInteger((args).Count)).Sign == 1)) {
-        throw new Dafny.HaltException("tests/write/WriteBytes.dfy(29,4): " + Dafny.Sequence<char>.FromString("expectation violation"));}
+        throw new Dafny.HaltException("WriteBytes.dfy(29,4): " + Dafny.Sequence<char>.FromString("expectation violation"));}
       if (!((new BigInteger((args).Count)) == (new BigInteger(3)))) {
-        throw new Dafny.HaltException("tests/write/WriteBytes.dfy(30,4): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("usage: "), (args).Select(BigInteger.Zero)), Dafny.Sequence<char>.FromString(" OUTPUT_DIR EXPECTED_ERROR_PREFIX")));}
+        throw new Dafny.HaltException("WriteBytes.dfy(30,4): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("usage: "), (args).Select(BigInteger.Zero)), Dafny.Sequence<char>.FromString(" OUTPUT_DIR EXPECTED_ERROR_PREFIX")));}
       Dafny.ISequence<char> _0_outputDir;
       _0_outputDir = (args).Select(BigInteger.One);
       Dafny.ISequence<char> _1_expectedErrorPrefix;
@@ -7954,7 +8057,7 @@ namespace WriteBytesToFile {
           _out0 = FileIO.__default.WriteBytesToFile(Dafny.Sequence<char>.Concat(_0_outputDir, Dafny.Sequence<char>.FromString("/output_plain")), _2_bytes);
           _3_res = _out0;
           if (!((_3_res).is_Success)) {
-            throw new Dafny.HaltException("tests/write/WriteBytes.dfy(53,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_plain: "), (_3_res).dtor_error));}
+            throw new Dafny.HaltException("WriteBytes.dfy(53,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_plain: "), (_3_res).dtor_error));}
         }
         {
           Wrappers._IResult<_System._ITuple0, Dafny.ISequence<char>> _4_res;
@@ -7962,7 +8065,7 @@ namespace WriteBytesToFile {
           _out1 = FileIO.__default.WriteBytesToFile(Dafny.Sequence<char>.Concat(_0_outputDir, Dafny.Sequence<char>.FromString("/foo/bar/output_nested")), _2_bytes);
           _4_res = _out1;
           if (!((_4_res).is_Success)) {
-            throw new Dafny.HaltException("tests/write/WriteBytes.dfy(58,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_nested: "), (_4_res).dtor_error));}
+            throw new Dafny.HaltException("WriteBytes.dfy(58,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_nested: "), (_4_res).dtor_error));}
         }
         {
           Wrappers._IResult<_System._ITuple0, Dafny.ISequence<char>> _5_res;
@@ -7970,7 +8073,7 @@ namespace WriteBytesToFile {
           _out2 = FileIO.__default.WriteBytesToFile(Dafny.Sequence<char>.Concat(_0_outputDir, Dafny.Sequence<char>.FromString("/foo/bar/../output_up")), _2_bytes);
           _5_res = _out2;
           if (!((_5_res).is_Success)) {
-            throw new Dafny.HaltException("tests/write/WriteBytes.dfy(63,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_up: "), (_5_res).dtor_error));}
+            throw new Dafny.HaltException("WriteBytes.dfy(63,8): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected failure writing to output_up: "), (_5_res).dtor_error));}
         }
       }
       {
@@ -7979,9 +8082,9 @@ namespace WriteBytesToFile {
         _out3 = FileIO.__default.WriteBytesToFile(Dafny.Sequence<char>.FromString(""), Dafny.Sequence<byte>.FromElements());
         _6_res = _out3;
         if (!((_6_res).is_Failure)) {
-          throw new Dafny.HaltException("tests/write/WriteBytes.dfy(70,6): " + Dafny.Sequence<char>.FromString("unexpected success"));}
+          throw new Dafny.HaltException("WriteBytes.dfy(70,6): " + Dafny.Sequence<char>.FromString("unexpected success"));}
         if (!(Dafny.Sequence<char>.IsPrefixOf(_1_expectedErrorPrefix, (_6_res).dtor_error))) {
-          throw new Dafny.HaltException("tests/write/WriteBytes.dfy(71,6): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected error message: "), (_6_res).dtor_error));}
+          throw new Dafny.HaltException("WriteBytes.dfy(71,6): " + Dafny.Sequence<char>.Concat(Dafny.Sequence<char>.FromString("unexpected error message: "), (_6_res).dtor_error));}
       }
     }
   }
