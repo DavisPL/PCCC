@@ -1,35 +1,36 @@
-include "../../filesystems-api/interface/effectful-interface.dfy"
+include "../../FileSystemsAPI/std/FileIO.dfy"
+import utils = Utils
 // Method to test the is_alpha_numeric predicate
 method TestIsAlphaNumeric()
 {
-    assert alpha_numeric('a');
-    assert !alpha_numeric(' ');
-    assert !alpha_numeric('.');
-    assert !alpha_numeric('-');
-    assert !alpha_numeric('#'); 
+    assert utils.alpha_numeric('a');
+    assert !utils.alpha_numeric(' ');
+    assert !utils.alpha_numeric('.');
+    assert !utils.alpha_numeric('-');
+    assert !utils.alpha_numeric('#'); 
     // Test case 1: Only alphanumeric characters
     var test1 := "Abc123";
-    assert is_alpha_numeric(test1);
+    assert utils.is_alpha_numeric(test1);
 
     // Test case 2: Contains a non-alphanumeric character
     var test2 := "Abc-123";
-    assert !is_alpha_numeric(test2);
+    assert !utils.is_alpha_numeric(test2);
 
     // Test case 3: Empty string should ideally return true, assuming empty is valid
     var test3 := "";
-    assert is_alpha_numeric(test3);
+    assert utils.is_alpha_numeric(test3);
 
     // Test case 4: Numeric characters only
     var test4 := "123456";
-    assert is_alpha_numeric(test4);
+    assert utils.is_alpha_numeric(test4);
 
     // Test case 5: Alphabets only
     var test5 := "ABCabc";
-    assert is_alpha_numeric(test5);
+    assert utils.is_alpha_numeric(test5);
 
     // Test case 6: Special characters only
     var test6 := "!@#$%";
-    assert !is_alpha_numeric(test6);
+    assert !utils.is_alpha_numeric(test6);
 }
 // method TestAlphaNumeric()
 // {
@@ -662,16 +663,34 @@ method TestIsAbsolutePath()
     // }
     // print "All tests passed.\n";
     
-    assert is_absolute_path("/usr/bin/python");
+    assert utils.is_absolute_path("/usr/bin/python");
    // assert false;
-    assert is_absolute_path("C:\\Windows\\System32");
+    assert utils.is_absolute_path("C:\\Windows\\System32");
    // assert false;
-    assert is_absolute_path("C:/Program Files");
-    assert !is_absolute_path("\\relative\\path");
-    assert !is_absolute_path("../../relative/path");
+    assert utils.is_absolute_path("C:/Program Files");
+    assert !utils.is_absolute_path("\\relative\\path");
+    assert !utils.is_absolute_path("../../relative/path");
     
 }
 
+method TestStartsWith() {
+    var dir := "/usr/bin/python";
+    var prefix := "/usr";
+    var res := utils.StartsWith(dir, prefix);
+    assert res;
+    var dir2 := "/usr/bin/python";
+    var prefix2 := "/vart";
+    var res2 := utils.StartsWith(dir2, prefix2);
+    assert |dir2| >= |prefix2|;
+    assert dir2[..|prefix2|] == "/usr/";
+    assert dir2[..|prefix2|] != dir2;
+    assert !res2;
+    var result := utils.StartsWith("hello world", "hello"); // result = true
+    assert result;
+    var result2 := utils.StartsWith("hello world", "world"); // result = false
+    assert !result2;
+
+}
 
 method Main(){
   // ContainsSequenceTest();

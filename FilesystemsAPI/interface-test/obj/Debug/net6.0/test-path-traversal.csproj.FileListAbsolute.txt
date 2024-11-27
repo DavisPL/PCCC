@@ -1,0 +1,12 @@
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.csproj.AssemblyReference.cache
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.GeneratedMSBuildEditorConfig.editorconfig
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.AssemblyInfoInputs.cache
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.AssemblyInfo.cs
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.csproj.CoreCompileInputs.cache
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.dll
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/ref/test-path-traversal.dll
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/obj/Debug/net6.0/test-path-traversal.pdb
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/test-path-traversal.deps.json
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/test-path-traversal.dll
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/ref/test-path-traversal.dll
+/Users/pari/pcc-llms/FilesystemsAPI/interface-test/test-path-traversal.pdb

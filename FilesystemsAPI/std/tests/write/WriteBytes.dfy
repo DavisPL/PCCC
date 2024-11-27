@@ -9,6 +9,7 @@
 // RUN: %run --no-verify --unicode-char:false --target:java "%s" --input "%S/../../src/FileIO/FileIO.java" -- "%t_java" "java.nio.file.FileSystemException:"
 // RUN: %run --no-verify --unicode-char:false --target:js "%s" --input "%S/../../src/FileIO/FileIO.js" -- "%t_js" "Error: ENOENT"
 // dafny run /Users/pari/pcc-llms/FilesystemsAPI/std/tests/write/WriteBytes.dfy --no-verify --unicode-char:false --target:cs --input /Users/pari/pcc-llms/FilesystemsAPI/std/FileIO.cs -- /Users/pari/pcc-llms/FilesystemsAPI/std/tests/write/data.txt "System.ArgumentException:"
+// dafny run ./WriteBytes.dfy --allow-warnings --no-verify --unicode-char:false --target:cs --input ../../FileIO.cs -- ./data.txt "System.ArgumentException:"
 //// Check that written files match expectations
 // RUN: %diff "%S/data.txt" "%t_cs/output_plain"
 // RUN: %diff "%S/data.txt" "%t_cs/foo/bar/output_nested"

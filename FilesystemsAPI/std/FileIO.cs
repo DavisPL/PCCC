@@ -222,7 +222,34 @@ namespace DafnyLibraries
             }
         }
 
+         /// <summary>
+        /// Resolves a given relative path to its absolute path.
+        /// If the path is already absolute, it simply returns the same path.
+        /// </summary>
+        /// <param name="relativePath">The relative or absolute path to resolve.</param>
+        /// <returns>The absolute path corresponding to the input.</returns>
+        public static string GetAbsolutePath(string relativePath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(relativePath))
+                {
+                    throw new ArgumentException("The path cannot be null or empty.");
+                }
 
+                // Resolve the absolute path using Path.GetFullPath
+                string absolutePath = Path.GetFullPath(relativePath);
+
+                return absolutePath;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error resolving path: {e.Message}");
+                throw;
+            }
+        }
+
+        
 
         // private static bool FileExists(string path, out bool exists)
         // {

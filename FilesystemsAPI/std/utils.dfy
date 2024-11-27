@@ -156,15 +156,13 @@ module Utils
 
     function string_slice(s: seq<char>): seq<char>
     {
-    if |s| == 0 then "" else ([s[|s| - 1]] + string_slice(s[..(|s| - 1)]))
+        if |s| == 0 then "" else ([s[|s| - 1]] + string_slice(s[..(|s| - 1)]))
     }
 
     lemma StringSliceLemma(s: seq<char>)
     requires 0 <= |s|
     ensures forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]]
     {
-        assert |s| == 0 || |s| > 0;
-        assert forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]];
     }
 
     function concat(s1: seq<char>, s2: seq<char>): seq<char>
@@ -566,6 +564,7 @@ module Utils
 
     // Check 3: Path does not contain reserved names
     method HasNoReservedNames(path: string) returns (isValid: bool)
+    requires |path| > 0
     {
     var reservedNames := ["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4"];
     var upperPath := ToUppercase(path);
@@ -579,27 +578,20 @@ module Utils
     return true;
     }
 
+
     // Helper method: Check if string starts with prefix
     method StartsWith(s: string, prefix: string) returns (result: bool)
     requires |prefix| > 0
+    requires |s| > 0
     ensures result <==> |s| >= |prefix| && s[..|prefix|] == prefix
-    {
-    if |s| < |prefix| {
-        return false;
-    }
+    ensures !result <==> |s| < |prefix| || s[..|prefix|] != prefix
 
-    var i := 0;
-    while i < |prefix|
-        invariant 0 <= i <= |prefix|
-        invariant forall k :: 0 <= k < i ==> s[k] == prefix[k]
     {
-        if s[i] != prefix[i] {
-        return false;
+        if |s| < |prefix| {
+            result := false;
+        } else {
+            result := s[..|prefix|] == prefix;
         }
-        i := i + 1;
-    }
-
-    return true;
     }
 
 

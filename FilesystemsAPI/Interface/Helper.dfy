@@ -684,6 +684,8 @@ predicate contains_encoded_periods(s: seq<char>)
         contains_drive_letter(s)
     }
 
+    
+
   //   predicate ContainsSymlink(p: string)
   //   requires p != "" && |p| > 0
   //   {

@@ -2,8 +2,9 @@ import os
 import sys
 
 
-def read_file(filename):
-    base_dir = "/var/www/data/"
+def read_file(filename, base_dir=None):
+    # base_dir = "/var/www/data/"
+    base_dir = "/Users/pari/pcc-llms/dataset/cwe-list/CWE-22"
     # Normalize the path to prevent traversal
     filepath = os.path.abspath(os.path.join(base_dir, filename))
     # Ensure the filepath starts with the base directory

@@ -10,7 +10,6 @@ lemma CharAtIndexImpliesContainsC(s: string, c: char, index: int)
   requires s[index] == c
   ensures contains_char(s, c)
 {
-  // The body can be empty; Dafny can prove this automatically
 }
 
 method ContainsCharMethod(s: string, c: char) returns (result: bool)
@@ -26,7 +25,6 @@ method ContainsCharMethod(s: string, c: char) returns (result: bool)
     if s[i] == c {
       CharAtIndexImpliesContainsC(s, c, i);
       result := true;
-      return;
     }
     i := i + 1;
   }
@@ -36,17 +34,16 @@ method Main()
 {
   var s := "Hello, World!";
   // assert s[0] == 'H';
-  // CharAtIndexImpliesContainsC(s, 'H', 0);  // Use the lemma to prove ContainsC(s, 'H') is true
+  CharAtIndexImpliesContainsC(s, 'H', 0);  // Use the lemma to prove ContainsC(s, 'H') is true
   var containsH := ContainsCharMethod(s, 'H');
-  // assert containsH;  // This assertion now holds
+  assert containsH;  // This assertion now holds
   if containsH {
     assert 'H' in s;
     print "String contains 'H': ", containsH, "\n";
   }
 
-  // We can also use the lemma for other characters
   // assert s[7] == 'W';
-  CharAtIndexImpliesContainsC(s, 'W', 7);
+  CharAtIndexImpliesContainsC(s, 'W', 7); //Comment this line to see the assertion in line 48 fails
   var containsW := ContainsCharMethod(s, 'W');
   assert containsW;  // This assertion now holds
   if containsW {
@@ -54,10 +51,8 @@ method Main()
     print "String contains 'W': ", containsW, "\n";
   }
 
-  // # Precondition cannot be proven
-  // CharAtIndexImpliesContainsC(s, 'I', 7);
   var containsI := ContainsCharMethod(s, 'I');
-  assert !containsI;  // This assertion does not hold
+  assert !containsI; // This assertion does not hold because 'I' is not in the string
   if containsI {
     assert 'I' in s;
     print "String contains 'I': ", containsI, "\n";
