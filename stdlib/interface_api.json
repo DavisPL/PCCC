@@ -1,0 +1,41 @@
+{
+    "1": {
+        "method_name": "Open",
+        "method_description": "This method opens a file with the given name",
+        "method_signature": "static method{:axiom} Open(name: seq<char>) returns(ok:bool, f:FileStream)",
+        "preconditions": " requires non_empty_string(name)\n requires !has_dangerous_pattern(name)\n requires has_absolute_path(name)\n requires is_valid_path_name(name)",
+        "method_id": "1"
+
+    },
+    "2": {
+        "method_name": "Read",
+        "method_description": "This method reads the content of a file",
+        "method_signature": "method{:axiom} Read(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)",
+        "preconditions": " requires non_empty_string(p) \n requires !has_dangerous_pattern(p)\n requires has_valid_path_length(p)\n requires has_absolute_path(p)\n requires is_valid_file_extension(p)\n requires has_valid_content_length(buffer)\n requires is_valid_file_extension(p)\n requires is_valid_file_extension(p)\n",
+        "method_id": "2"
+
+    },
+    "3": {
+        "method_name": "Write",
+        "method_description": "This method writes data to a file",
+        "method_signature": "method{:axiom} Write(p: path, fileOffset:nat32, buffer:array<byte>, start:int32, end:int32) returns(ok:bool)",
+        "preconditions": " requires !has_dangerous_pattern(p)\n requires has_valid_path_length(p)\n requires has_absolute_path(p)\n requires is_valid_path_name(p)\n requires has_valid_content_length(buffer)\n requires is_valid_file_extension(p)\n ",
+        "method_id": "3"
+
+    },
+    "4": {
+        "method_name": "Join",
+        "method_description": "This method joins a path and a file",
+        "method_signature": "method Join(p: path, f: file) returns(result: path)",
+        "preconditions": " requires non_empty_string(f)\n requires non_empty_string(p)\n requires !has_dangerous_pattern(f)\n requires has_absolute_path(f)\n requires is_valid_file_name(f)\n requires is_valid_path_name(p)\n requires has_valid_file_length(f)\n requires has_valid_path_length(p)\n requires has_valid_path_length(p+f)",
+        "method_id": "4"
+
+    },
+    "5": {
+        "method_name": "Close",
+        "method_description": "This method closes a file",
+        "method_signature": "method Close()",
+        "preconditions": " requires IsOpen()",
+        "method_id": "5"
+    }
+}
