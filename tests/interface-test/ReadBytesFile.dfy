@@ -3,7 +3,7 @@
  *  SPDX-License-Identifier: MIT
  *******************************************************************************/
  // ToDo: modify this to work with the FileIO.dfy and dafny test command
-include "./FileIO.dfy"
+include "../../stdlib/lib/FileIO.dfy"
 module ReadBytesFromFile {
   import FileIO
 

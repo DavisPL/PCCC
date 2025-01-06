@@ -10,7 +10,7 @@
 // #RUN: %run --no-verify --unicode-char:false --target:js "%s" --input "%S/../../src/FileIO/FileIO.js" -- "%S/data.txt" "Error: ENOENT"
 // dafny run /Users/pari/pcc-llms/FilesystemsAPI/std/tests/read/ReadBytes.dfy --no-verify --unicode-char:false --target:cs --input /Users/pari/pcc-llms/FilesystemsAPI/std/FileIO.cs -- /Users/pari/pcc-llms/FilesystemsAPI/std/tests/read/data.txt "System.ArgumentException:"
 // dafny run ./ReadBytes.dfy --allow-warnings --no-verify --unicode-char:false --target:cs --input ../../FileIO.cs -- ./data.txt "System.ArgumentException:"
-include "../../FileIO.dfy"
+include "/Users/pari/pcc-llms/stdlib/lib/FileIO.dfy"
 
 module ReadBytesFromFile {
   import FileIO
@@ -23,7 +23,7 @@ module ReadBytesFromFile {
 
       // Happy path: read from the data file, and check that we see the expected content.
     {
-      var expectedStr := "Hello world\nGoodbye\nTake care!";
+      var expectedStr := "Hello world\nGoodbye\n";
       // This conversion is safe only for ASCII values. For Unicode conversions, see the Unicode modules.
       var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
 

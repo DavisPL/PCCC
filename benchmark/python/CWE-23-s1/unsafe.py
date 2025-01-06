@@ -22,4 +22,4 @@ def extract_zip(zip_path, extract_to):
                 f.write(zip_ref.read(member))
 
 # Usage example (Assuming 'example.zip' contains malicious paths like '....//....//evil.txt')
-extract_zip('example.zip', '/safe/directory')
+# extract_zip('example.zip', '/safe/directory')

@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+include "../../../archive/interface/EffectfulInterface.dfy"
 
 method CreateFullPath(fileName: seq<char>) returns (fullPath: seq<char>)
  requires !has_dangerous_pattern(fileName)

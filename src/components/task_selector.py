@@ -1,9 +1,12 @@
-from langchain_core.example_selectors import MaxMarginalRelevanceExampleSelector
-from langchain_core.example_selectors import SemanticSimilarityExampleSelector
 from langchain_community.vectorstores import FAISS
+from langchain_core.example_selectors import (
+    MaxMarginalRelevanceExampleSelector,
+    SemanticSimilarityExampleSelector,
+)
 from langchain_openai import OpenAIEmbeddings
 
 
+# TODO: Use BM25Retriever for retrieving the similar examples 
 def get_semantic_similarity_example_selector(api_key, example_db_tasks, number_of_similar_tasks):
     return SemanticSimilarityExampleSelector.from_examples(
         # This is the list of examples available to select from.

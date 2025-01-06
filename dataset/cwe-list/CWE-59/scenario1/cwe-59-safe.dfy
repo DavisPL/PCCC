@@ -10,7 +10,7 @@ requires |userName| > 0
     var finalPath := JoinPaths(pathArray, "/");
     var f: FileStream;
     var ok: bool;
-    if (is_unix_absolute_path(finalPath) || is_windows_absolute_path(finalPath)) {
+   if (is_unix_absolute_path(finalPath) || is_windows_absolute_path(finalPath)) {
         var isSymlink := IsSymbolicLink(finalPath);
         if (!isSymlink  && !non_empty_string(finalPath) && !has_dangerous_pattern(finalPath)) {
             print "Real path";

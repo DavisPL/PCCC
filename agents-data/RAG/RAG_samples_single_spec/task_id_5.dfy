@@ -1,4 +1,4 @@
-include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
+include "../../../archive/interface/EffectfulInterface.dfy"
 method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte>)
 requires !has_dangerous_pattern(path)
 requires is_valid_file_extension(path)

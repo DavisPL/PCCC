@@ -1,4 +1,5 @@
-include "/Users/pari/pcc-llms/dataset/filesystems/interface/effectful-interface.dfy"
+
+include "../../../archive/interface/EffectfulInterface.dfy"
 
 method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
  requires non_empty_string(fname)

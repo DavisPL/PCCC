@@ -39,6 +39,7 @@ FEWSHOT:
   # Required for dynamic Few-Shot RAG Prompting
   # Example CWEs JSON path (absolute path)
   RAG_json_path: path_to_RAG_samples_json
+  # TODO: Add a RAG for fixing generated errors during compilation
   # Filesystem API reference path (absolute path)
   api_reference_path: path_to_effectful_interface_api_json
   # Number of code examples in [Chain of Thought (CoT) Prompt]

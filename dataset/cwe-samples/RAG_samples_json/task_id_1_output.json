@@ -1,3 +1,0 @@
-{
-  "code": "method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)\n requires !has_dangerous_pattern(fname)\n requires !has_dangerous_pattern(path)\n requires has_absoloute_path(fname)\n requires is_valid_path_name(path)\n requires is_valid_file_name(fname)\n requires has_valid_file_length(fname)\n requires has_valid_path_length(path)\n requires has_valid_path_length(path + fname)\n requires append_file_to_path(path, fname) == path + fname\n {\n   jointPath := Join(path, fname);\n }"
-}

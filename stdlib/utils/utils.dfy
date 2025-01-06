@@ -15,7 +15,7 @@ module Utils
     newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
     newtype{:nativeType "int"} maxPath = i:int | 0 <= i < 256
     newtype nat64 = i:int | 0 <= i < 0x10000000000000000
-    datatype PathOrFile = Path(p: seq<char>) | File(f: seq<char>)
+    datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
     const sensitivePaths := ["/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets", "/etc/passwd"]

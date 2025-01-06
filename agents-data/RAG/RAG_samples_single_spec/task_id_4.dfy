@@ -1,4 +1,4 @@
-include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
+include "../../../archive/interface/EffectfulInterface.dfy"
 method Copy(srcFile: seq<char>, dstFile: seq<char>)
 requires is_valid_path_name(srcFile)
 requires is_valid_path_name(dstFile)

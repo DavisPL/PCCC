@@ -1,4 +1,4 @@
-include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
+include "../../../archive/interface/EffectfulInterface.dfy"
 method Append(path: seq<char>,  fname: seq<char>) returns (jointPath: seq<char>)
 requires !has_dangerous_pattern(fname)
 requires !has_dangerous_pattern(path)

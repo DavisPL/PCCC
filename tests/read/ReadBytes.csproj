@@ -12,8 +12,8 @@
 
   
   <ItemGroup>
-      <Compile Include="/Users/pari/pcc-llms/FilesystemsAPI/std/tests/read/ReadBytes.cs" />
-<Compile Include="/Users/pari/pcc-llms/FilesystemsAPI/std/FileIO.cs" />
+      <Compile Include="/Users/pari/pcc-llms/tests/read/ReadBytes.cs" />
+<Compile Include="/Users/pari/pcc-llms/stdlib/lib/FileIO.cs" />
 
       <PackageReference Include="System.Runtime.Numerics" Version="4.3.0" />
       <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />

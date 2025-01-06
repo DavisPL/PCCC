@@ -34,12 +34,16 @@ class CodeGenerator:
     @staticmethod
     def load_code_template(template_path):
         """Loads and returns the code template from the specified template path."""
-        script_dir_path = os.path.dirname(os.getcwd())
-        
-        full_template_path = os.path.join(script_dir_path, template_path)
+        getcwd = os.getcwd()
+        parent_dir = os.path.dirname(getcwd)    
+        absolute_template_path = os.path.normpath(template_path)
+        print(f"absolute_template_path {absolute_template_path}")
+        full_template_path = os.path.join(parent_dir, absolute_template_path)
         print(f"full_template_path {full_template_path}")
-        # Utilize a utility function to read the file
-        return utils.read_file(full_template_path)
+        if not os.path.exists(full_template_path):
+            raise ValueError("Please provide a valid template path.")
+        else:
+            return utils.read_file(full_template_path)
         
     
     @staticmethod

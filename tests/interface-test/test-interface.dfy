@@ -1,4 +1,4 @@
-include "../../FileSystemsAPI/std/FileIO.dfy"
+include "../../stdlib/lib/FileIO.dfy"
 import utils = Utils
 // Method to test the is_alpha_numeric predicate
 method TestIsAlphaNumeric()

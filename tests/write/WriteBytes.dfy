@@ -22,7 +22,7 @@
 // RUN: %diff "%S/data.txt" "%t_js/foo/output_up"
 //diff ./expectedOutput /Users/pari/pcc-llms/FilesystemsAPI/std/tests/write/data.txt/output_plain
 
-include "../../FileIO.dfy"
+include "../../stdlib/lib/FileIO.dfy"
 module WriteBytesToFile {
   import FileIO
 

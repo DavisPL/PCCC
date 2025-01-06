@@ -47,7 +47,6 @@ predicate is_alpha_numeric(s: string)
 }
 
 predicate is_drive_letter(c: char)
-ensures is_drive_letter(c) <==> ('a' <= c <= 'z') || ('A' <= c <= 'Z')
 {
     ('a' <= c <= 'z') || ('A' <= c <= 'Z')
 }
@@ -71,7 +70,6 @@ ensures is_file_valid_char(c) <==> alpha_numeric(c) || c in validFileCharacters
 }
 
 predicate is_valid_path_char(c: char)
-ensures is_valid_path_char(c) <==> alpha_numeric(c) || c in validPathCharacters
 {
     alpha_numeric(c) || c in validPathCharacters
 }
@@ -333,7 +331,6 @@ requires 0 <= |t| <= 4
 }
 
 method ContainsC(s: string, c: char) returns (result: bool)
-  requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
   ensures result <==> (exists i :: 0 <= i < |s| && (s[i] == c)) || c in s
 {
   result := false;
@@ -429,19 +426,18 @@ function digit_to_char(n: nat): char
   '0' + n as char // `as` is the type-casting operator
 }
 
-function numbert_to_string(n: nat): string
+function number_to_string(n: nat): string
 // Convert a number to its string representation
-  ensures forall i :: 0 <= i < |numbert_to_string(n)| ==> '0' <= numbert_to_string(n)[i] <= '9'
 {
   if n < 10
   // Base case: A nat on [0, 10) is just one character long.
   then [digit_to_char(n)]
   // Inductive case: Compute all but the last character, then append the final one at the end
-  else numbert_to_string(n/10) + [digit_to_char(n % 10)]
+  else number_to_string(n/10) + [digit_to_char(n % 10)]
 }
 
 
-method Computedigit_to_char(n: nat) returns (result: char)
+method Compute_digit_to_char(n: nat) returns (result: char)
 // Compute the character representation of a digit
   requires 0  <= n <=  9
   ensures '0' <= result <= '9'
@@ -452,16 +448,16 @@ method Computedigit_to_char(n: nat) returns (result: char)
 
 method ConvertNumberToString(n: nat) returns (r: string)
 // Compute the string representation of a number
-  ensures r == numbert_to_string(n)
+  // ensures r == number_to_string(n)
 {
   if n < 10 {
-    var digit_to_char := Computedigit_to_char(n);
+    var digit_to_char := Compute_digit_to_char(n);
     r := [digit_to_char];
   }
 
   else {
     var numToChar := ConvertNumberToString(n/10);
-    var digit_to_char := Computedigit_to_char(n % 10);
+    var digit_to_char := Compute_digit_to_char(n % 10);
     r := numToChar + [digit_to_char];
   }
 
@@ -508,7 +504,6 @@ method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
 }
 
 function list_contains_string(list: seq<seq<char>>, sub: seq<char>): bool
-  ensures list_contains_string(list, sub) <==> (exists i :: 0 <= i < |list| && sub == list[i])
 {
   if |list| == 0 then
     false
@@ -519,13 +514,13 @@ function list_contains_string(list: seq<seq<char>>, sub: seq<char>): bool
 }
 
 function ContainsChar(s: string, c: char): bool
-  // requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
 {
   exists i :: 0 <= i < |s| && s[i] == c
 }
 
 lemma CharAtIndexImpliesContainsC(s: string, c: char, index: int)
-  requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
+  requires alpha_numeric(c)
+  requires is_alpha_numeric(s)
   requires 0 <= index < |s|
   requires s[index] == c
   ensures ContainsChar(s, c)
@@ -534,7 +529,8 @@ lemma CharAtIndexImpliesContainsC(s: string, c: char, index: int)
 }
 
 method ContainsCharMethod(s: string, c: char) returns (result: bool)
-  requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
+  requires alpha_numeric(c)
+  requires is_alpha_numeric(s)
   ensures result == ContainsChar(s, c)
 {
   result := false;

@@ -38,7 +38,10 @@ class PCCC:
                 example_db_tasks = utils.load_json(self.fewshot_config['RAG_json_path'])
                 examples_db_for_cot_prompt = utils.extract_task_specifications(example_db_tasks)
                 code_prompt_template = self.code_generator.load_code_template(
-                    'src/prompts_template/COT_TEMPLATE.file'
+                    'agents-data/prompts_template/COT_TEMPLATE.file'
+                )
+                code_prompt_template_with_valiation = self.code_generator.load_code_template(
+                    'agents-data/prompts_template/COT_TEMPLATE.file'
                 )
                 tasks = utils.load_json(self.env_config['task_path'])
                 model = self.model_config['model']
@@ -79,6 +82,7 @@ class PCCC:
                                 example_db_tasks=example_db_tasks,
                                 code_example_selector=code_example_selector,
                                 code_prompt_template=code_prompt_template,
+                                code_prompt_template_with_valiation=code_prompt_template_with_valiation,
                                 filesystem_api_ref=filesystem_api_ref,
                                 interface_path=interface_path,
                                 temperature=temperature,
@@ -119,6 +123,7 @@ class PCCC:
         example_db_tasks: List[Dict[str, Any]],
         code_example_selector: Any,
         code_prompt_template: str,
+        code_prompt_template_with_valiation: str,
         filesystem_api_ref: Any,
         interface_path: str,
         temperature: float,
@@ -133,6 +138,7 @@ class PCCC:
             example_db_5_tasks=example_db_tasks,
             code_example_selector=code_example_selector,
             code_prompt_template=code_prompt_template,
+            code_prompt_template_with_valiation=code_prompt_template_with_valiation,
             filesystem_api_ref=filesystem_api_ref
         )
         response_with_fileio_lib = utils.prepend_include_to_code(

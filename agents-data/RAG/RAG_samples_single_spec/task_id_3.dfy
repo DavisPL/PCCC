@@ -1,4 +1,4 @@
-include "../../FilesystemsAPI/Interface/EffectfulInterface.dfy"
+include "../../../archive/interface/EffectfulInterface.dfy"
 method ReadFile(path: seq<char>)
 requires !has_dangerous_pattern(path)
 requires is_valid_path_name(path)

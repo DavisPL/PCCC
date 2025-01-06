@@ -5,16 +5,11 @@
 
 // Use this command:
 // dafny test --standard-libraries ReadBytesFromFile.dfy
-include "./FileIO.dfy"
+include "../../stdlib/lib/FileIO.dfy"
 module ReadBytesFromFile {
   import FileIO
 
-  method {:test} Test() {
-    // TODO: extern function for the expected error prefix
-    theMain("/Users/pari/pcc-llms/filesystems-api/Standard-fileIO/data.txt", "");
-  }
-
-  method theMain(dataPath: string, expectedErrorPrefix: string) {
+  method Main(dataPath: string, expectedErrorPrefix: string) {
 
       // Happy path: read from the data file, and check that we see the expected content.
     {

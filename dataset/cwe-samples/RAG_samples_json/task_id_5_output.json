@@ -1,3 +1,0 @@
-{
-  "code": "method LoadUserData(path: seq<char>, userName: string) returns (data: array<byte>)\n requires !has_dangerous_pattern(path)\n requires is_valid_file_extension(path)\n requires is_valid_path_name(path)\n requires non_empty_string(userName)\n requires !has_dangerous_pattern(userName)\n requires has_vaild_path_length(path)\n requires has_absoloute_path(path)\n requires is_valid_file_extension(path)\n {\n     var f: FileStream;\n     var ok: bool;\n     ok, f := FileStream.Open(path);\n     if !ok { print \"open failed\\n\"; return new byte[0]; }\n     data := new byte[100];\n     ok := f.Read(path, 0, data, 0, data.Length as int32);\n     print \"User data loaded!\\n\";\n }"
-}
