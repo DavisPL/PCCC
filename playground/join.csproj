@@ -12,8 +12,7 @@
 
   
   <ItemGroup>
-      <Compile Include="/Users/pari/pcc-llms/benchmark/dafny/CWE-22/cwe-22-safe.cs" />
-<Compile Include="/Users/pari/pcc-llms/stdlib/lib/FileIO.cs" />
+      <Compile Include="/Users/pari/pcc-llms/playground/join.cs" />
 
       <PackageReference Include="System.Runtime.Numerics" Version="4.3.0" />
       <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />

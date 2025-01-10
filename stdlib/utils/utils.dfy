@@ -204,7 +204,8 @@ module Utils
     }
     }
 
-// TODO: fix this to accept C:/ as a valid path
+    // TODO: fix this to accept C:/ as a valid path
+    //ToDo: Fix Utils.has_dangerous_pattern(file) and split it to separted methods for handling dangerous patterns
     predicate has_dangerous_pattern(p: path)
     {
         contains_consecutive_periods(p) || !has_absolute_path(p) ||

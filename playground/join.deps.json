@@ -6,13 +6,13 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "cwe-22-safe/1.0.0": {
+      "join/1.0.0": {
         "dependencies": {
           "System.Collections.Immutable": "1.7.1",
           "System.Runtime.Numerics": "4.3.0"
         },
         "runtime": {
-          "cwe-22-safe.dll": {}
+          "join.dll": {}
         }
       },
       "Microsoft.NETCore.Platforms/1.1.0": {},
@@ -97,7 +97,7 @@
     }
   },
   "libraries": {
-    "cwe-22-safe/1.0.0": {
+    "join/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
