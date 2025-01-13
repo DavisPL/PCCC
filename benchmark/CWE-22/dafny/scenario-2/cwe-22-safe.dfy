@@ -3,7 +3,7 @@
 // CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
 // Tested and Runs successfully!
 
-include "./FileIO.dfy"
+include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/FileIO.dfy"
 import FIO = FileIO
 import utils = Utils
 import opened Wrappers

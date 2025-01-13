@@ -1,4 +1,4 @@
-include "./FileIO.dfy"
+include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/FileIO.dfy"
 import FIO = FileIO
 import utils = Utils
 import opened Wrappers
@@ -35,6 +35,7 @@ import opened Wrappers
       print("File read successfully! \n");
       print("File content: \n " + expectedStr);
       } else {
+        expect false, "unsafe file path";
         return;
       }
   }

@@ -23,4 +23,4 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv[1:])  # can be exploited by passing a file path with ../ pattern
-    # for instance ../sample.txt to access a file outside the current directory
+    # for instance ../unsafe.txt to access a file outside the current directory
