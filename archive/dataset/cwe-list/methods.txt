@@ -1,0 +1,9 @@
+1. add preconditions to JoinFileToPath
+2. use if (...) checks to guard the function call to FileStream.Open
+3. use expect (...) checks to add runtime checks that the preconditions hold
+
+
+Building benchmark steps:
+1. Separate the safe code from the unsafe code in Python and Dafny 
+2. Add task description 
+3. Add code completion samples in Dafny

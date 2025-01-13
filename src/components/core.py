@@ -11,18 +11,17 @@ _type_
 import json
 import logging
 
-from langchain_core.callbacks import BaseCallbackHandler
-
 # from langchain.errors import ChainError, LLMErrors
 from langchain.globals import set_debug, set_verbose
 from langchain.memory import ConversationBufferMemory
-from langchain_core.prompts import PromptTemplate
-from langchain_core.messages import SystemMessage
 from langchain_anthropic import ChatAnthropic
 from langchain_community.callbacks.manager import get_openai_callback
 from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.messages import SystemMessage
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import (
     RunnableConfig,
     RunnablePassthrough,
@@ -125,13 +124,14 @@ class Core:
 
     def add_error_to_memory(self, validation_result):
         error_feedback = f"Error occurred. Let's try again."
-        self.code_memory.chat_memory.add_message(SystemMessage(content=validation_result))
+        # self.code_memory.chat_memory.add_message(SystemMessage(content=validation_result))
         return error_feedback
 
     def invoke_llm(self, api_config, model_config, fewshot_config, new_task,
               example_db_5_tasks,
               code_example_selector,
               code_prompt_template,
+              code_prompt_template_with_valiation,
               filesystem_api_ref, 
               validation_result = None):
         print("\n inside invoke_llm")
@@ -205,6 +205,7 @@ class Core:
         # print(f"\n next_input_task_with_spec: \n {next_input_task_with_spec} \n")
         # spec_similar_code_tasks = code_example_selector.select_examples(next_input_task_with_spec)
         # print(f"\n spec_similar_code_tasks = \n {spec_similar_code_tasks} \n")
+
         similar_code_tasks = code_example_selector.select_examples(new_task)
         code_example_ids = [t['task_id'] for t in similar_code_tasks]
         # print(f"\n code_example_ids \n {code_example_ids}")
@@ -212,7 +213,7 @@ class Core:
         api_reference_dict = json.loads(filesystem_api_ref)
         api_reference = api_reference_dict["api_reference"]
         # print(f"\n api_reference: \n {api_reference}")
-        code_prompt = prompt_gen.create_few_shot_code_prompts(code_example_ids, example_db_5_tasks, code_prompt_template, api_reference)
+        code_prompt = prompt_gen.create_few_shot_code_prompts(code_example_ids, example_db_5_tasks, code_prompt_template, api_reference, validation_result)
         print(f"\n code_prompt: \n {code_prompt}")
         # print(f"new task: {new_task['method_signature']}")
         generated_prompt = code_prompt.format(input=[new_task['task_description'], new_task['method_signature']])
@@ -295,9 +296,14 @@ class Core:
         # one line if else to return validation_result if has a value else code_response
         # print(f"\n validation_result: {validation_result} \n")
         if validation_result:
-            self.add_error_to_memory(validation_result)
+            feedback_prompt = f"Validation feedback: {validation_result}\n"
         else:
-            self.code_memory.save_context({"task": new_task["task_description"]}, {"output": code_response})
+            feedback_prompt = "No validation feedback provided.\n"
+
+        generated_prompt = code_prompt.format(
+            input=[new_task['task_description'], new_task['method_signature'], feedback_prompt]
+        )
+        print(f"\n generated_prompt: \n {generated_prompt}")
         # result = {"task": new_task["task_description"], **memory_contents}
         # print(f"\n code_memory: {self.code_memory} \n")
         # print(f"\n memory_contents: {memory_contents} \n")

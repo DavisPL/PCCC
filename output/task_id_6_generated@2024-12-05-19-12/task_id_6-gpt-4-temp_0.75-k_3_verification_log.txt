@@ -1,0 +1,8 @@
+/Users/pari/pcc-llms/FilesystemsAPI/Interface/EffectfulInterface.dfy(286,18): Warning: when a method is exported, meaning it has a body and an {:extern} annotation, Dafny can not guarantee that it is called with arguments that satisfy its preconditions (its requires clauses and inputs that are subset types). To silence this warning, please add an {:axiom} attribute or use the option '--allow-external-contracts'
+    |
+286 |   method{:extern} IsSymlink(p: path) returns (isSymlink: bool)
+    |                   ^^^^^^^^^
+
+
+Dafny program verifier finished with 1 verified, 0 errors
+Compilation failed because warnings were found and --allow-warnings is false

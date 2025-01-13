@@ -174,14 +174,13 @@ pccc-venv/
 ./ruff_cache
 *.dll
 *.exe
-*.json
 *.exe.mdb
 **/__pycache__/
 *.cache
 *.dll
 *.exe
 *.pdb
-*.json
+*.obj
 **/.DS_Store
 *.vscode
 *.vscode/
@@ -191,8 +190,10 @@ makefile
 *.sln
 *.editorconfig
 
-# Local development files
-/Users/pari/pcc-llms/output
+
+# Ignore obj folders
+**/obj/
+**/ref/
 
 # Ignore config files
 dpl.config

@@ -1,0 +1,6 @@
+Implement a python script considering the following instruction:
+1.	A function with the signature extract_zip(zip_path, extract_to) that takes two parameters:
+	•	zip_path: The path to the ZIP file to be extracted.
+	•	extract_to: The directory where the ZIP file’s contents should be extracted.
+2.	This function extracts the contents of a ZIP file into a specified directory.
+4.	The function does not explicitly return a value but prints warnings and extracts valid files to the specified directory.
