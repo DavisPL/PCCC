@@ -3,12 +3,8 @@ from pathlib import Path
 
 
 def read_file(file_path):
-    try:
-        with open(Path(file_path).resolve(), "r") as file:
-            return file.read()
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-        return None
+    with open(file_path, "r") as file:
+        return file.read()
 
 def main(args):
     base_dir = Path(__file__).parent.resolve()
@@ -26,6 +22,6 @@ def main(args):
         return 1
 
 if __name__ == "__main__":
-    main(sys.argv[1:]) 
-    # CWE-23 is relative path traversal 
-    # for instance ../../another-unsafe.txt to access a file outside the current directory cause an error
+    main(sys.argv[1:])  # can be exploited by passing a file path with ... (it is equivalent to "..\.." on Windows)
+    # CWE-33 and cwe-32 is path traversal using .. or multiple dot patterns
+    # for instance ...another-unsafe.txt to access a file outside the current directory cause an error

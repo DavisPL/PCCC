@@ -27,5 +27,5 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv[1:]) 
-    # CWE-23 is relative path traversal 
-    # for instance ../../another-unsafe.txt to access a file outside the current directory cause an error
+    # CWE-33 and cwe-32 is path traversal using .. or multiple dot patterns on a Windows machine
+    # for instance ...another-unsafe.txt to access a file outside the current directory cause an error
