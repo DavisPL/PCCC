@@ -3,8 +3,8 @@
 // CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
 // Tested and Runs successfully!
 
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/FileIO.dfy"
-import FIO = FileIO
+include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+import FS = Filesystem
 import utils = Utils
 import opened Wrappers
 
@@ -14,8 +14,8 @@ import opened Wrappers
     expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var f := new FIO.Files.Init();
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-22";
+    var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
     if joinRes.Failure? {
       expect joinRes.Success?, "unexpected failure: " + joinRes.error;

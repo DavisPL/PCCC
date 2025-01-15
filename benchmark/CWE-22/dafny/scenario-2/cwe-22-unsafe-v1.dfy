@@ -1,5 +1,6 @@
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/FileIO.dfy"
-import FIO = FileIO
+
+include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+import FS = Filesystem
 import utils = Utils
 import opened Wrappers
 
@@ -9,7 +10,7 @@ import opened Wrappers
     expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var f := new FIO.Files.Init();
+    var f := new FS.Files.Init("dummy.txt", []);
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-22";
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
     if joinRes.Failure? {
@@ -22,7 +23,7 @@ import opened Wrappers
     print("Joint path: ", jointPath);
     if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
-      var readRes := f.ReadBytesFromFile(jointPath);
+      var readRes := f.ReadBytesFromFile(jointPath); // without the check for is_open
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;
         var readResEmpty := f.ReadBytesFromFile("");

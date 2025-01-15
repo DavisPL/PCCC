@@ -5,7 +5,7 @@
 
 // RUN: %verify "%s"
 
-include "/Users/pari/pcc-llms/stdlib/lib/Wrappers.dfy"
+include "/Users/pari/pcc-llms/stdlib/Wrappers.dfy"
 include "/Users/pari/pcc-llms/stdlib/utils/Utils.dfy"
 
 /**
@@ -47,6 +47,12 @@ module {:options "-functionSyntax:4"} Filesystem {
       contents := c;
       is_open := false;
       is_symbolic_link := false;
+    }
+
+    method Size() returns (s: int)
+      ensures s == |contents|
+    {
+      s := |contents|;
     }
      /**
     * Opens a file at the given path.
