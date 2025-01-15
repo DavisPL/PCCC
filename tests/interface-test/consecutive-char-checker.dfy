@@ -142,13 +142,13 @@
 // }
 
 // Predicate to check if a string has two consecutive same characters
-predicate HasConsecutiveSameChars(s: seq<char>)
+predicate HasConsecutiveSameChars(s: string)
 {
   exists i :: 0 <= i < |s| - 1 && s[i] == s[i+1]
 }
 
 // Predicate to check specifically for two consecutive periods
-predicate HasConsecutivePeriods(s: seq<char>)
+predicate HasConsecutivePeriods(s: string)
 {
   exists i :: 0 <= i < |s| - 1 && s[i] == '.' && s[i+1] == '.'
 }
@@ -157,16 +157,18 @@ predicate HasConsecutivePeriods(s: seq<char>)
 // then HasConsecutiveSameChars is true for the whole sequence
 lemma LemmaConsecutiveCharsUpToK(s: seq<char>, k: int)
   requires 0 <= k < |s|
-  requires exists i :: 0 <= i < k && s[i] == s[i+1]
-  ensures HasConsecutiveSameChars(s)
+  requires |s| > 0
+  // requires exists i :: 1 <= i <= k && s[i] == s[i-1]
+  ensures forall i :: 1 <= i <= k && s[i] == s[i-1] ==> HasConsecutiveSameChars(s)
 {
-  var i :| 0 <= i < k && s[i] == s[i+1];
-  assert 0 <= i < |s| - 1 && s[i] == s[i+1];
+  // var i :| 1 <= i <= k && s[i] == s[i-1];
+  // assert 1 <= i < |s|  && s[i] == s[i-1];
+  // assert s[i] == s[i-1];
 }
 
 // Lemma to prove that if there are consecutive periods up to index k, 
 // then HasConsecutivePeriods is true for the whole sequence
-lemma LemmaConsecutivePeriodsUpToK(s: seq<char>, k: int)
+lemma LemmaConsecutivePeriodsUpToK(s: string, k: int)
   requires 0 <= k < |s|
   requires exists i :: 0 <= i < k && s[i] == '.' && s[i+1] == '.'
   ensures HasConsecutivePeriods(s)
@@ -178,7 +180,7 @@ lemma LemmaConsecutivePeriodsUpToK(s: seq<char>, k: int)
 // Lemma to prove that if there are no consecutive same characters up to index k,
 // and no consecutive same characters at index k, then there are no consecutive
 // same characters up to index k+1
-lemma LemmaNoConsecutiveCharsUpToKPlus1(s: seq<char>, k: int)
+lemma LemmaNoConsecutiveCharsUpToKPlus1(s: string, k: int)
   requires 0 <= k < |s| - 1
   requires !(exists i :: 0 <= i < k && s[i] == s[i+1])
   requires s[k] != s[k+1]
@@ -195,7 +197,7 @@ lemma LemmaNoConsecutiveCharsUpToKPlus1(s: seq<char>, k: int)
   }
 }
 
-method VerifyConsecutiveChars(s: seq<char>) returns (hasConsecutive: bool, hasConsecutivePeriods: bool)
+method VerifyConsecutiveChars(s: string) returns (hasConsecutive: bool, hasConsecutivePeriods: bool)
   requires |s| > 0
   ensures hasConsecutive == HasConsecutiveSameChars(s)
   ensures hasConsecutivePeriods == HasConsecutivePeriods(s)
@@ -244,22 +246,26 @@ method TestConsecutiveCharCheck()
   print "Starting Consecutive Character Check Tests\n";
 
   // Test case 1: String with consecutive characters (not periods)
-  var s1 := ['h', 'e', 'l', 'l', 'o'];
+  var s1 := "hello";
   var hasConsecutive, hasConsecutivePeriods := VerifyConsecutiveChars(s1);
-//   LemmaConsecutiveCharsUpToK(s1, 3);  // Call the lemma before assertions
-//   assert hasConsecutive;
-//   assert !hasConsecutivePeriods;
-//   assert HasConsecutiveSameChars(s1);
+  // assert s1[2] == 'l';
+  // assert s1[3] == 'l';
+  LemmaConsecutiveCharsUpToK(s1, 3);  // Call the lemma before assertions
+  assert hasConsecutive;
+  assert !hasConsecutivePeriods;
+  // assert HasConsecutiveSameChars(s1);
 //   assert !HasConsecutivePeriods(s1);
   print "Test case 1 (hello): hasConsecutive=", hasConsecutive, ", hasConsecutivePeriods=", hasConsecutivePeriods, "\n";
 
   // Test case 2: String with consecutive periods
   var s2 := ['a', '.', '.', 'b'];
   hasConsecutive, hasConsecutivePeriods := VerifyConsecutiveChars(s2);
-//   assert hasConsecutive;
-//   assert hasConsecutivePeriods;
-//   assert HasConsecutiveSameChars(s2);
-//   assert HasConsecutivePeriods(s2);
+  assert s2[1] == '.';
+  assert s2[2] == '.';
+  assert hasConsecutive;
+  assert hasConsecutivePeriods;
+  // assert HasConsecutiveSameChars(s2);
+  assert HasConsecutivePeriods(s2);
   print "Test case 2 (a..b): hasConsecutive=", hasConsecutive, ", hasConsecutivePeriods=", hasConsecutivePeriods, "\n";
 
   // Test case 3: String without consecutive characters
