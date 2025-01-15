@@ -53,6 +53,14 @@ module Utils
         ('a' <= c <= 'z') || ('A' <= c <= 'Z')
     }
 
+    function string_to_int(c: string): seq<int>
+    {
+        if |c| == 0 then
+            []
+        else
+            seq(|c|, i requires 0 <= i < |c| => c[i] as int)
+    }
+
     predicate is_valid_char(c: char)
     ensures is_valid_char(c) <==> alpha_numeric(c) || c in validPathCharacters
     {
@@ -90,7 +98,7 @@ module Utils
 
     predicate is_valid_str_length(content: string )
     {
-    -0x80000000 <= |string_to_bytes(content)| < 0x80000000
+     -0x80000000 <= |string_to_int(content)| < 0x80000000
     }
 
     predicate has_valid_content_length(content: array<byte>)
@@ -482,14 +490,6 @@ module Utils
     {
         var i := char_to_int(c);
         if 0 <= i < 0x100 then i as byte else 0 as byte
-    }
-
-    function string_to_bytes(s: string): seq<byte>
-    {
-        if |s| == 0 then
-            []
-        else
-            [char_to_byte(s[0])] + string_to_bytes(s[1..])
     }
 
     method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)

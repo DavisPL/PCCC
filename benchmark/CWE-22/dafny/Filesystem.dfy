@@ -19,7 +19,7 @@ include "/Users/pari/pcc-llms/stdlib/utils/Utils.dfy"
   * File path symbols including . and .. are allowed.
   */
 
-module {:options "-functionSyntax:4"} FileIO {
+module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
   datatype Error =  Noent | Exist
@@ -27,10 +27,24 @@ module {:options "-functionSyntax:4"} FileIO {
 
 
   class Files {
+    var name: string
+    var contents: seq<Utils.byte>
     ghost var is_open:bool // Ghost variable can only be used in the specifications
     ghost var is_symbolic_link:bool
+
+    // constructor Init(){
+    //   is_open := false;
+    //   is_symbolic_link := false;
+    // }
+
     
-    constructor Init(){
+    constructor Init (n: string, c: seq<Utils.byte>)
+      requires n != ""       // We can't create a file with an empty name
+      ensures name == n
+      ensures contents == c
+    {
+      name := n;
+      contents := c;
       is_open := false;
       is_symbolic_link := false;
     }
@@ -146,28 +160,28 @@ module {:options "-functionSyntax:4"} FileIO {
   }
 
     method
-      {:extern "DafnyLibraries.FileIO.Files", "INTERNAL_Open"}
+      {:extern "Filesystem.Files", "INTERNAL_Open"}
     INTERNAL_Open(file: string)
       returns (isError: bool, fs: object, errorMsg: string)
 
 
     method
-      {:extern "DafnyLibraries.FileIO.Files", "INTERNAL_ReadBytesFromFile"}
+      {:extern "Filesystem.Files", "INTERNAL_ReadBytesFromFile"}
     INTERNAL_ReadBytesFromFile(file: string)
       returns (isError: bool, bytesRead: seq<bv8>, errorMsg: string)
 
     method
-      {:extern "DafnyLibraries.FileIO.Files", "INTERNAL_WriteBytesToFile"}
+      {:extern "Filesystem.Files", "INTERNAL_WriteBytesToFile"}
     INTERNAL_WriteBytesToFile(file: string, bytes: seq<bv8>)
       returns (isError: bool, errorMsg: string)
 
     method
-    {:extern "DafnyLibraries.FileIO.Files", "INTERNAL_IsLink"}
+    {:extern "Filesystem.Files", "INTERNAL_IsLink"}
     INTERNAL_IsLink(file: string)
     returns ( isError: bool, isLink: bool, errorMsg: string)
 
     method
-      {:extern "DafnyLibraries.FileIO.Files", "INTERNAL_JoinPaths"}
+      {:extern "Filesystem.Files", "INTERNAL_JoinPaths"}
     INTERNAL_JoinPaths(paths: seq<string>, separator: string)
     returns (isError: bool, fullPath: string, errorMsg: string)
     ensures !isError ==> Utils.non_empty_path(fullPath) && !Utils.has_dangerous_pattern(fullPath)

@@ -4,8 +4,8 @@
 // CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
 // Tested and Runs successfully!
 
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/FileIO.dfy"
-import FIO = FileIO
+include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+import FS = Filesystem
 import utils = Utils
 import opened Wrappers
 
@@ -15,9 +15,19 @@ import opened Wrappers
     expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var f := new FIO.Files.Init();
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
-    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
+    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
+    expect |expectedBytes| > 0;
+    expect |filePath| > 0;
+    if filePath == "" {
+      expect false, "empty file path";
+      return;
+    }
+    if |expectedBytes| == 0 {
+      expect false, "empty byte sequence";
+      return;
+    }
+    var f := new FS.Files.Init(filePath, expectedBytes);
     print("file path: ", filePath);
     if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
       var openRes := f.Open(filePath);
@@ -33,7 +43,7 @@ import opened Wrappers
         expect readResEmpty.Failure?, "unexpected success";
         expect expectedErrorPrefix <= readResEmpty.error, "unexpected error message: " + readResEmpty.error;
       } else {
-        var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
+        var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
         expect readBytes == expectedBytes, "read unexpected byte sequence";
       } 
       print("File read successfully! \n");
