@@ -22,8 +22,14 @@ import opened Wrappers
       return;
     }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
-    var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
-    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
+    var contentStr := "Hello world\nGoodbye\n";
+    var bytes: seq<bv8> := [
+      // "Hello world\n"
+      0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x0a,
+      // "Goodbye\n"
+      0x47, 0x6f, 0x6f, 0x64, 0x62, 0x79, 0x65, 0x0a
+    ];
+    assert forall i | 0 <= i < |bytes| :: bytes[i] as int == contentStr[i] as int;
     print("Joint path: ", jointPath);
     if(!utils.has_backslash_dot_dot(jointPath) && !utils.has_dot_dot_slash(jointPath)
     && !utils.has_dot_dot_backslash(jointPath) && !utils.has_slash_dot_dot(jointPath) && utils.non_empty_path(jointPath)){
@@ -32,18 +38,9 @@ import opened Wrappers
         expect openRes.Success?, "unexpected error: " + openRes.error;
         return;
       }
-      var readRes := f.ReadBytesFromFile(jointPath);
-      if readRes.Failure? {
-        expect readRes.Success?, "unexpected failure: " + readRes.error;
-        var readResEmpty := f.ReadBytesFromFile("");
-        expect readResEmpty.Failure?, "unexpected success";
-        expect expectedErrorPrefix <= readResEmpty.error, "unexpected error message: " + readResEmpty.error;
-      } else {
-        var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
-        expect readBytes == expectedBytes, "read unexpected byte sequence";
-      } 
-      print("File read successfully! \n");
-      print("File content: \n " + expectedStr);
+      var writeRes := f.WriteBytesToFile(jointPath, bytes);
+      expect writeRes.Success?, "unexpected failure writing to output_plain: " + writeRes.error;
+      print("Write was successfully! \n");
       } else {
         return;
       }

@@ -1,8 +1,9 @@
 
 // dafny run --allow-warnings --unicode-char:false --target:cs ./ReadBytes.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
-//  CWE-23 to cwe-29: Relative Path Traversal
+// CWE-23 to cwe-29: Relative Path Traversal
 // Tested and Runs successfully!
 
+// Covers CWE-23 to CWE-29
 include "/Users/pari/pcc-llms/benchmark/CWE-23/dafny/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
@@ -16,29 +17,27 @@ import opened Wrappers
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-23/dafny";
     var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
-     if joinRes.Failure? {
-      expect joinRes.Success?, "unexpected failure: " + joinRes.error;
-      return;
-    }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
-    var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
-    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
+    var contentStr := "Hello world\nGoodbye\n";
+    var bytes: seq<bv8> := [
+      // "Hello world\n"
+      0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x0a,
+      // "Goodbye\n"
+      0x47, 0x6f, 0x6f, 0x64, 0x62, 0x79, 0x65, 0x0a
+    ];
+    assert forall i | 0 <= i < |bytes| :: bytes[i] as int == contentStr[i] as int;
     print("Joint path: ", jointPath);
-    var openRes := f.Open(jointPath);
-    if openRes.Failure? {
-      expect openRes.Success?, "unexpected error: " + openRes.error;
-      return;
-    }
-    var readRes := f.ReadBytesFromFile(jointPath);
-    if readRes.Failure? {
-      expect readRes.Success?, "unexpected failure: " + readRes.error;
-      var readResEmpty := f.ReadBytesFromFile("");
-      expect readResEmpty.Failure?, "unexpected success";
-      expect expectedErrorPrefix <= readResEmpty.error, "unexpected error message: " + readResEmpty.error;
-    } else {
-      var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
-      expect readBytes == expectedBytes, "read unexpected byte sequence";
-    } 
-    print("File read successfully! \n");
-    print("File content: \n " + expectedStr);
+    if(!utils.has_backslash_dot_dot(jointPath) && !utils.has_dot_dot_slash(jointPath)
+    && !utils.has_dot_dot_backslash(jointPath) && !utils.has_slash_dot_dot(jointPath) && utils.non_empty_path(jointPath)){
+      var openRes := f.Open(jointPath);
+      if openRes.Failure? {
+        expect openRes.Success?, "unexpected error: " + openRes.error;
+        return;
+      }
+      var writeRes := f.WriteBytesToFile(jointPath, bytes);
+      expect writeRes.Success?, "unexpected failure writing to output_plain: " + writeRes.error;
+      print("Write was successfully! \n");
+      } else {
+        return;
+      }
   }
