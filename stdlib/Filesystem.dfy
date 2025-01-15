@@ -49,6 +49,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       is_symbolic_link := false;
     }
 
+
     method Size() returns (s: int)
       ensures s == |contents|
     {

@@ -17,17 +17,10 @@ import opened Wrappers
     var expectedErrorPrefix := args[2];
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
-    if filePath == "" {
-      expect false, "empty file path";
-      return;
-    }
-    if |expectedBytes| == 0 {
-      expect false, "empty byte sequence";
-      return;
-    }
-    var f := new FS.Files.Init(filePath, expectedBytes);
+    var f := new FS.Files.Init(filePath, expectedBytes); // without the check for non-empty name string
     print("Joint path: ", filePath);
-      var openRes := f.Open(filePath); // without the check for non-empty name string and dangerous pattern
+    if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
+      var openRes := f.Open(filePath);
       if openRes.Failure? {
         expect openRes.Success?, "unexpected error: " + openRes.error;
         return;
@@ -42,6 +35,10 @@ import opened Wrappers
         var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
         expect readBytes == expectedBytes, "read unexpected byte sequence";
       } 
-      print("File read successfully! \n");
+            print("File read successfully! \n");
       print("File content: \n " + expectedStr);
+      } else {
+        expect false, "unsafe file path";
+        return;
+      }
   }
