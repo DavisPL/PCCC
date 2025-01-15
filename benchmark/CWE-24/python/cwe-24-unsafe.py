@@ -1,14 +1,12 @@
+import os
 import sys
 from pathlib import Path
 
 
-def read_file(file_path):
-    try:
-        with open(Path(file_path).resolve(), "r") as file:
-            return file.read()
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-        return None
+def write_content_to_file(file_path: str, content: str) -> None:
+    print(f"Writing content to file: {file_path}")
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
 
 def main(args):
     base_dir = Path(__file__).parent.resolve()
@@ -19,13 +17,14 @@ def main(args):
         return 0
     else:
         file_path = args[0]
+        content = args[1]
         joined_path = base_dir / Path(file_path)
-        print(f"Reading file: {joined_path}")
-        file_content = read_file(Path(joined_path))
-        print(f"File content: {file_content}")
+        print(f"Path to file: {joined_path}")
+        print(f"Content to write: {content}")
+        write_content_to_file(Path(joined_path), content)
         return 1
 
 if __name__ == "__main__":
     main(sys.argv[1:]) 
-    # CWE-23 is relative path traversal 
+    # CWE-24 is relative path traversal 
     # for instance ../../another-unsafe.txt to access a file outside the current directory cause an error

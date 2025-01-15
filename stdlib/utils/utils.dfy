@@ -219,29 +219,32 @@ module Utils
         contains_consecutive_periods(p) || !has_absolute_path(p) ||
         contains_encoded_periods(p)
         || contains_dangerous_pattern(p)
+        || has_dot_dot_slash(p)
+        || has_dot_dot_backslash(p)
+        || has_slash_dot_dot(p)
+        || has_backslash_dot_dot(p)
     }
 
+
     predicate has_absolute_path(p: path)
-    ensures has_absolute_path(p) <==> |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && is_valid_char(p[2])))
+    decreases |p|
     {
         |p| > 0 && (p[0] == '/' || (|p| > 1 && p[1] == ':') || (|p| > 2 && is_valid_char(p[2])))
     }
 
+    method ContainsAbsolutePaths(p: path) returns (contains: bool)
+    requires |p| > 0
+    ensures contains <==> has_absolute_path(p)
+    {
+        contains := has_absolute_path(p);
+    }
+
     predicate is_unix_absolute_path(p: path)
-    ensures is_unix_absolute_path(p) == (|p| > 0 && p[0] == '/')
     {
         |p| > 0 && p[0] == '/'
     }
 
     predicate is_windows_absolute_path(p: path)
-    ensures is_windows_absolute_path(p) == (
-        // Drive letter paths like "C:\"
-        (|p| >= 3 && is_drive_letter(p[0]) && p[1] == ':' && (p[2] == '\\' || p[2] == '/')) ||
-        // Drive letter paths like "C:"
-        (|p| == 2 && is_drive_letter(p[0]) && p[1] == ':') ||
-        // UNC paths like "\\server\share"
-        (|p| >= 2 && p[0] == '\\' && p[1] == '\\')
-    )
     {
         var isDrivePathWithSlash := |p| >= 3 && is_drive_letter(p[0]) && p[1] == ':' &&
                                     (p[2] == '\\' || p[2] == '/');
@@ -252,18 +255,12 @@ module Utils
     }
 
     predicate is_absolute_path(p: path)
-    ensures is_absolute_path(p) == (is_unix_absolute_path(p) || is_windows_absolute_path(p))
     {
         is_unix_absolute_path(p) || is_windows_absolute_path(p)
     }
 
     // / Function to check if a file extension is valid
     predicate is_valid_file_extension(filename: string)
-        requires |filename| > 0
-        ensures is_valid_file_extension(filename) ==>
-            exists i :: 0 <= i < |filename| && filename[i] == '.' &&
-                (forall j :: i < j < |filename| ==> filename[j] != '/' && filename[j] != '\\') &&
-                i < |filename| - 1
     {
         var lastDotIndex := find_last_index_c(filename, '.');
         lastDotIndex >= 0 &&
@@ -279,8 +276,8 @@ module Utils
     ensures find_last_index_c(s, c) == -1 ==> forall i :: 0 <= i < |s| ==> s[i] != c
     ensures forall i :: find_last_index_c(s, c) < i < |s| ==> s[i] != c
     {
-    StringSliceLemma(s);
-    LastIndexOfLemma(s, c, |s| - 1)
+        StringSliceLemma(s);
+        LastIndexOfLemma(s, c, |s| - 1)
     }
 
     // Recursive helper for LastIndexOf
@@ -610,12 +607,76 @@ module Utils
 
     }
 
+    function has_dot_dot_slash(path: seq<char>): bool
+    decreases |path|
+    {
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '.' && path[1] == '.' && path[2] == '/')
+        || has_dot_dot_slash(path[1..])
+    }
+
+    method ContainsDotDotForwardSlash(path: seq<char>) returns (contains: bool)
+    ensures contains <==> has_dot_dot_slash(path)
+    {
+        contains := has_dot_dot_slash(path);
+    }
+
+    function has_dot_dot_backslash(path: seq<char>): bool
+    decreases |path|
+    {
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '.' && path[1] == '.' && path[2] == '\\')
+        || has_dot_dot_backslash(path[1..])
+    }
+
+    method ContainsDotDotBackslash(path: seq<char>) returns (contains: bool)
+    ensures contains <==> has_dot_dot_backslash(path)
+    {
+        contains := has_dot_dot_backslash(path);
+    }
+
+    function has_slash_dot_dot(path: seq<char>): bool
+    decreases |path|
+    {
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '/' && path[1] == '.' && path[2] == '.')
+        || has_slash_dot_dot(path[1..])
+    }
+
+    method ContainsSlashDotDot(path: seq<char>) returns (contains: bool)
+    ensures contains <==> has_slash_dot_dot(path)
+    {
+        contains := has_slash_dot_dot(path);
+    }
+
+
+    function has_backslash_dot_dot(path: seq<char>): bool
+    decreases |path|
+    {
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '\\' && path[1] == '.' && path[2] == '.')
+        || has_backslash_dot_dot(path[1..])
+    }
+
+    method ContainsBackslashDotDot(path: seq<char>) returns (contains: bool)
+    requires |path| > 0
+    ensures contains <==> has_backslash_dot_dot(path)
+    {
+    contains := has_backslash_dot_dot(path);
+    }
 
 
     predicate contains_encoded_periods(s: seq<char>)
-        decreases s
+    decreases s
     {
-        StringSliceLemma(s);
         if |s| < 4 then
             false
         else if s[0] == '%' && s[1] == '2' && s[2] == 'e' && s[3] == 'e' then
@@ -629,9 +690,8 @@ module Utils
 
     // Check for parent directory traversal (..)
     predicate contains_parent_dir_traversal(s: seq<char>)
-        decreases s
+    decreases s
     {
-        StringSliceLemma(s);
         if |s| < 2 then
             false
         else if s[0] == '.' && s[1] == '.' then
@@ -651,6 +711,23 @@ module Utils
             true
         else
             contains_home_dir_reference(s[1..])
+    }
+
+    function has_consecutive_dots(path: string): bool
+    decreases |path|
+    {
+    if |path| < 2 then
+        false
+    else
+        (path[0] == '.' && path[1] == '.')
+        || has_consecutive_dots(path[1..])
+    }
+
+    method ContainsTwoOrMoreDots(path: string) returns (contains: bool)
+    requires |path| > 0
+    ensures contains <==> has_consecutive_dots(path)
+    {
+        contains := has_consecutive_dots(path);
     }
 
     // Check for absolute path (starts with / or \)
@@ -680,145 +757,6 @@ module Utils
         // StartsWithAbsolutePath(s) ||
         contains_drive_letter(s)
     }
-  //   predicate ContainsSymlink(p: string)
-  //   requires p != "" && |p| > 0
-  //   {
-  //     if p == "/" || p == "" then
-  //       false
-  //     else
-  //       var parent := GetParentPath(p);
-  //       if IsSymlink(parent) then
-  //         true
-  //       else
-  //         ContainsSymlink(parent)
-  //   }
-
-  // function GetParentPath(p: string): string
-  //   requires p != "" && p != "/"
-  // {
-  //   var idx := p.LastIndexOf("/");
-  //   if idx <= 0 then
-  //     "/"
-  //   else
-  //     p[..idx]
-  // }
-
-  predicate is_canonical_path(p: string)
-  ensures true
-  {
-    true
-    // if p == "" || p == "/" then
-    //   true
-    // else
-    //   var parent := GetParentPath(p);
-    //   if p.EndsWith("/") then
-    //     is_canonical_path(parent)
-    //   else
-    //     is_canonical_path(parent) && !IsSymlink(p)
-  }
-
-
-  ghost predicate is_symbolic_link(p: string)
-  {
-    false
-  }
-
-
-// method ContainsConsecutiveDotLemma(s: seq<char>)
-// requires |s| > 0
-// requires exists i :: 0 <= i < |s| - 1 && is_dot(s[i]) && is_dot(s[i + 1]) ==> s[i] == s[i + 1]
-// {
-// }
-
-//  predicate hasPathPermission(path: path, user: User, perm: Permission)
-//  ensures hasPathPermission(path, user, perm) <==> path in permissions.Keys && user in permissions[path].Keys && perm in permissions[path][user]
-//   {
-//     && path in permissions.Keys
-//     && user in permissions[path].Keys
-//     && perm in permissions[path][user]
-//   }
-
-// predicate has_traversal_pattern(p: path, i: int)
-// requires 0 <= i < |p|
-// {
-//     (i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && (p[i+2] == '/' || p[i+2] == '\\')) ||
-//     (i + 5 < |p| && p[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
-//     (i + 8 < |p| && p[i..i+9] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e']) ||
-//     (i > 0 && p[i-1] == '/' && i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && p[i+2] == '.')
-// }
-
-
-// function decode_percent(s: seq<char>, i: int): (char, int)
-//     requires i + 2 < |s|
-//     requires forall j:: i+2 < j < |s| ==> s[j] == '%'
-// {
-//     var hex := s[i+1..i+3];
-//     if hex == "2e" || hex == "2E" then
-//         ('.', i + 3)
-//     else
-//         (s[i], i + 1)
-// }
-
-
-// predicate has_path_traversal(p: path)
-// ensures exists i :: 0 <= i < |p| ==> has_traversal_pattern(p, i)
-// {
-//     exists i :: 0 <= i < |p| && has_traversal_pattern(p, i)
-// }
-
-
-
-
-// predicate validate_file(f: file)
-// requires 0 <= |f| <= fileMaxLength
-// ensures forall i :: 0 <= i < |f|  ==> is_file_valid_char(f[i])
-//          && alpha_numeric(f[0]) && alpha_numeric(f[|f| - 1])
-// {
-//   forall i :: 0 <= i < |f| ==> is_file_valid_char(f[i]) && alpha_numeric(f[0]) && alpha_numeric(f[|f| - 1])
-
-// }
-
-
-// function is_separator(c: char): bool
-// {
-//     c == '/' || c == '\\'
-// }
-
-// function is_dot(c: char): bool
-// {
-//     c == '.' || c == '%' // '%' could be the start of an encoded dot
-// }
-
-
-
-
-// predicate is_dot_dot(p: path, i: int)
-//     requires 0 <= i < |p|
-// {
-//     i + 1 < |p| && p[i] == '.' && p[i+1] == '.'
-// }
-
-// predicate is_percent_encoded_dot_dot(p: path, i: int)
-//     requires 0 <= i < |p|
-// {
-//     (i + 5 < |p| && p[i..i+6] == ['%', '2', 'e', '%', '2', 'e']) ||
-//     (i + 11 < |p| && p[i..i+12] == ['%', '2', '5', '2', 'e', '%', '2', '5', '2', 'e'])
-// }
-
-// predicate has_traversal_pattern(p: path, i: int)
-//     requires 0 <= i < |p|
-// {
-//     (is_dot_dot(p, i) && (i == 0 || is_separator(p[i-1])) && (i + 2 == |p| || is_separator(p[i+2]))) ||
-//     (is_percent_encoded_dot_dot(p, i) && (i == 0 || is_separator(p[i-1])) && (i + 6 == |p| || is_separator(p[i+6]))) ||
-//     (i > 0 && is_separator(p[i-1]) && i + 2 < |p| && p[i] == '.' && p[i+1] == '.' && p[i+2] == '.')
-// }
-
-// function has_dot_dot(s: seq<char>): bool
-// {
-//     exists i :: 0 <= i < |s| - 1 && s[i] == '.' && s[i + 1] == '.' && (i + 2 == |s| || is_separator(s[i + 2]))
-// }
-
-
-
+ 
 }
 

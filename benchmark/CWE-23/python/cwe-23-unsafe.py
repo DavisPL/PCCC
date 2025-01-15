@@ -22,5 +22,5 @@ def main(args):
         return 1
 
 if __name__ == "__main__":
-    main(sys.argv[1:])  # can be exploited by passing a file path with ../ pattern or with absolute path traversal like /etc/passwd
-    # for instance ../unsafe.txt to access a file outside the current directory
+    main(sys.argv[1:])  # can be exploited by passing a file path with ../ pattern
+    # for instance ../../another-unsafe.txt to access a file outside the current directory
