@@ -1,20 +1,17 @@
 
-// dafny run --allow-warnings --unicode-char:false --target:cs ./ReadBytes.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
-// Tested and Runs successfully!
-
-// Covers CWE-33 to CWE-35 double or multiple dot patterns with and without slashes and backslashes
-include "/Users/pari/pcc-llms/benchmark/CWE-33/dafny/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task2/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
+
   method Main(args: seq<string>) 
   {
     expect |args| > 0;
     expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-33/dafny";
     var f := new FS.Files.Init("dummy.txt", []);
+    var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-22";
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
     if joinRes.Failure? {
       expect joinRes.Success?, "unexpected failure: " + joinRes.error;
@@ -24,13 +21,9 @@ import opened Wrappers
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
     print("Joint path: ", jointPath);
-    if(!utils.has_consecutive_dots(jointPath) && utils.non_empty_path(jointPath)){
+    if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
-      if openRes.Failure? {
-        expect openRes.Success?, "unexpected error: " + openRes.error;
-        return;
-      }
-      var readRes := f.ReadBytesFromFile(jointPath);
+      var readRes := f.ReadBytesFromFile(jointPath); // without the check for is_open
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;
         var readResEmpty := f.ReadBytesFromFile("");
@@ -43,6 +36,7 @@ import opened Wrappers
       print("File read successfully! \n");
       print("File content: \n " + expectedStr);
       } else {
+        expect false, "unsafe file path";
         return;
       }
   }

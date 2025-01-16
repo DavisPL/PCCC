@@ -1,5 +1,9 @@
 
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+// CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+// dafny run --allow-warnings --unicode-char:false --target:cs absolute_path_to_dafny_file --input absolute_path_to_Filesystem.cs -- absolute_path_to_input_text_file "System.ArgumentException:"
+// Using any input file with path traversal pattern cause an error
+
+include "/Users/pari/pcc-llms/benchmark/Task1/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -12,6 +16,8 @@ import opened Wrappers
     var expectedErrorPrefix := args[2];
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
+    expect |expectedBytes| > 0;
+    expect |filePath| > 0;
     if filePath == "" {
       expect false, "empty file path";
       return;
@@ -21,21 +27,19 @@ import opened Wrappers
       return;
     }
     var f := new FS.Files.Init(filePath, expectedBytes);
-    print("File path: ", filePath);
+    print("file path: ", filePath);
     if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
       var openRes := f.Open(filePath);
-      var readRes := f.ReadBytesFromFile(filePath); // without the check for is_open
-      if readRes.Failure? {
+      expect openRes.Success?, "unexpected error: " + openRes.error;
+      var readRes := f.ReadBytesFromFile(filePath);
         expect readRes.Success?, "unexpected failure: " + readRes.error;
         var readResEmpty := f.ReadBytesFromFile("");
         expect readResEmpty.Failure?, "unexpected success";
         expect expectedErrorPrefix <= readResEmpty.error, "unexpected error message: " + readResEmpty.error;
-      } else {
         var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
         expect readBytes == expectedBytes, "read unexpected byte sequence";
-      } 
-      print("File read successfully! \n");
-      print("File content: \n " + expectedStr);
+        print("File read successfully! \n");
+        print("File content: \n " + expectedStr);
       } else {
         expect false, "unsafe file path";
         return;
