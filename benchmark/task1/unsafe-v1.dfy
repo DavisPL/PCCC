@@ -1,10 +1,5 @@
 
-// cd to current directory
-// dafny run --allow-warnings --unicode-char:false --target:cs ./cwe-22-safe.dfy.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
-// CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
-// Tested and Runs successfully!
-
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task1/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -17,8 +12,6 @@ import opened Wrappers
     var expectedErrorPrefix := args[2];
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
-    expect |expectedBytes| > 0;
-    expect |filePath| > 0;
     if filePath == "" {
       expect false, "empty file path";
       return;
@@ -28,15 +21,10 @@ import opened Wrappers
       return;
     }
     var f := new FS.Files.Init(filePath, expectedBytes);
-    print("file path: ", filePath);
+    print("File path: ", filePath);
     if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
       var openRes := f.Open(filePath);
-      expect openRes.Success?, "unexpected error: " + openRes.error;
-      if openRes.Failure? {
-        expect openRes.Success?, "unexpected error: " + openRes.error;
-        return;
-      }
-      var readRes := f.ReadBytesFromFile(filePath);
+      var readRes := f.ReadBytesFromFile(filePath); // without the check for is_open
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;
         var readResEmpty := f.ReadBytesFromFile("");

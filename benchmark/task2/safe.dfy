@@ -1,5 +1,9 @@
 
-include "/Users/pari/pcc-llms/benchmark/CWE-22/dafny/Filesystem.dfy"
+// dafny run --allow-warnings --unicode-char:false --target:cs ./ReadBytes.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
+// CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+// Tested and Runs successfully!
+
+include "/Users/pari/pcc-llms/benchmark/task2/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -10,8 +14,8 @@ import opened Wrappers
     expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var f := new FS.Files.Init("dummy.txt", []);
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-22";
+    var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
     if joinRes.Failure? {
       expect joinRes.Success?, "unexpected failure: " + joinRes.error;
@@ -23,7 +27,11 @@ import opened Wrappers
     print("Joint path: ", jointPath);
     if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
-      var readRes := f.ReadBytesFromFile(jointPath); // without the check for is_open
+      if openRes.Failure? {
+        expect openRes.Success?, "unexpected error: " + openRes.error;
+        return;
+      }
+      var readRes := f.ReadBytesFromFile(jointPath);
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;
         var readResEmpty := f.ReadBytesFromFile("");
@@ -36,7 +44,6 @@ import opened Wrappers
       print("File read successfully! \n");
       print("File content: \n " + expectedStr);
       } else {
-        expect false, "unsafe file path";
         return;
       }
   }
