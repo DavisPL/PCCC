@@ -2,8 +2,8 @@
 // dafny run --allow-warnings --unicode-char:false --target:cs ./ReadBytes.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
 // Tested and Runs successfully!
 
-// Covers CWE-33 to CWE-35 double or multiple dot patterns with and without slashes and backslashes
-include "/Users/pari/pcc-llms/benchmark/CWE-33/dafny/Filesystem.dfy"
+// Covers CWE-33 to CWE-35
+include "/Users/pari/pcc-llms/benchmark/task4/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -16,16 +16,16 @@ import opened Wrappers
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-33/dafny";
     var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
-    if joinRes.Failure? {
-      expect joinRes.Success?, "unexpected failure: " + joinRes.error;
-      return;
-    }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
     var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
     print("Joint path: ", jointPath);
     if(!utils.has_consecutive_dots(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
+      if openRes.Failure? {
+        expect openRes.Success?, "unexpected error: " + openRes.error;
+        return;
+      }
       var readRes := f.ReadBytesFromFile(jointPath);
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;

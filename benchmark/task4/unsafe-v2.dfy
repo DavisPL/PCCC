@@ -3,7 +3,7 @@
 // Tested and Runs successfully!
 
 // Covers CWE-33 to CWE-35 double or multiple dot patterns with and without slashes and backslashes
-include "/Users/pari/pcc-llms/benchmark/CWE-33/dafny/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task4/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers

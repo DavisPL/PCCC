@@ -4,7 +4,7 @@
 // Tested and Runs successfully!
 
 // Covers CWE-23 to CWE-29
-include "/Users/pari/pcc-llms/benchmark/CWE-23/dafny/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task3/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -17,6 +17,10 @@ import opened Wrappers
     var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-23/dafny";
     var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, filePath], "/");
+    if joinRes.Failure? {
+      expect joinRes.Success?, "unexpected failure: " + joinRes.error;
+      return;
+    }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
     var contentStr := "Hello world\nGoodbye\n";
     var bytes: seq<bv8> := [
