@@ -3,7 +3,7 @@
 // Tested and Runs successfully!
 
 // Covers CWE-33 to CWE-35 double or multiple dot patterns with and without slashes and backslashes
-include "/Users/pari/pcc-llms/benchmark/CWE-33/dafny/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task4/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
@@ -26,10 +26,6 @@ import opened Wrappers
     print("Joint path: ", jointPath);
     if(!utils.has_consecutive_dots(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
-      if openRes.Failure? {
-        expect openRes.Success?, "unexpected error: " + openRes.error;
-        return;
-      }
       var readRes := f.ReadBytesFromFile(jointPath);
       if readRes.Failure? {
         expect readRes.Success?, "unexpected failure: " + readRes.error;
