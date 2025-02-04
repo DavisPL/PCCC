@@ -38,10 +38,10 @@ class PCCC:
                 example_db_tasks = utils.load_json(self.fewshot_config['RAG_json_path'])
                 examples_db_for_cot_prompt = utils.extract_task_specifications(example_db_tasks)
                 code_prompt_template = self.code_generator.load_code_template(
-                    'agents-data/prompts_template/COT_TEMPLATE.file'
+                    'agents_data/prompts_template/COT_TEMPLATE.file'
                 )
                 code_prompt_template_with_valiation = self.code_generator.load_code_template(
-                    'agents-data/prompts_template/COT_TEMPLATE.file'
+                    '/Users/pari/pcc-llms/agents_data/prompts_template/COT_TEMPLATE_WITH_VALIDATION.file'
                 )
                 tasks = utils.load_json(self.env_config['task_path'])
                 model = self.model_config['model']

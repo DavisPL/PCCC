@@ -18,7 +18,6 @@ include "/Users/pari/pcc-llms/stdlib/utils/Utils.dfy"
   *
   * File path symbols including . and .. are allowed.
   */
-
 module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
