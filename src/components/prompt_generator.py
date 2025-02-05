@@ -9,19 +9,19 @@ class PromptGenerator:
         # ToDo: Separate the example_db for orginal prompt and the prompt that is required for validation - RAG for validation is required
         examples = self.get_similar_tasks_based_on_specs(examples_task_ids, examples_db) 
         # print(f"examples: {examples}")
-        if validation_result:
-            example_prompt_template = PromptTemplate(
-                input_variables=["task", "method_signature", "api_with_preconditions" , "code"],
-                template_format='jinja2',
-                template=prompt_template
-            )
+        # if validation_result:
+        example_prompt_template = PromptTemplate(
+            input_variables=["task", "method_signature", "api_with_preconditions" , "code"],
+            template_format='jinja2',
+            template=prompt_template
+        )
          
-        else:
-            example_prompt_template = PromptTemplate(
-                input_variables=["task", "method_signature", "api_with_preconditions" , "code", "validation_result"],
-                template_format='jinja2',
-                template=prompt_template
-            )
+        # else:
+        #     example_prompt_template = PromptTemplate(
+        #         input_variables=["task", "method_signature", "api_with_preconditions" , "code", "validation_result"],
+        #         template_format='jinja2',
+        #         template=prompt_template
+        #     )
         print(f"example_prompt_template: \n {example_prompt_template}")
         prompt = FewShotPromptTemplate(
             prefix= f"SYSTEM:\nYou are an expert code assistant tasked with implementing Dafny code for filesystem operations. Your implementation should adhere to the following guidelines:\n- Must utilize given Safe APIs for file operations.\n- Generate Dafny code with appropriate preconditions to satisfy safe API preconditions.\n- Ensure that the code satisfies given safety properties for filesystem operations.\n- You are only limited to the provided method signatures and preconditions.\n\nAPI Reference:\n" + api_reference + "\n\n",
@@ -32,7 +32,7 @@ class PromptGenerator:
             input_variables=["task", "method_signature",],
             example_separator="\n------------------------------------------------------\n",
             template_format='jinja2',
-            validation_result=validation_result,  
+            # validation_result=validation_result,  
         )
 
         # print("Generated prompt successfully")
