@@ -21,8 +21,8 @@ import opened Wrappers
       return;
     }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
-    // var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
-    var expectedStr := "";
+    var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
+    // var expectedStr := "";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
     print("Joint path: ", jointPath);
     if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
