@@ -7,7 +7,6 @@
 
 include "/Users/pari/pcc-llms/stdlib/Wrappers.dfy"
 include "/Users/pari/pcc-llms/stdlib/utils/Utils.dfy"
-include "/Users/pari/pcc-llms/stdlib/utils/AsciiConverter.dfy"
 
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
@@ -23,7 +22,6 @@ include "/Users/pari/pcc-llms/stdlib/utils/AsciiConverter.dfy"
 module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
-  import AsciiConverter
   datatype Error =  Noent | Exist
   datatype Ok<T> = Ok(v: T)
 
@@ -134,8 +132,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     requires |separator| == 1
     requires |paths| > 0
     ensures res.Success? ==> (Utils.non_empty_path(res.value) && !Utils.has_dot_dot_slash(res.value) 
-    && !Utils.has_dot_dot_backslash(res.value) && !Utils.has_slash_dot_dot(res.value)
-     && !Utils.has_backslash_dot_dot(res.value))
+    && !Utils.has_dot_dot_backslash(res.value) && !Utils.has_slash_dot_dot(res.value) && !Utils.has_backslash_dot_dot(res.value))
     {
       if |paths| == 0 || |separator| == 0 {
         return Failure("Paths or separator cannot be empty.");
@@ -151,15 +148,12 @@ module {:options "-functionSyntax:4"} Filesystem {
         combinedPath := combinedPath + paths[i] + separator; 
         i := i + 1;
       }
-    print(combinedPath);
 
     if !Utils.non_empty_path(combinedPath) {
       return Failure("Resulting path is empty.");
     }
-    if (Utils.has_dot_dot_slash(combinedPath)|| Utils.has_dot_dot_slash(combinedPath) 
-    || Utils.has_dot_dot_backslash(combinedPath) || Utils.has_slash_dot_dot(combinedPath) 
-    || Utils.has_backslash_dot_dot(combinedPath)) 
-    {
+    if (Utils.non_empty_path(combinedPath) || Utils.has_dot_dot_slash(combinedPath) 
+    || Utils.has_dot_dot_backslash(combinedPath) || Utils.has_slash_dot_dot(res.value) || Utils.has_backslash_dot_dot(combinedPath)) {
       return Failure("Resulting path contains dangerous patterns.");
     }
 
