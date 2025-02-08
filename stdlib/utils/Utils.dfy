@@ -9,6 +9,7 @@ module Utils
     const fileMaxSize :int32 := 0x79999999 // Maximum file size
     const validFileCharacters := {'-', '_', '.', '(', ')', ' ', '%'}
     const validPathCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/'}
+    const validStringCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', '}', '\'', ' ', '\t', '\n', '\r'}
 
     newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
     newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
@@ -87,18 +88,23 @@ module Utils
 
     predicate is_valid_path_name(path: string)
     {
-        forall i :: 0 <= i < |path| ==> is_valid_path_char(path[i])
+        forall i :: 0 <= i < |path| ==> is_valid_char(path[i])
+    }
+
+    predicate is_valid_content_str(s: string)
+    {
+        forall i :: 0 <= i < |s| ==> alpha_numeric(s[i]) || s[i] in validStringCharacters
     }
 
 
     predicate has_valid_file_length(f: file)
     {
-    0 < |f| < fileMaxLength
+        0 < |f| < fileMaxLength
     }
 
     predicate is_valid_str_length(content: string )
     {
-     -0x80000000 <= |string_to_int(content)| < 0x80000000
+        -0x80000000 <= |string_to_int(content)| < 0x80000000
     }
 
     predicate has_valid_content_length(content: array<byte>)

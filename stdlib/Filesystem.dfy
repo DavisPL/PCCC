@@ -7,6 +7,7 @@
 
 include "/Users/pari/pcc-llms/stdlib/Wrappers.dfy"
 include "/Users/pari/pcc-llms/stdlib/utils/Utils.dfy"
+include "/Users/pari/pcc-llms/stdlib/utils/AsciiConverter.dfy"
 
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.

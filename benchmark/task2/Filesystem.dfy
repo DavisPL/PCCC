@@ -150,7 +150,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       return Failure("Resulting path is empty.");
     }
     if Utils.has_dangerous_pattern(combinedPath) {
-      return Failure("Resulting path contains dangerous patterns.");
+      return Failure("Resulting path contains dangerous patterns." + combinedPath);
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
