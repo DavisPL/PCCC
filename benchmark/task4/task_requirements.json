@@ -9,7 +9,7 @@
         },
         {
             "sp_id": 2,
-            "description": "Path must be free of consecutive dots patterns",
+            "description": "Path must be free of consecutive dots pattern",
             "requirement": []
         },
         {

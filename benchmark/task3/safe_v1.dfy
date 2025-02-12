@@ -59,6 +59,6 @@ method Main(args: seq<string>)
       print("unexpected failure writing to output_plain: \n" + writeRes.error);
       return;
     }
-    print("Write to the input file " + filePath + " was successfully! \n");
+    print("Write to the input file " + filePath + " was successful! \n");
   }  
 }

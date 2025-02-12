@@ -22,7 +22,8 @@ method Main(args: seq<string>)
   expect joinRes.Success?, "unexpected failure: " + joinRes.error;
   var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
   print("Joint path: ", jointPath);
-  var openRes := f.Open(jointPath); // without verifying if file path includes consecutive dots
+  expect !utils.has_consecutive_dots(jointPath) && utils.non_empty_path(jointPath), "Empty or unsafe file path";
+  var openRes := f.Open(jointPath);
   expect openRes.Success?, "unexpected error: " + openRes.error;
   var readRes := f.ReadBytesFromFile(jointPath);
   expect readRes.Success?, "unexpected failure: " + readRes.error;

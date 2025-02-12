@@ -34,5 +34,5 @@
     expect !openRes.Failure?, "unexpected error: " + openRes.error;
     var writeRes := f.WriteBytesToFile(jointPath, bytes);
     expect writeRes.Success?, "unexpected failure writing to output_plain: " + writeRes.error;
-    print("Write to the input file " + filePath + " was successfully! \n");
+    print("Write to the input file " + filePath + " was successful! \n");
   }
