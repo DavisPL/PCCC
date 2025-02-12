@@ -40,7 +40,11 @@ method Main(args: seq<string>)
   print("Joint path: ", jointPath);
   if(!utils.has_consecutive_dots(jointPath) && utils.non_empty_path(jointPath)){
     var openRes := f.Open(jointPath);
-    var readRes := f.ReadBytesFromFile(jointPath); // without verifying file is_open safety property
+    if openRes.Failure? {
+      print("unexpected error: " + openRes.error);
+      return;
+    }
+    var readRes := f.ReadBytesFromFile(jointPath);
     if readRes.Failure? {
       print("unexpected failure: " + readRes.error);
       return;

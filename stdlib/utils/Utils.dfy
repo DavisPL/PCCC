@@ -9,7 +9,7 @@ module Utils
     const fileMaxSize :int32 := 0x79999999 // Maximum file size
     const validFileCharacters := {'-', '_', '.', '(', ')', ' ', '%'}
     const validPathCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/'}
-    const validStringCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', '}', '\'', ' ', '\t', '\n', '\r'}
+    const validStringCharacters := {' ','~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', '}', '\'', ' ', '\t', '\n', '\r'}
 
     newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
     newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
