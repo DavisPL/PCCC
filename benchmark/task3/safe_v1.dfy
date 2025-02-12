@@ -11,39 +11,54 @@ import strConverter = AsciiConverter
 import opened Wrappers
 method Main(args: seq<string>) 
 {
-  expect |args| > 0;
-  expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
+  if |args| == 0 {
+    print("empty arguments");
+    return;
+  }
+  if |args| != 4 {
+    print("usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX");
+    return;
+  }
   var filePath := args[1];
-  var expectedErrorPrefix := args[2];
+  var contentStr := args[2];
+  var expectedErrorPrefix := args[3];
+
   var baseDir := "/Users/pari/pcc-llms/benchmark/task3";
   var f := new FS.Files.Init("dummy.txt", []);
   var joinRes := f.JoinPaths([baseDir, filePath], "/");
   if joinRes.Failure? {
-    print("joinRes: ", joinRes);
-    expect joinRes.Success?, "unexpected failure: " + joinRes.error;
+    print("unexpected failure: " + joinRes.error);
+    return;
+  }
+  if !(utils.non_empty_string(contentStr)) {
+    print ("Empty string!\n");
+    return;
+  }
+
+  if !(utils.is_valid_content_str(contentStr)) {
+    print ("Invalid content string!\n" + contentStr);
     return;
   }
   var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
-  var contentStr := "Hello world\nGoodbye\n";
-  var bytes: seq<bv8> := [
-    // "Hello world\n"
-    0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x0a,
-    // "Goodbye\n"
-    0x47, 0x6f, 0x6f, 0x64, 0x62, 0x79, 0x65, 0x0a
-  ];
-  assert forall i | 0 <= i < |bytes| :: bytes[i] as int == contentStr[i] as int;
-  print("Joint path: ", jointPath);
-  if(!utils.has_backslash_dot_dot(jointPath) && !utils.has_dot_dot_slash(jointPath)
-  && !utils.has_dot_dot_backslash(jointPath) && !utils.has_slash_dot_dot(jointPath) && utils.non_empty_path(jointPath)){
+  var bytes :seq<bv8> := strConverter.strToBytes(contentStr);
+  print("Joint path: \n", jointPath + "\n");
+  if (utils.has_backslash_dot_dot(jointPath) || utils.has_dot_dot_slash(jointPath)
+    || utils.has_dot_dot_backslash(jointPath) || utils.has_slash_dot_dot(jointPath) || 
+    !utils.non_empty_path(jointPath))
+    {
+      print("Invalid path! " + jointPath);
+      return;
+    } else {
     var openRes := f.Open(jointPath);
     if openRes.Failure? {
-      expect openRes.Success?, "unexpected error: " + openRes.error;
+      print ("unexpected error: \n" + openRes.error);
       return;
     }
     var writeRes := f.WriteBytesToFile(jointPath, bytes);
-    expect writeRes.Success?, "unexpected failure writing to output_plain: " + writeRes.error;
-    print("Write was successfully! \n");
-    } else {
+    if writeRes.Failure? {
+      print("unexpected failure writing to output_plain: \n" + writeRes.error);
       return;
     }
+    print("Write to the input file " + filePath + " was successfully! \n");
+  }  
 }

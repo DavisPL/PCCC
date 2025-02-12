@@ -1,0 +1,26 @@
+{
+    "task_id": 1,
+    "description": "This task requires you to implement a function in Dafny that takes a public file name and its content, appends it to a predefined directory path, and writes the content into the file.",
+    "safety_property": [
+        {
+            "sp_id": 1,
+            "description": "Path cannot be null or empty",
+            "requirement": []
+        },
+        {
+            "sp_id": 2,
+            "description": "Path must be free of consecutive dots patterns",
+            "requirement": []
+        },
+        {
+            "sp_id": 3,
+            "description": "Restricted access to predefined directory",
+            "requirement": ["/Users/pari/pcc-llms/benchmark/task3"]
+        },
+        {
+            "sp_id": 4,
+            "description": "Content can only have valid characters",
+            "requirement": []
+        }
+    ]
+}

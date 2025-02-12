@@ -10,20 +10,24 @@ import opened Wrappers
 
   method Main(args: seq<string>) 
   {
-    expect |args| > 0;
-    expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
+    if |args| == 0 {
+      print("empty arguments");
+      return;
+    }
+    if |args| != 3 {
+      print("usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX");
+      return;
+    }
     var filePath := args[1];
     var expectedErrorPrefix := args[2];
-    var expectedStr := "Hello!\nThis is a safe text and you are allowed to read this content\n";
+    var expectedStr := "This is a safe text and you are allowed to read this content";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
-    expect |expectedBytes| > 0;
-    expect |filePath| > 0;
-    if filePath == "" {
-      expect false, "empty file path";
+    if |filePath| == 0{
+      print("empty file path");
       return;
     }
     if |expectedBytes| == 0 {
-      expect false, "empty byte sequence";
+      print("empty byte sequence");
       return;
     }
     var f := new FS.Files.Init(filePath, expectedBytes);
@@ -31,30 +35,23 @@ import opened Wrappers
     if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
       var openRes := f.Open(filePath);
       if openRes.Failure? {
+        print("unexpected error: ", openRes.error);
         return;
       }
       var readRes := f.ReadBytesFromFile(filePath);
       if readRes.Failure? {
-        var readResEmpty := f.ReadBytesFromFile("");
-        if readResEmpty.Failure? {
-          if expectedErrorPrefix <= readResEmpty.error {
-            print("Error: ", readResEmpty.error);
-            } else {
-              print("unexpected success");
-            }
-          }
-        } else {
-        var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
-        if readBytes == expectedBytes {
-          print("File read successfully! \n");
-          print("File content: \n " + expectedStr);
-        } else {
-          print("read unexpected byte sequence");
-          return;
-        } 
-      }
-      } else {
-        print("unsafe file path");
+        print("unexpected failure: ", readRes.error);
         return;
       }
+      var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
+      if readBytes != expectedBytes {
+        print("read unexpected byte sequence");
+        return;
+      } 
+      print("File read successfully! \n");
+      print("File content: \n " + expectedStr);
+    } else {
+      print("Unsafe or empty file path");
+      return;
+    }
   }

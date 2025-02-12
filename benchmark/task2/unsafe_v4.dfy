@@ -23,9 +23,9 @@ import opened Wrappers
     expect |expectedBytes| > 0, "empty byte sequence";
     expect |fileName| > 0, "empty file path";
     print("Joint path: ", jointPath);
-    var openRes := f.Open(jointPath); // Without verifying non-empty path string and dangerous pattern
-    expect openRes.Success?, "unexpected error: " + openRes.error;
-    var readRes := f.ReadBytesFromFile(jointPath);
+    expect !utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath), "unsafe file path";
+    var openRes := f.Open(jointPath);
+    var readRes := f.ReadBytesFromFile(jointPath); // without verifying file is_open safety property
     expect readRes.Success?, "unexpected failure: " + readRes.error;
     var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
     expect readBytes == expectedBytes, "read unexpected byte sequence";

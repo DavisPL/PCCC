@@ -151,7 +151,6 @@ module {:options "-functionSyntax:4"} Filesystem {
         combinedPath := combinedPath + paths[i] + separator; 
         i := i + 1;
       }
-    print(combinedPath);
 
     if !Utils.non_empty_path(combinedPath) {
       return Failure("Resulting path is empty.");
