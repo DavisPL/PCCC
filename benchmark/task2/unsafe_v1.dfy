@@ -38,9 +38,13 @@ import opened Wrappers
     }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
     print("Joint path: ", jointPath);
-    if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
-      var openRes := f.Open(jointPath);
-      var readRes := f.ReadBytesFromFile(jointPath); // without verifying file is_open safety property
+    // {missing_specs}
+    var openRes := f.Open(jointPath);
+    if openRes.Failure? {
+      print("unexpected error: " + openRes.error);
+      return;
+      }
+      var readRes := f.ReadBytesFromFile(jointPath);
       if readRes.Failure? {
         print("unexpected failure: " + readRes.error);
         return;
@@ -50,10 +54,6 @@ import opened Wrappers
         print("read unexpected byte sequence");
         return;
       }
-      print("File read successfully! \n");
-      print("File content: \n " + expectedStr);
-    } else {
-      print("Unsafe or empty file path");
-      return;
-    }
+    print("File read successfully! \n");
+    print("File content: \n " + expectedStr);
   }

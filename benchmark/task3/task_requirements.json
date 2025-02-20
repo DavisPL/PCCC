@@ -1,26 +1,66 @@
 {
     "task_id": 1,
-    "description": "This task requires you to implement a function in Dafny that takes a public file name and its content, appends it to a predefined directory path, and writes the content into the file.",
+    "description": "Implement a function in Dafny that takes a public file name and its content, appends it to a predefined directory path, and writes the content into the file.",
     "safety_property": [
         {
             "sp_id": 1,
-            "description": "Path cannot be null or empty",
-            "requirement": []
+            "description": "File cannot be opened if the path is null or empty",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "Utils.non_empty_path(file)"
+                        }
+                    ]
+                }
+            ]
         },
         {
             "sp_id": 2,
-            "description": "Path must be free of listed dangerous patterns",
-            "requirement": ["../", "/..", "\\..", "..\\"]
+            "description": "File can be opened only if path is free of listed dangerous patterns",
+            "requirement": ["../", "/..", "\\..", "..\\"],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "!Utils.has_backslash_dot_dot"
+                        },
+                        {
+                            "pre-condition": "!Utils.has_backslash_dot_dot"
+                        }, 
+                        {
+                            "pre-condition": "!Utils.has_dot_dot_slash"
+                        }, 
+                        {
+                            "pre-condition": "!Utils.has_slash_dot_dot"
+                        }
+                    ]
+                }
+            ]
         },
         {
             "sp_id": 3,
-            "description": "Restricted access to predefined directory",
-            "requirement": ["/Users/pari/pcc-llms/benchmark/task3"]
-        },
-        {
-            "sp_id": 4,
-            "description": "Content can only have valid characters",
-            "requirement": []
+            "description": "File is writable only if file is opened successfully",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.WriteBytesToFile",
+                    "api_signature": "method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "is_open"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

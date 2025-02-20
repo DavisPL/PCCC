@@ -76,7 +76,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       requires !Utils.has_dot_dot_slash(file) && !Utils.has_dot_dot_backslash(file) 
       && !Utils.has_slash_dot_dot(file) && !Utils.has_backslash_dot_dot(file)
       requires Utils.non_empty_path(file)
-      ensures is_open == if res.Success? then true else false
+      ensures is_open == res.Success?
     {
         var isError, fileStream, errorMsg := INTERNAL_Open(file);
         is_open := if isError then false else true;
@@ -96,7 +96,8 @@ module {:options "-functionSyntax:4"} Filesystem {
       */
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
     //TODO: Add a precondition to check if the file exists
-    requires this.is_open == true
+    requires this.is_open
+    ensures res.Success? ==> |res.value| >= 0
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -111,7 +112,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       * NOTE: See the module description for limitations on the path argument.
       */
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    requires this.is_open == true
+    requires this.is_open && |bytes| > 0
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
@@ -163,11 +164,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-      if !isError {
-        assert Utils.non_empty_path(fullPath);
-        assert !Utils.has_dangerous_pattern(fullPath);
-      }
-      var notValidPath := if fullPath != combinedPath then false else true;
+      var notValidPath := !(fullPath != combinedPath);
       return if (isError || notValidPath) then Failure(errorMsg) else Success(fullPath);
     }
     

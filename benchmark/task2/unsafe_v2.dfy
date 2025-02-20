@@ -9,50 +9,27 @@ import opened Wrappers
 
   method Main(args: seq<string>) 
   {
-    if |args| == 0 {
-      print("empty arguments");
-      return;
-    }
-    if |args| != 3 {
-      print("usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX");
-      return;
-    }
+    expect |args| > 0;
+    expect |args| == 3, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var fileName := args[1];
     var expectedErrorPrefix := args[2];
-    var baseDir := "/Users/pari/pcc-llms/benchmark/task2";
-    var expectedStr := "This is a safe text and you are allowed to read this content";
-    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
-    if |fileName| == 0{
-      print("empty file path");
-      return;
-    }
-    if |expectedBytes| == 0 {
-      print("empty byte sequence");
-      return;
-    }
+    var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-22";
     var f := new FS.Files.Init("dummy.txt", []);
     var joinRes := f.JoinPaths([baseDir, fileName], "/");
-    if joinRes.Failure? {
-      print("unexpected failure: " + joinRes.error);
-      return;
-    }
+    expect joinRes.Success?, "unexpected failure: " + joinRes.error;
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
+    var expectedStr := "This is a safe text and you are allowed to read this content";
+    var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
+    expect |expectedBytes| > 0, "empty byte sequence";
+    expect |fileName| > 0, "empty file path";
     print("Joint path: ", jointPath);
-    var openRes := f.Open(jointPath); // wihtout verifying non-empty path string and dangerous pattern
-    if openRes.Failure? {
-      print("unexpected error: " + openRes.error);
-      return;
-      }
-      var readRes := f.ReadBytesFromFile(jointPath);
-      if readRes.Failure? {
-        print("unexpected failure: " + readRes.error);
-        return;
-      } 
-      var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
-      if readBytes != expectedBytes {
-        print("read unexpected byte sequence");
-        return;
-      }
+  // {missing_specs}
+    var openRes := f.Open(jointPath);
+    expect openRes.Success?, "unexpected error: " + openRes.error;
+    var readRes := f.ReadBytesFromFile(jointPath);
+    expect readRes.Success?, "unexpected failure: " + readRes.error;
+    var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
+    expect readBytes == expectedBytes, "read unexpected byte sequence";
     print("File read successfully! \n");
     print("File content: \n " + expectedStr);
   }

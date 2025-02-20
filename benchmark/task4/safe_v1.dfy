@@ -19,7 +19,7 @@ method Main(args: seq<string>)
   }
   var filePath := args[1];
   var expectedErrorPrefix := args[2];
-  var baseDir := "/Users/pari/pcc-llms/benchmark/CWE-33/dafny";
+  var baseDir := "/Users/pari/pcc-llms/benchmark/task4";
   var f := new FS.Files.Init("dummy.txt", []);
   var expectedStr := "This is a safe text and you are allowed to read this content";
   var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);

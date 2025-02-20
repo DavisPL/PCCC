@@ -1,4 +1,9 @@
 
+// dafny run --allow-warnings --unicode-char:false --target:cs ./ReadBytes.dfy --input ./FileIO.cs -- ./input.txt "System.ArgumentException:"
+// CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
+// Tested and Runs successfully!
+
+
 include "/Users/pari/pcc-llms/benchmark/task1/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
@@ -27,23 +32,23 @@ import opened Wrappers
       return;
     }
     var f := new FS.Files.Init(filePath, expectedBytes);
-    print("File path: ", filePath);
-    if(!utils.has_dangerous_pattern(filePath) && utils.non_empty_path(filePath)){
-      var openRes := f.Open(filePath);
-      var readRes := f.ReadBytesFromFile(filePath); // without verifying file is_open safety property
-      if readRes.Failure? {
-        print("unexpected failure: ", readRes.error);
-        return;
-      }
-      var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
-      if readBytes != expectedBytes {
-        print("read unexpected byte sequence");
-        return;
-      } 
-      print("File read successfully! \n");
-      print("File content: \n " + expectedStr);
-    } else {
-      print("unsafe file path");
+    print("Joint path: ", filePath);
+    // {missing_specs}
+    var openRes := f.Open(filePath);
+    if openRes.Failure? {
+      print("unexpected error: ", openRes.error);
       return;
     }
+    var readRes := f.ReadBytesFromFile(filePath);
+    if readRes.Failure? {
+      print("unexpected failure: ", readRes.error);
+      return;
+    }
+    var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as Utils.byte);
+    if readBytes != expectedBytes {
+      print("read unexpected byte sequence");
+      return;
+    } 
+    print("File read successfully! \n");
+    print("File content: \n " + expectedStr);
   }

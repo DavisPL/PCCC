@@ -38,7 +38,7 @@ import opened Wrappers
     }
     var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
     print("Joint path: ", jointPath);
-    if(!utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath)){
+    if(!utils.has_relative_traversal_pattern(jointPath) && utils.non_empty_path(jointPath)){
       var openRes := f.Open(jointPath);
       if openRes.Failure? {
         print("unexpected error: " + openRes.error);

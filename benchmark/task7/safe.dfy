@@ -3,7 +3,7 @@
 // CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')
 // Tested and Runs successfully!
 
-include "/Users/pari/pcc-llms/benchmark/task6-WIP/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task6/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
