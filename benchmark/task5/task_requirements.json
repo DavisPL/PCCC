@@ -73,7 +73,7 @@
                     "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
                     "pre-conditions": [
                         {
-                            "pre-condition": "ready_to_open" // Not sure if I should address usage of PathIsInsideBase from Filesystem module or not
+                            "pre-condition": "ready_to_open"
                         }
                     ]
                 }
