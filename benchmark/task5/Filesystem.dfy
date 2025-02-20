@@ -30,12 +30,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     var name: string
     var contents: seq<Utils.byte>
     ghost var is_open:bool // Ghost variable can only be used in the specifications
-    ghost var is_symbolic_link:bool
-
-    // constructor Init(){
-    //   is_open := false;
-    //   is_symbolic_link := false;
-    // }
+    ghost var ready_to_open:bool
 
     
     constructor Init (n: string, c: seq<Utils.byte>)
@@ -46,7 +41,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       name := n;
       contents := c;
       is_open := false;
-      is_symbolic_link := false;
+      ready_to_open := false;
     }
 
     method Size() returns (s: int)
@@ -67,17 +62,29 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
+
+    method PathIsInsideBase(path: string, base: string) returns (res: bool)
+    modifies this
+    requires Utils.non_empty_path(path)
+    requires Utils.non_empty_path(base)
+    ensures res == Utils.base_includes_path(base, path)
+    ensures ready_to_open == res
+    {
+      res := Utils.base_includes_path(base, path);
+      ready_to_open := res;
+    }
+  
  
     method Open(file: string) returns (res: Result<object, string>)
       // requires is_open == false // If I use this precondition, I get an error when I use f.Open(filePath) in cwe-22-safe.dfy
       modifies this
-      requires !Utils.has_dot_dot_slash(file) && !Utils.has_dot_dot_backslash(file) 
-      && !Utils.has_slash_dot_dot(file) && !Utils.has_backslash_dot_dot(file)
+      requires !Utils.has_dot_dot_slash(file)
       requires Utils.non_empty_path(file)
-      ensures is_open == if res.Success? then true else false
-    {
+      requires ready_to_open
+      ensures is_open == res.Success?
+      {
         var isError, fileStream, errorMsg := INTERNAL_Open(file);
-        is_open := if isError then false else true;
+        is_open := !isError;
         return if isError then Failure(errorMsg) else Success(fileStream);
       
     }
@@ -93,8 +100,8 @@ module {:options "-functionSyntax:4"} Filesystem {
       * NOTE: See the module description for limitations on the path argument.
       */
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    //TODO: Add a precondition to check if the file exists
-    requires this.is_open == true
+    requires this.is_open
+    ensures res.Success? ==> |res.value| >= 0
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -128,11 +135,9 @@ module {:options "-functionSyntax:4"} Filesystem {
 
 
     method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>)
-     // TODO: Modify this method to only verify using pre and posconditions
     requires |separator| == 1
     requires |paths| > 0
-    ensures res.Success? ==> (Utils.non_empty_path(res.value) && !Utils.has_dot_dot_slash(res.value) 
-    && !Utils.has_dot_dot_backslash(res.value) && !Utils.has_slash_dot_dot(res.value) && !Utils.has_backslash_dot_dot(res.value))
+    ensures res.Success? ==> (Utils.non_empty_path(res.value) && !Utils.has_dot_dot_slash(res.value))
     {
       if |paths| == 0 || |separator| == 0 {
         return Failure("Paths or separator cannot be empty.");
@@ -152,17 +157,13 @@ module {:options "-functionSyntax:4"} Filesystem {
     if !Utils.non_empty_path(combinedPath) {
       return Failure("Resulting path is empty.");
     }
-    if (Utils.non_empty_path(combinedPath) || Utils.has_dot_dot_slash(combinedPath) 
-    || Utils.has_dot_dot_backslash(combinedPath) || Utils.has_slash_dot_dot(res.value) || Utils.has_backslash_dot_dot(combinedPath)) {
-      return Failure("Resulting path contains dangerous patterns.");
+    if (Utils.has_dot_dot_slash(combinedPath)) {
+      return Failure("Resulting path contains dangerous patterns: " + combinedPath);
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-      if !isError {
-        assert Utils.non_empty_path(fullPath);
-        assert !Utils.has_dangerous_pattern(fullPath);
-      }
-      var notValidPath := if fullPath != combinedPath then false else true;
+      print("fullPath: ", fullPath);
+      var notValidPath := !(fullPath != combinedPath);
       return if (isError || notValidPath) then Failure(errorMsg) else Success(fullPath);
     }
     

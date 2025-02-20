@@ -32,11 +32,6 @@ module {:options "-functionSyntax:4"} Filesystem {
     ghost var is_open:bool // Ghost variable can only be used in the specifications
     ghost var is_symbolic_link:bool
 
-    // constructor Init(){
-    //   is_open := false;
-    //   is_symbolic_link := false;
-    // }
-
     
     constructor Init (n: string, c: seq<Utils.byte>)
       requires n != ""       // We can't create a file with an empty name
@@ -69,14 +64,13 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
  
     method Open(file: string) returns (res: Result<object, string>)
-      // requires is_open == false // If I use this precondition, I get an error when I use f.Open(filePath) in cwe-22-safe.dfy
       modifies this
-      requires !Utils.has_dangerous_pattern(file)
+      requires !Utils.has_relative_traversal_pattern(file)
       requires Utils.non_empty_path(file)
-      ensures is_open == if res.Success? then true else false
+      ensures is_open == res.Success?
     {
         var isError, fileStream, errorMsg := INTERNAL_Open(file);
-        is_open := if isError then false else true;
+        is_open := !isError;
         return if isError then Failure(errorMsg) else Success(fileStream);
       
     }
@@ -92,8 +86,8 @@ module {:options "-functionSyntax:4"} Filesystem {
       * NOTE: See the module description for limitations on the path argument.
       */
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    //TODO: Add a precondition to check if the file exists
-    requires this.is_open == true
+    requires this.is_open
+    ensures res.Success? ==> |res.value| >= 0
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -129,7 +123,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
-    ensures res.Success? ==> Utils.non_empty_path(res.value) && !Utils.has_dangerous_pattern(res.value)
+    ensures res.Success? ==> Utils.non_empty_path(res.value) && !Utils.has_relative_traversal_pattern(res.value)
     {
       if |paths| == 0 || |separator| == 0 {
         return Failure("Paths or separator cannot be empty.");
@@ -154,11 +148,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-      if !isError {
-        assert Utils.non_empty_path(fullPath);
-        assert !Utils.has_dangerous_pattern(fullPath);
-      }
-      var notValidPath := if fullPath != combinedPath then false else true;
+      var notValidPath := !(fullPath != combinedPath);
       return if (isError || notValidPath) then Failure(errorMsg) else Success(fullPath);
     }
     

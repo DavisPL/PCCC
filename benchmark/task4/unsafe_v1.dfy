@@ -38,7 +38,8 @@ method Main(args: seq<string>)
   }
   var jointPath := seq(|joinRes.value|, i requires 0 <= i < |joinRes.value| => joinRes.value[i] as char); 
   print("Joint path: ", jointPath);
-  var openRes := f.Open(jointPath); // without verifying if file path includes consecutive dots
+  // {missing_specs}
+  var openRes := f.Open(jointPath);
   if openRes.Failure? {
     print("unexpected error: " + openRes.error);
     return;

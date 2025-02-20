@@ -72,10 +72,10 @@ module {:options "-functionSyntax:4"} Filesystem {
       // requires is_open == false // If I use this precondition, I get an error when I use f.Open(filePath) in cwe-22-safe.dfy
       modifies this
       requires !Utils.has_consecutive_dots(file) && Utils.non_empty_path(file)
-      ensures is_open == if res.Success? then true else false
+      ensures is_open == res.Success?
     {
         var isError, fileStream, errorMsg := INTERNAL_Open(file);
-        is_open := if isError then false else true;
+        is_open := !isError;
         return if isError then Failure(errorMsg) else Success(fileStream);
       
     }
@@ -117,11 +117,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     method IsLink(file: string) returns (res: Result<bool, string>) 
     {
       var isError, isLink, errorMsg := INTERNAL_IsLink(file);
-      if isError {
-        res := Failure(errorMsg);
-      } else {
-        res := Success(isLink);
-      }
+      return if isError then Failure(errorMsg) else Success(isLink);
     }
 
 
@@ -154,11 +150,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-      if !isError {
-        assert Utils.non_empty_path(fullPath);
-        assert !Utils.has_dangerous_pattern(fullPath);
-      }
-      var notValidPath := if fullPath != combinedPath then false else true;
+      var notValidPath := !(fullPath != combinedPath);
       return if (isError || notValidPath) then Failure(errorMsg) else Success(fullPath);
     }
     

@@ -1,0 +1,47 @@
+{
+    "task_id": 1,
+    "description": "This task requires you to implement a function in Dafny that takes a file path to read and prints its content.",
+    "safety_property": [
+            {
+                "sp_id": 1,
+                "description": "Path cannot be null or empty",
+                "requirement": [],
+                "all_api_with_preconditions": [
+                    {
+                        "dependency": ["Filesystem, Utils"],
+                        "api": "ReadBytesFromFile",
+                        "preconditions": [
+                            {
+                                "precondition": "Utils.has_dangerous_pattern(",
+                                "description": "Path cannot be null"
+                            },
+                            {
+                                "precondition": "path != \"\"",
+                                "description": "Path cannot be empty"
+                            }
+                        ]
+
+                    },
+                    {
+                        "dependency": "Filesystem",
+                        "api": "Open",
+                        "preconditions": [
+                            {
+                                "precondition": "path != null",
+                                "description": "Path cannot be null"
+                            },
+                            {
+                                "precondition": "path != \"\"",
+                                "description": "Path cannot be empty"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "sp_id": 2,
+                "description": "Path must be free of absolute or relative path traversal patterns (any dangerous patterns)",
+                "requirement": []
+            }
+        ]
+}

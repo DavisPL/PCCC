@@ -1,0 +1,57 @@
+{
+    "task_id": 1,
+    "description": "Implement a function in Dafny that takes a file as its input and reads its content only if the it is not a symbolic link.",
+    "safety_property": [
+        {
+            "sp_id": 1,
+            "description": "File cannot be opened if the path is null or empty",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "Utils.non_empty_path(file)"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sp_id": 2,
+            "description": "File can be opened only if path is not symbolic link",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "ready_to_open"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sp_id": 3,
+            "description": "File can be read only if file is opened successfully",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "is_open"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

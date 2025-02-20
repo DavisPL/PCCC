@@ -23,7 +23,7 @@ import opened Wrappers
     expect |expectedBytes| > 0, "empty byte sequence";
     expect |fileName| > 0, "empty file path";
     print("Joint path: ", jointPath);
-    expect !utils.has_dangerous_pattern(jointPath) && utils.non_empty_path(jointPath), "unsafe file path";
+    expect !utils.has_relative_traversal_pattern(jointPath) && utils.non_empty_path(jointPath), "unsafe file path";
     var openRes := f.Open(jointPath);
     expect openRes.Success?, "unexpected error: " + openRes.error;
     var readRes := f.ReadBytesFromFile(jointPath);

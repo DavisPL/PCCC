@@ -1,0 +1,7 @@
+{
+    "task_id": 1,
+    "description": "This task requires you to implement a function in Dafny that takes a file path to read and prints its content.",
+    "safety_property": {
+        "sp_1" : "File content cannot be modified"
+    }
+}

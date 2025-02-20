@@ -3,7 +3,7 @@
 // dafny run --allow-warnings --unicode-char:false --target:cs absolute_path_to_dafny_file --input absolute_path_to_Filesystem.cs -- absolute_path_to_input_text_file "System.ArgumentException:"
 // Using any input file with path traversal pattern cause an error
 
-include "/Users/pari/pcc-llms/benchmark/Task1/Filesystem.dfy"
+include "/Users/pari/pcc-llms/benchmark/task1/Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers

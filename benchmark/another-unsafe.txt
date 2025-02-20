@@ -1,2 +1,0 @@
-Under Attack Warning!
-You are not allowed to read this content unless you are doing a path traversal attack

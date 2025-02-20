@@ -1,0 +1,83 @@
+{
+    "task_id": 1,
+    "description": "Implement a function in Dafny that takes a public file name and its content, appends it to a restricted directory, and writes the content into the file.",
+    "safety_property": [
+        {
+            "sp_id": 1,
+            "description": "File cannot be opened if the path is null or empty",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "Utils.non_empty_path(file)"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sp_id": 2,
+            "description": "File can be opened only if path is free of listed dangerous patterns",
+            "requirement": ["../"],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "!Utils.has_backslash_dot_dot"
+                        },
+                        {
+                            "pre-condition": "!Utils.has_backslash_dot_dot"
+                        }, 
+                        {
+                            "pre-condition": "!Utils.has_dot_dot_slash"
+                        }, 
+                        {
+                            "pre-condition": "!Utils.has_slash_dot_dot"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sp_id": 3,
+            "description": "File can be read only if file is opened successfully",
+            "requirement": [],
+            "all_api_with_specs": [
+                {
+                    "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "is_open"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sp_id": 4,
+            "description": "File can be opened only if path is restricted to current directory",
+            "requirement": ["/Users/pari/pcc-llms/benchmark/task5"],
+            "all_api_with_specs": [
+                {
+                   "dependencies":  ["Filesystem", "Utils"],
+                    "api": "Filesystem.Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [
+                        {
+                            "pre-condition": "ready_to_open" // Not sure if I should address usage of PathIsInsideBase from Filesystem module or not
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -19,7 +19,7 @@ module Utils
     datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-    const sensitivePaths := ["/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documnets", "/etc/passwd"]
+    const sensitivePaths := ["/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documents", "/etc/passwd"]
     const currWDir := ["/Users/pari/pcc-llms/src/playground"]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
@@ -230,6 +230,16 @@ module Utils
         || has_slash_dot_dot(p)
         || has_backslash_dot_dot(p)
     }
+    //ToDO: Test and support for all operating systems
+    predicate has_relative_traversal_pattern(p: path)
+    {
+        !has_absolute_path(p)
+        || contains_parent_dir_traversal(p)
+        || has_dot_dot_slash(p)
+        || has_dot_dot_backslash(p)
+        || has_slash_dot_dot(p)
+        || has_backslash_dot_dot(p)
+    }
 
 
     predicate has_absolute_path(p: path)
@@ -339,12 +349,23 @@ module Utils
     method ValidateFileType(t: fileType) returns (result: bool)
     requires 0 <= |t| <= 4
     {
-    var res := ContainsSequence(sensitivePaths, t);
-    if !res {
-        result := true;
-    } else {
-        result := false;
+        var res := ContainsSequence(sensitivePaths, t);
+        if !res {
+            result := true;
+        } else {
+            result := false;
+        }
     }
+
+    method NonSensitiveFilePath(t: fileType) returns (result: bool)
+    requires 0 <= |t| <= 4
+    {
+        var res := ContainsSequence(sensitivePaths, t);
+        if !res {
+            result := true;
+        } else {
+            result := false;
+        }
     }
 
     method ContainsC(s: string, c: char) returns (result: bool)
@@ -497,19 +518,19 @@ module Utils
 
     method StringToSeqInt(s: string) returns (bytesSeq: seq<int>)
     // Convert a string to a sequence of bytes<int>
-    requires |s| > 0  // Precondition requires non-empty strings
-    ensures |s| == |bytesSeq|  //  // Postcondition ensure the length of the generated sequence matches the input string length
-    ensures forall i: int :: 0 <= i < |s| ==> bytesSeq[i] == s[i] as int  // Each byte should match the character in s
+    requires |s| > 0
+    ensures |s| == |bytesSeq| 
+    ensures forall i: int :: 0 <= i < |s| ==> bytesSeq[i] == s[i] as int  
     {
     bytesSeq := [];
     var i := 0;
     while i < |s|
         invariant 0 <= i <= |s|
-        invariant |bytesSeq| == i  // Ensure that the length of bytesSeq matches the number of iterations
-        invariant forall j: int :: 0 <= j < i ==> bytesSeq[j] == s[j] as int  // Each element up to i matches the string's character.
+        invariant |bytesSeq| == i 
+        invariant forall j: int :: 0 <= j < i ==> bytesSeq[j] == s[j] as int  
     {
         bytesSeq := bytesSeq + [char_to_int(s[i])];
-        i := i + 1;  // Increment the index to move to the next character.
+        i := i + 1;
     }
 
     }
@@ -762,6 +783,11 @@ module Utils
         contains_home_dir_reference(s) ||
         // StartsWithAbsolutePath(s) ||
         contains_drive_letter(s)
+    }
+
+    predicate base_includes_path (filePath: seq<char>, base: seq<char>)
+    {
+        |filePath| >= |base| && filePath[..|base|] == base
     }
  
 }
