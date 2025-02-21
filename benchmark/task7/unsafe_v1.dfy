@@ -25,11 +25,10 @@ import opened Wrappers
       print("empty byte sequence");
       return;
     }
-
     var f := new FS.Files.Init(filePath, expectedBytes);
     print("file path: ", filePath);
-    expect forall i :: 0 <= i < |Utils.sensitiveFiles| ==>  0 <= |Utils.sensitiveFiles[i]| <= |filePath|;
-    var openRes := f.Open(filePath);
+    // {missing_specs}
+    var openRes := f.Open(filePath, sensitivePath);
     expect openRes.Success?, "unexpected error: " + openRes.error;
     var readRes := f.ReadBytesFromFile(filePath);
     expect readRes.Success?, "unexpected failure: " + readRes.error;

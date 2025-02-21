@@ -12,7 +12,7 @@ import opened Wrappers
     expect |args| == 4, "usage: " + args[0] + " FILE_PATH EXPECTED_ERROR_PREFIX";
     var filePath := args[1];
     var sensitivePath := args[2];
-    var expectedErrorPrefix := args[3];
+    var expectedErrorPrefix := args[2];
     var expectedStr := "This is a safe text and you are allowed to read this content";
     var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as Utils.byte);
     expect |expectedBytes| > 0;
@@ -25,14 +25,38 @@ import opened Wrappers
       print("empty byte sequence");
       return;
     }
-
     var f := new FS.Files.Init(filePath, expectedBytes);
+    var permit := false;
     print("file path: ", filePath);
-    expect forall i :: 0 <= i < |Utils.sensitiveFiles| ==>  0 <= |Utils.sensitiveFiles[i]| <= |filePath|;
-    var openRes := f.Open(filePath);
-    expect openRes.Success?, "unexpected error: " + openRes.error;
-    var readRes := f.ReadBytesFromFile(filePath);
-    expect readRes.Success?, "unexpected failure: " + readRes.error;
-    var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
-    print("File read successfully! \n");
+    var i := 0;
+    while (i < |Utils.sensitiveFiles|)
+    invariant 0 <= i <= |Utils.sensitiveFiles|
+    invariant !permit ==> i <= |Utils.sensitiveFiles|
+    decreases |Utils.sensitiveFiles| - i   
+    {
+      if (0 <= |Utils.sensitiveFiles[i]| <= |filePath|) {
+        permit := permit && true;
+      }
+      i := i + 1;
+      
+    } 
+    if(permit) {
+      var openRes := f.Open(filePath);
+      if openRes.Failure? {
+        print("unexpected error: " + openRes.error);
+        return;
+      }
+      var readRes := f.ReadBytesFromFile(filePath);
+      if readRes.Failure? {
+        print("unexpected failure: " + readRes.error);
+        return;
+      }
+      var readBytes := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
+      print("File read successfully! \n");
+      print("File content: \n " + expectedStr);
+      }
+    else {
+      print("Empty or unsafe file path");
+      return;
+    }
   }
