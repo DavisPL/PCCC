@@ -1,5 +1,7 @@
+include "/Users/pari/pcc-llms/stdlib/utils/StringHelper.dfy"
 module Utils
 {
+    import StringHelper
     type path = seq<char>
     type file = seq<char>
     type fileType = seq<char>
@@ -19,13 +21,20 @@ module Utils
     datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-    const sensitivePaths := ["/id_rsa","/usr", "/System", "/bin", "/sbin", "/var", "/usr/local", "/documents", "/etc/passwd"]
+    const restrictedDirs := ["/etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files"]
     const currWDir := ["/Users/pari/pcc-llms/src/playground"]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
         "mysql" := ["query.log", "slow.log"],
         "ssh" := ["auth.log"]
         // Add more services and their allowed log files as needed
+    ]
+    const sensitiveFiles := [
+        "/etc/passwd", "/etc/shadow", "/etc/hosts",  // Linux system files
+        "C:\\Windows\\System32\\config\\SAM",       // Windows registry
+        "C:\\Windows\\System32\\drivers\\etc\\hosts",
+        ".ssh/id_rsa", ".ssh/id_rsa.pub",           // SSH private/public keys
+        "C:\\ProgramData\\Microsoft\\Windows\\Start Menu"
     ]
     // const SensitiveFilesList : seq<seq<char>> := ["~/id_rsa.pub","/user-data/shared-data.txt",
     // "/user-data/public-info.txt", "/user-data/public-key.txt","shared-data.txt","public-info.txt", 
@@ -349,7 +358,7 @@ module Utils
     method ValidateFileType(t: fileType) returns (result: bool)
     requires 0 <= |t| <= 4
     {
-        var res := ContainsSequence(sensitivePaths, t);
+        var res := ContainsSequence(restrictedDirs, t);
         if !res {
             result := true;
         } else {
@@ -360,7 +369,7 @@ module Utils
     method NonSensitiveFilePath(t: fileType) returns (result: bool)
     requires 0 <= |t| <= 4
     {
-        var res := ContainsSequence(sensitivePaths, t);
+        var res := ContainsSequence(restrictedDirs, t);
         if !res {
             result := true;
         } else {
@@ -791,4 +800,3 @@ module Utils
     }
  
 }
-

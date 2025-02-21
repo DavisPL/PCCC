@@ -29,24 +29,23 @@ module {:options "-functionSyntax:4"} Filesystem {
   class Files {
     var name: string
     var contents: seq<Utils.byte>
-    ghost var is_open:bool // Ghost variable can only be used in the specifications
-    ghost var is_symbolic_link:bool
-
-    // constructor Init(){
-    //   is_open := false;
-    //   is_symbolic_link := false;
-    // }
-
+    ghost var is_open:bool 
+    ghost var ready_to_open:bool
+    ghost var is_safe_file:bool
     
     constructor Init (n: string, c: seq<Utils.byte>)
-      requires n != ""       // We can't create a file with an empty name
+      requires n != ""   
       ensures name == n
       ensures contents == c
+      ensures !is_open
+      ensures !ready_to_open
+      ensures !is_safe_file
     {
       name := n;
       contents := c;
       is_open := false;
-      is_symbolic_link := false;
+      ready_to_open := false;
+      is_safe_file := false;
     }
 
     method Size() returns (s: int)
@@ -67,17 +66,39 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
+
+    method fileCheck(file: string) returns(res: bool, errorMsg: string)
+    requires forall i :: 0 <= i < |Utils.sensitiveFiles| ==>  0 <= |Utils.sensitiveFiles[i]| <= |file|
+    {
+      var i := 0;
+      res := false;
+      errorMsg := "";
+      while (i < |Utils.sensitiveFiles|)
+      invariant 0 <= i <= |Utils.sensitiveFiles|
+      invariant !res ==> i <= |Utils.sensitiveFiles|
+      decreases |Utils.sensitiveFiles| - i  
+      {
+        res := Utils.StringHelper.IsSubstring(Utils.sensitiveFiles[i], file);
+        if res {
+          errorMsg := errorMsg + "\n" + "Sensitive file found!";
+          return res, errorMsg;
+        } else {
+          i := i + 1;
+        }
+      }
+    }
+
  
     method Open(file: string) returns (res: Result<object, string>)
-      // requires is_open == false // If I use this precondition, I get an error when I use f.Open(filePath) in cwe-22-safe.dfy
       modifies this
-      requires !Utils.has_dangerous_pattern(file)
-      requires Utils.non_empty_path(file)
-      ensures is_open == if res.Success? then true else false
+      requires forall i :: 0 <= i < |Utils.sensitiveFiles| ==>  0 <= |Utils.sensitiveFiles[i]| <= |file|
+      ensures is_open == res.Success?
     {
-        var isError, fileStream, errorMsg := INTERNAL_Open(file);
-        is_open := if isError then false else true;
-        return if isError then Failure(errorMsg) else Success(fileStream);
+      var isError, fileStream, errorMsg := INTERNAL_Open(file);
+      var is_sensitive, warnings := fileCheck(file);
+      isError := isError || is_sensitive;
+      is_open := !isError;
+      return if isError then Failure(errorMsg + "\n" + warnings) else Success(fileStream);
       
     }
     /*
@@ -92,13 +113,14 @@ module {:options "-functionSyntax:4"} Filesystem {
       * NOTE: See the module description for limitations on the path argument.
       */
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    //TODO: Add a precondition to check if the file exists
-    requires this.is_open == true
+    requires this.is_open
+    ensures res.Success? ==> |res.value| >= 0
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
+    //TODO: Add a method to check if the file exists
     /**
       * Attempts to write the given bytes to the file at the given file path,
       * creating nonexistent parent directories as necessary.
@@ -114,22 +136,23 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if isError then Failure(errorMsg) else Success(());
     }
 
-
-    method IsLink(file: string) returns (res: Result<bool, string>) 
+   method IsLink(file: string) returns (res: Result<bool, string>) 
+    modifies this
+    requires Utils.non_empty_path(file)
+    ensures ready_to_open == (res.Success? && !res.value)
     {
       var isError, isLink, errorMsg := INTERNAL_IsLink(file);
-      if isError {
-        res := Failure(errorMsg);
-      } else {
-        res := Success(isLink);
-      }
+      ready_to_open := !isError && !isLink;
+      return if isError then Failure(errorMsg) else Success(isLink);
     }
 
 
-    method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
+    method JoinPaths(paths: seq<string>, separator: string) returns (res: Result<string, string>)
+     // TODO: Modify this method to only verify using pre and posconditions
     requires |separator| == 1
     requires |paths| > 0
-    ensures res.Success? ==> Utils.non_empty_path(res.value) && !Utils.has_dangerous_pattern(res.value)
+    ensures res.Success? ==> (Utils.non_empty_path(res.value) && !Utils.has_dot_dot_slash(res.value) 
+    && !Utils.has_dot_dot_backslash(res.value) && !Utils.has_slash_dot_dot(res.value) && !Utils.has_backslash_dot_dot(res.value))
     {
       if |paths| == 0 || |separator| == 0 {
         return Failure("Paths or separator cannot be empty.");
@@ -149,15 +172,12 @@ module {:options "-functionSyntax:4"} Filesystem {
     if !Utils.non_empty_path(combinedPath) {
       return Failure("Resulting path is empty.");
     }
-    if Utils.has_dangerous_pattern(combinedPath) {
+    if (Utils.non_empty_path(combinedPath) || Utils.has_dot_dot_slash(combinedPath) 
+    || Utils.has_dot_dot_backslash(combinedPath) || Utils.has_slash_dot_dot(res.value) || Utils.has_backslash_dot_dot(combinedPath)) {
       return Failure("Resulting path contains dangerous patterns.");
     }
 
       var isError, fullPath, errorMsg := INTERNAL_JoinPaths(paths, separator);
-      if !isError {
-        assert Utils.non_empty_path(fullPath);
-        assert !Utils.has_dangerous_pattern(fullPath);
-      }
       var notValidPath := if fullPath != combinedPath then false else true;
       return if (isError || notValidPath) then Failure(errorMsg) else Success(fullPath);
     }
