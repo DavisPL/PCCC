@@ -20,7 +20,6 @@ module Utils
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
     const restrictedDirs := ["etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files"]
-    const currWDir := ["/Users/pari/pcc-llms/src/playground"]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
         "mysql" := ["query.log", "slow.log"],
@@ -137,15 +136,6 @@ module Utils
       0 <= |p| < pathMaxLength
     }
 
-    // predicate HasValidPathFileLength(PathOrFile: PathOrFile)
-    // {
-    //   match PathOrFile
-    //   {
-    //     case Path(p) => 0 < |p| <= pathMaxLength
-    //     case File(f) => 0 < |f| <= fileMaxLength
-    //   }
-    // }
-
     predicate non_empty_path(f: file)
     {
         f != "" && |f| > 0
@@ -174,9 +164,9 @@ module Utils
 
     function is_substring(s: seq<char>, sub: seq<char>): bool
     {
-        if |sub| == 0 then true
-        else if |sub| > |s| then false
-        else exists i :: 0 <= i <= |s| - |sub| && s[i..i+|sub|] == sub
+        if |sub| > |s| then false
+        else if |sub| == 0 then true
+        else exists i :: 0 <= i < |s| - |sub| + 1 && (s[i..(i + |sub|)] == sub)
     }
 
     lemma StringSliceLemma(s: seq<char>)
