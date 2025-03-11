@@ -226,7 +226,8 @@ method TestIsSubstring()
         ("", "Hello, world!", true, 0),
         ("", "", true, 0),
         ("OpenAI", "Hello, world!", false, -1),
-        ("hello", "Hello, world!", false, -1)  // Case sensitive
+        ("hello", "Hello, world!", false, -1),  // Case sensitive
+        ("/pcc-llms/files/", "/pcc-llms/files/test.txt", true, 0)
     ];
 
     var allTestsPassed := true;

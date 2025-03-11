@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/stdlib/utils/AsciiConverter.dfy"
+include "../../std/utils/AsciiConverter.dfy"
 method test () {
   var c: char := 'a'; // Initialize a character
   var asciiValue1 := AsciiConverter.CharToAscii(c); // Convert character to ASCII

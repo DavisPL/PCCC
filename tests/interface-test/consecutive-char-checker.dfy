@@ -248,9 +248,9 @@ method TestConsecutiveCharCheck()
   // Test case 1: String with consecutive characters (not periods)
   var s1 := "hello";
   var hasConsecutive, hasConsecutivePeriods := VerifyConsecutiveChars(s1);
-  // assert s1[2] == 'l';
-  // assert s1[3] == 'l';
-  LemmaConsecutiveCharsUpToK(s1, 3);  // Call the lemma before assertions
+  assert s1[2] == 'l';
+  assert s1[3] == 'l';
+  // LemmaConsecutiveCharsUpToK(s1, 3);  // Call the lemma before assertions
   assert hasConsecutive;
   assert !hasConsecutivePeriods;
   // assert HasConsecutiveSameChars(s1);

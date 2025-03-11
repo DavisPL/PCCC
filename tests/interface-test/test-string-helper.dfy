@@ -189,7 +189,7 @@ method Main() {
     var dir2 := "/usr/bin/python";
     var prefix2 := "/home";
     var res2 := Utils.IsSubstring(prefix, dir2);
-     expect res2, "/home in /usr/bin/python";
+    expect res2, "/home in /usr/bin/python";
     // assert dir2[..1] == "/";
     assert dir2[..5] == "/usr/"; //Comment me! Without this line the asssertion in line 27 will fail
     print(res2);

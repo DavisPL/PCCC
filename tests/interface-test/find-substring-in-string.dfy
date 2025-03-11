@@ -4,11 +4,12 @@ method isPrefix(pre:string, str:string) returns(res:bool)
 {
     //Initialising the index variable
     var i := 0;
-
+    res := false;
     //Iterating through the first |pre| elements in str
     while (i < |pre|)
         invariant 0 <= i <= |pre|                               //Specifying the range of the while loop
-        decreases |pre| - i                                     //Specifying that the while loop will terminate
+        decreases |pre| - i  
+        invariant res ==> (str[0..|pre|] == pre)                                  //Specifying that the while loop will terminate
     {
         //If an element does not match, return false
         if (str[i] != pre[i]) {
@@ -16,7 +17,7 @@ method isPrefix(pre:string, str:string) returns(res:bool)
             print str[i], " != ", pre[i], "\n";
 
             //Return once mismatch detected, no point in iterating any further
-            return false;
+            return;
         }
         //Else loop until mismatch found or we have reached the end of pre
         else{
@@ -26,12 +27,13 @@ method isPrefix(pre:string, str:string) returns(res:bool)
             i := i + 1;
         }
     }
-    return true;
+    res := true;
 }
 
 //This method should return true iff sub is a substring of str. That is, str contains sub
 method isSubstring(sub:string, str:string) returns(res:bool)
     requires 0 < |sub| <= |str| //This method requires that sub is less than or equal in length to str
+    // ensures res ==> exists i:: 0 <= i < |str|-|sub| && str[i..i+|sub|] == sub
 {
     //Initialising the index variable
     var i := 0;
@@ -159,7 +161,7 @@ method Main(){
     
     // isSubstring test
     var substring := "/and";
-    var str_2 := "oper/tand";
+    var str_2 := "oper/and";
     result := isSubstring(substring, str_2);
     if(result == true){
         print "TRUE: ", substring,  " is a substring of the string ", str_2, "\n";
