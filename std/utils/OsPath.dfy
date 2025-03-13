@@ -9,7 +9,7 @@ ensures |head| == (|path| - 1) && tail == "" ==> head == path[..|path|-1] && tai
     if slashIdx == -1 {
         head, tail := "", path;  // No slash found    
     } 
-    head, tail := path[..slashIdx + 1], path[slashIdx + 1..]; 
+    head, tail := path[..slashIdx + 1], path[slashIdx + 1..];  
     assert path == head + tail;
     print "head", "\n", head, "\n";
     print "tail", "\n", tail, "\n";

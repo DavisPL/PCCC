@@ -15,7 +15,13 @@ namespace Filesystem
     {
         private static Dictionary<object, FileStream> openFileHandles = new Dictionary<object, FileStream>();  // To track open files
 
-  
+        public static string ExpandUser(string path)
+        {
+            string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string relativePath = path.Substring(1).TrimStart('/'); // Remove leading `/`
+            string fullPath = Path.Combine(homeDir, relativePath);
+            return fullPath;
+        }
 
         /// <summary>
         /// Attempts to open the file at the given path, and outputs the following values:
@@ -45,36 +51,26 @@ namespace Filesystem
             try
             {
                 string pathStr = path?.ToString();
-                Console.WriteLine("User's path: " + pathStr);
                 
                 if (pathStr.StartsWith("~"))
                 {
-                    string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    string relativePath = pathStr.Substring(1).TrimStart('/'); // Remove leading `/`
-                    pathStr = Path.Combine(homeDir, relativePath);
-
-                    Console.WriteLine("Expanded path: " + pathStr);
+                    pathStr = ExpandUser(pathStr);
                 }
 
                 pathStr = Path.GetFullPath(pathStr);
-                Console.WriteLine("Opening file at: " + pathStr);
 
                 // Check if the directory exists
                 string directory = Path.GetDirectoryName(pathStr);
-                if (!Directory.Exists(directory))
-                {
-                    Console.WriteLine("Directory does not exist: " + directory);
-                }
-                else if (!File.Exists(pathStr))
-                {
-                    Console.WriteLine("File does not exist: " + pathStr);
-                }
-                else
+                if (Directory.Exists(directory) || File.Exists(pathStr))
                 {
                     FileStream fs = new FileStream(pathStr, FileMode.Open, FileAccess.ReadWrite);
                     fileHandle = Guid.NewGuid(); 
                     openFileHandles[fileHandle] = fs;
                     isError = false;
+                }
+                else
+                {
+                    throw new FileNotFoundException("Given path does not exist: ", pathStr);
                 }
             }
             catch (Exception e)
@@ -121,11 +117,7 @@ namespace Filesystem
                 
                 if (pathStr.StartsWith("~"))
                 {
-                    string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    string relativePath = pathStr.Substring(1).TrimStart('/'); // Remove leading `/`
-                    pathStr = Path.Combine(homeDir, relativePath);
-
-                    Console.WriteLine("Expanded path: " + pathStr);
+                    pathStr = ExpandUser(pathStr);
                 }
 
                 pathStr = Path.GetFullPath(pathStr);
@@ -133,18 +125,14 @@ namespace Filesystem
 
                 // Check if the directory exists
                 string directory = Path.GetDirectoryName(pathStr);
-                if (!Directory.Exists(directory))
+                if (File.Exists(pathStr) || Directory.Exists(directory))
                 {
-                    Console.WriteLine("Directory does not exist: " + directory);
-                }
-                else if (!File.Exists(pathStr))
-                {
-                    Console.WriteLine("File does not exist: " + pathStr);
+                   bytesRead = Helpers.SeqFromArray(File.ReadAllBytes(pathStr));
+                   isError = false;
                 }
                 else
                 {
-                    bytesRead = Helpers.SeqFromArray(File.ReadAllBytes(pathStr));
-                    isError = false;
+                    throw new FileNotFoundException("Given path does not exist: ", pathStr);
                 }
                 
             }
@@ -183,24 +171,26 @@ namespace Filesystem
             try
             {
                 
-                if(File.Exists(pathStr))
+                if (pathStr.StartsWith("~"))
                 {
-                    isError = false;
-                    // This path is a file
+                    pathStr = ExpandUser(pathStr);
+                    pathStr = path?.ToString();
                 }
-                else if(Directory.Exists(pathStr))
+
+                pathStr = Path.GetFullPath(pathStr);
+
+                // Check if the directory exists
+                string directory = Path.GetDirectoryName(pathStr);
+                if (File.Exists(pathStr) || Directory.Exists(directory))
                 {
+                    CreateParentDirs(Helpers.SeqFromArray(pathStr.ToString().ToCharArray()));
+                    File.WriteAllBytes(pathStr, bytes.CloneAsArray());
                     isError = false;
-                    // This path is a directory
                 }
                 else
                 {
-                    throw new FileNotFoundException("Neither a file nor a directory exists for ", pathStr);
+                    throw new FileNotFoundException("Given path does not exist: ", pathStr);
                 }
-
-                CreateParentDirs(pathStr);
-                File.WriteAllBytes(pathStr, bytes.CloneAsArray());
-                isError = false;
             }
             catch (Exception e)
             {
@@ -209,14 +199,28 @@ namespace Filesystem
         }
 
         /// <summary>
-        /// Creates the nonexistent parent directory(-ies) of the given path.
+        /// Attempts to return true if a give path is a reparse point or not, and outputs the following values:
+        /// <list>
+        ///  <item>
+        ///      <term>isError</term>
+        ///      <description>
+        ///         true iff an exception was thrown during path string conversion or when checking if the path is a symbolic link
+        ///     </description>
+        ///  </item>
+        ///  <item>
+        ///     <term>isLink</term>
+        ///     <description>
+        ///         true iff the path is a symbolic link, false otherwise
+        ///     </description>
+        ///  </item>
+        ///  <item>
+        ///      <term>errorMsg</term>
+        ///     <description>
+        ///       the error message of the thrown exception if <c>isError</c> is true, or an empty sequence otherwise
+        ///     </description>
+        ///   </item>
+        /// </list>
         /// </summary>
-        private static void CreateParentDirs(string path)
-        {
-            string parentDir = Path.GetDirectoryName(Path.GetFullPath(path));
-            Directory.CreateDirectory(parentDir);
-        }
-
         public static void INTERNAL_IsLink(ISequence<char> path, out bool isError, out bool isLink, out ISequence<char> errorMsg)
         {
             isError = true;
@@ -226,27 +230,19 @@ namespace Filesystem
             {
                 string pathStr = path?.ToString();
    
-                if(File.Exists(pathStr))
-                {
-                    isError = false;
-                    // This path is a file
-                }
-                else if(Directory.Exists(pathStr))
-                {
-                    isError = false;
-                    // This path is a directory
-                }
-                else
+                if(!File.Exists(pathStr) || !Directory.Exists(pathStr))
                 {
                     throw new FileNotFoundException("Neither a file nor a directory exists for ", pathStr);
                 }
-            
-                // Get the attributes of the file or directory
-                FileAttributes attributes = File.GetAttributes(pathStr);
+                else
+                {
+                     // Get the attributes of the file or directory
+                    FileAttributes attributes = File.GetAttributes(pathStr);
 
-                // Check if the file is a reparse point (symbolic link)
-                isLink = attributes.HasFlag(FileAttributes.ReparsePoint);
-                isError = false;
+                    // Check if the file is a reparse point (symbolic link)
+                    isLink = attributes.HasFlag(FileAttributes.ReparsePoint);
+                    isError = false;
+                }
             
             }
             catch (Exception e)
@@ -254,6 +250,30 @@ namespace Filesystem
                 errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
             }
         }
+
+        /// <summary>
+        /// Attempts to create a path from a list of paths and files and a separator, and outputs the following values:
+        /// <list>
+        /// <item>
+        ///     <term>isError</term>
+        ///     <description>
+        ///         true iff an exception was thrown during path string conversion or when joining the paths
+        ///     </description>
+        /// </item>
+        /// <item>
+        /// <term>fullPath</term>
+        ///     <description>
+        ///         the full path created from the list of paths and files, or an empty sequence if <c>isError</c> is true
+        ///     </description>
+        /// </item>
+        /// <item>
+        /// <term>errorMsg</term>
+        ///     <description>
+        ///      error message of the thrown exception if <c>isError</c> is true, or an empty sequence otherwise
+        ///     </description>
+        /// </item>
+        /// </list>
+        /// </summary>
         public static void INTERNAL_Join(ISequence<ISequence<char>> paths, ISequence<char> separator, out bool isError, out ISequence<char> fullPath, out ISequence<char> errorMsg)
         {
             isError = true;
@@ -333,6 +353,9 @@ namespace Filesystem
          /// <summary>
         /// Closes the file associated with the given file handle.
         /// </summary>
+        /// <param name="fileHandle">The handle to the file to close.</param>
+        /// <param name="isError">True if an error occurred while closing the file, false otherwise.</param>
+        /// <param name="errorMsg">The error message if an error occurred, an empty sequence otherwise.</param>
         public static void INTERNAL_Close(object fileHandle, out bool isError, out ISequence<char> errorMsg)
         {
             isError = true;
@@ -345,11 +368,10 @@ namespace Filesystem
                     throw new ArgumentException("Invalid file handle or file already closed.");
                 }
 
-                // Close the file stream
                 openFileHandles[fileHandle].Close();
-                openFileHandles.Remove(fileHandle);  // Remove from dictionary
+                openFileHandles.Remove(fileHandle);  
 
-                isError = false;  // File closed successfully
+                isError = false; 
             }
             catch (Exception e)
             {
@@ -359,78 +381,21 @@ namespace Filesystem
 
 
         /// <summary>
-        /// Creates the nonexistent parent directory(-ies) of the given path.
+        /// Ensures that the parent directories of a given file path exist by creating them if necessary
         /// </summary>
+        /// <list>
+        /// <item>
+        ///     <term>path</term>
+        ///     <description>
+        ///         the path to the file whose parent directories should be created
+        ///     </description>
+        /// </item>
+        /// </list>
         private static void CreateParentDirs(ISequence<char> path) {
             string pathStr = path?.ToString();
             string parentDir = Path.GetDirectoryName(Path.GetFullPath(pathStr));
             Directory.CreateDirectory(parentDir);
         }
-
-        public static void INTERNAL_ExpandUser(ISequence<char> path, out bool isError, out ISequence<char> homeDirectory, out ISequence<char> errorMsg) 
-        {
-            isError = true;
-            errorMsg = Sequence<char>.Empty;
-            homeDirectory = Sequence<char>.Empty;
-            try
-            {
-                string pathStr = path?.ToString();
-                string homeDirStr = homeDirectory?.ToString();
-                homeDirStr = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                // Console.WriteLine("User's home directory: " + homeDirStr);
-                homeDirectory = Helpers.SeqFromArray(homeDirStr.ToCharArray());
-                isError = false;
-            }
-            catch (Exception e)
-            {
-                errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
-            }
-        }
-
-
-        // private static bool FileExists(string path, out bool exists)
-        // {
-        //     exists = false;
-        //     try {
-        //         File.Exists(path);
-        //         return exists = File.Exists(path) != null;
-        //     }
-        //     catch (Exception e) {
-        //         errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
-        //     }
-
-        // }
-
-        // private static bool DirExists(string path)
-        // {
-        //     try {   
-        //         Directory.Exists(path);
-        //     }
-        //     catch (Exception e) {   
-        //         errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
-        //     }
-        // }
-        // public static void INTERNAL_JoinPaths(ISequence<string> paths, string separator, out bool isError, out string fullPath, out ISequence<char> errorMsg)
-        // {
-        //     isError = true;
-        //     fullPath = "";
-        //     errorMsg = Sequence<char>.Empty;
-        //     try
-        //     {
-        //         // Convert ISequence<string> to IEnumerable<string> if necessary
-        //         IEnumerable<string> pathList = paths.Elements;
-
-        //         // Use string.Join to concatenate the paths with the separator
-        //         fullPath = string.Join(separator, pathList);
-        //         isError = false;
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
-        //     }
-        // }
-
-
     }
     
 }

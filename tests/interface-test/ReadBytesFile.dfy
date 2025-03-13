@@ -3,9 +3,9 @@
  *  SPDX-License-Identifier: MIT
  *******************************************************************************/
  // ToDo: modify this to work with the FileIO.dfy and dafny test command
-include "../../stdlib/lib/FileIO.dfy"
+include "../../std/Filesystem.dfy"
 module ReadBytesFromFile {
-  import FileIO
+  import Filesystem
 
   method {:test} Test() {
     // TODO: extern function for the expected error prefix
@@ -20,7 +20,7 @@ module ReadBytesFromFile {
       // This conversion is safe only for ASCII values. For Unicode conversions, see the Unicode modules.
       var expectedBytes := seq(|expectedStr|, i requires 0 <= i < |expectedStr| => expectedStr[i] as int);
 
-      var res := FileIO.ReadBytesFromFile(dataPath);
+      var res := Filesystem.ReadBytesFromFile(dataPath);
       expect res.Success?, "unexpected failure: " + res.error;
 
       var readBytes := seq(|res.value|, i requires 0 <= i < |res.value| => res.value[i] as int);
@@ -29,7 +29,7 @@ module ReadBytesFromFile {
 
       // Failure path: attempting to read from a blank file path should never work.
     {
-      var res := FileIO.ReadBytesFromFile("");
+      var res := Filesystem.ReadBytesFromFile("");
       expect res.Failure?, "unexpected success";
       expect expectedErrorPrefix <= res.error, "unexpected error message: " + res.error;
     }

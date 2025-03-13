@@ -1,4 +1,4 @@
-include "/Users/pari/pcc-llms/stdlib/utils/AsciiConverter.dfy"
+include "../../std/utils/AsciiConverter.dfy"
 method test () {
   var c: char := 'a'; // Initialize a character
   var asciiValue1 := AsciiConverter.CharToAscii(c); // Convert character to ASCII
@@ -18,4 +18,11 @@ method test () {
     assert strToBytes3 != [65, 46, 122]; // Assert the ASCII values of 'A', '0', 'z' are 65, 48, 122
     var strToBytes4 := AsciiConverter.strToBytes("Hello\nWorld!\n");
     assert strToBytes4 == [72, 101, 108, 108, 111, 10, 87, 111, 114, 108, 100, 33, 10];
+    assert strToBytes4 != [72, 101, 108, 108, 111, 10, 87, 111, 114, 108, 100, 33, 1];
+    var restored_4 := AsciiConverter.ByteToString([72, 101, 108, 108, 111, 10, 87, 111, 114, 108, 100, 33, 10]);
+    assert restored_4 == "Hello\nWorld!\n";
+    var s := "Dafny!";
+    var byteSeq := AsciiConverter.strToBytes(s); // Convert to bytes
+    var restored := AsciiConverter.ByteToString(byteSeq); // Convert back to string
+    assert s == restored; 
 }

@@ -64,14 +64,14 @@ module {:options "-functionSyntax:4"} Filesystem {
     // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      ensures res.Success? ==> is_open == (file != "~/.ssh/id_rsa.txt") 
+      ensures res.Success? ==> is_open == !Utils.access_to_private_key(file)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
       var privateKeyAccess := true;
       if (|file| >= 4) {
-        privateKeyAccess := file[0..4] == "~/.ssh/id_rsa.txt";
+        privateKeyAccess := Utils.access_to_private_key(file);
       }
-      is_open := (file != "~/.ssh/id_rsa.txt");
+      is_open := !Utils.access_to_private_key(file);
       return if (isError || privateKeyAccess) then Failure(errorMsg) else Success(fileStream);
     }
 
@@ -115,12 +115,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ExpandUser(path: string := "~")returns (res: Result<string, string>) 
-    {
-      var isError, homeDir, errorMsg := INTERNAL_ExpandUser(path);
-      return if isError then Failure(errorMsg) else Success(homeDir);
-    }
-
 
   }
 
@@ -151,7 +145,4 @@ module {:options "-functionSyntax:4"} Filesystem {
     returns (isError: bool, fullPath: string, errorMsg: string)
     ensures !isError ==> Utils.non_empty_path(fullPath) && !Utils.has_dangerous_pattern(fullPath)
 
-    method
-    {:extern "Filesystem.Files", "INTERNAL_ExpandUser"}
-    INTERNAL_ExpandUser(path: string) returns (isError: bool, homeDir: string, errorMsg: string)
 }
