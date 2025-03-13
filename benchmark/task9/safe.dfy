@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadRSAKey(home_dir:string:= "~", key: string:= "id_rsa") returns (content: seq<int>)
+  method LoadRSAKey(home_dir:string:= "~", key: string:= "id_rsa") returns (content: seq<bv8>)
   requires |home_dir| > 0 && home_dir == "~"
   requires |key| > 0 && key == "id_rsa"
   {
@@ -21,7 +21,7 @@ import opened Wrappers
         print "unexpected failure: " + readRes.error;
         return;
     }
-    content := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i] as int);
+    content := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i]);
     return content;
   }
 
@@ -31,4 +31,6 @@ import opened Wrappers
     var home_dir:= "~";
     var key:= "id_rsa";
     var res:= LoadRSAKey(home_dir, key);
+    var content := AsciiConverter.ByteToString(res);
+    print "\n content: ", content;
   }

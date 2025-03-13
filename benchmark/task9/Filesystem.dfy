@@ -115,12 +115,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ExpandUser(path: string := "~")returns (res: Result<string, string>) 
-    {
-      var isError, homeDir, errorMsg := INTERNAL_ExpandUser(path);
-      return if isError then Failure(errorMsg) else Success(homeDir);
-    }
-
 
   }
 
@@ -151,7 +145,4 @@ module {:options "-functionSyntax:4"} Filesystem {
     returns (isError: bool, fullPath: string, errorMsg: string)
     ensures !isError ==> Utils.non_empty_path(fullPath) && !Utils.has_dangerous_pattern(fullPath)
 
-    method
-    {:extern "Filesystem.Files", "INTERNAL_ExpandUser"}
-    INTERNAL_ExpandUser(path: string) returns (isError: bool, homeDir: string, errorMsg: string)
 }

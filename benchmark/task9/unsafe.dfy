@@ -10,8 +10,7 @@ import opened Wrappers
     content := [];
     var perm: FS.Permission := FS.Permission.Read;
     var f := new FS.Files.Init(home_dir, perm);
-    var pub_rsa := home_dir + "/.ssh/" + key + ".txt";
-    assert pub_rsa == "~/.ssh/id_rsa.txt";
+    var pub_rsa := home_dir + "/.ssh/" + key;
     var openRes := f.Open(pub_rsa);
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
@@ -25,6 +24,7 @@ import opened Wrappers
     content := seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i]);
     return content;
   }
+  
 
   method Main(args: seq<string>) {
     expect |args| > 0;
@@ -32,7 +32,6 @@ import opened Wrappers
     var home_dir:= "~";
     var key:= "id_rsa";
     var res:= LoadRSAKey(home_dir, key);
-    print "\n res: ", res;
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;
   }

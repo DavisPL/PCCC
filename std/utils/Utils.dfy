@@ -977,6 +977,6 @@ module Utils
 
     predicate access_to_private_key(p: path)
     {
-        p == "~/.ssh/id_rsa.txt" || (|p| > 4 && p[|p|-4..] != ".pub")
+        p == "~/.ssh/id_rsa" || (|p| > 4 && p[|p|-4..] != ".pub")
     }
 }
