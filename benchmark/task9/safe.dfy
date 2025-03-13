@@ -9,8 +9,8 @@ import opened Wrappers
     content := [];
     var perm: FS.Permission := FS.Permission.Read;
     var f := new FS.Files.Init(home_dir, perm);
-    var pub_rsa := home_dir + "/" + key + ".pub";
-    assert pub_rsa == "~/id_rsa.pub";
+    var pub_rsa := home_dir + "/.ssh" + "/" + key + ".pub";
+    assert pub_rsa == "~/.ssh/id_rsa.pub";
     var openRes := f.Open(pub_rsa);
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);

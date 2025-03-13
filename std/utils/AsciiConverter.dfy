@@ -29,4 +29,25 @@ module AsciiConverter {
     }
 
   }
+
+  method ByteToString(bytes: seq<bv8>) returns (s: string)
+  requires |bytes| >= 0
+  ensures |s| == |bytes|
+  ensures forall i :: 0 <= i < |bytes| ==> s[i] as nat == bytes[i] as nat
+  {
+    var i := 0;
+    s := "";
+
+    while i < |bytes|
+      invariant 0 <= i <= |bytes|
+      invariant |s| == i
+      invariant forall j :: 0 <= j < i ==> s[j] as nat == bytes[j] as nat
+      decreases |bytes| - i
+    {
+      var n: nat := bytes[i] as nat;
+      var c: char := n as char;
+      s := s + [c];
+      i := i + 1;
+    }
+  }
 }

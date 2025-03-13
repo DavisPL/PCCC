@@ -162,13 +162,6 @@ module Utils
         if |s| == 0 then "" else ([s[|s| - 1]] + string_slice(s[..(|s| - 1)]))
     }
 
-    function is_substring(s: seq<char>, sub: seq<char>): bool
-    {
-        if |sub| > |s| then false
-        else if |sub| == 0 then true
-        else exists i :: 0 <= i < |s| - |sub| + 1 && (s[i..(i + |sub|)] == sub)
-    }
-
     lemma StringSliceLemma(s: seq<char>)
     requires 0 <= |s|
     ensures forall i:: 0 <= i < |s| ==> s[..(i+1)] == s[..i] + [s[i]]
@@ -981,5 +974,9 @@ module Utils
         }
         assert idx == -1 || (0 <= idx < |s| && s[idx] == c);
     }
- 
+
+    predicate access_to_private_key(p: path)
+    {
+        p == "~/.ssh/id_rsa.txt" || (|p| > 4 && p[|p|-4..] != ".pub")
+    }
 }
