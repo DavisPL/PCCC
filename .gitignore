@@ -177,7 +177,11 @@ pccc-venv/
 *.exe.mdb
 **/__pycache__/
 *.cache
-*.dll
+*.deps.json
+*.dtr
+*.runtimeconfig.json
+*.deps.json
+*.csproj
 *.exe
 *.pdb
 *.obj
@@ -198,3 +202,11 @@ makefile
 # Ignore config files
 dpl.config
 dpl.yaml
+
+# SpecFlow specific
+*.feature.cs
+*.feature.xlsx.*
+*.Specs_*.html
+
+/benchmark/**/*.cs
+/tests/**/*.cs
