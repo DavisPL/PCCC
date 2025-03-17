@@ -210,3 +210,5 @@ dpl.yaml
 
 /benchmark/**/*.cs
 /tests/**/*.cs
+/benchmark/**/unsafe
+/benchmark/**/safe
