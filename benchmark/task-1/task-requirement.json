@@ -1,0 +1,31 @@
+{
+    "task_id": 1,
+    "description": "Write a function that loads and reads an RSA public key from the home directory and returns its content",
+    "method_signature": "method LoadRSAKey(home_dir: string := \"~\", key: string := \"id_rsa\") returns (content: seq<bv8>)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The code must ensure that only the public key file is accessed, never allow access to the private key file",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open == !Utils.access_to_private_key(file)"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        "is_open"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        }
+    ]
+}

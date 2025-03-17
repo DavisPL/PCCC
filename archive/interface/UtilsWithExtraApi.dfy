@@ -1,9 +1,9 @@
+
 module Utils
 {
     type path = seq<char>
     type file = seq<char>
     type fileType = seq<char>
-    type extension = seq<char>
     const pathMaxLength :int  := 1024 // Maximum length of a path for UNIX Systems
     const fileMaxLength :int := 50
     const fileMinLength :int := 4
@@ -20,7 +20,8 @@ module Utils
     datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-    const restrictedDirs := ["~/etc/passwd","/etc/passwd", "etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files", ".ssh/"]
+    const restrictedDirs := ["/etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files"]
+    const currWDir := ["/Users/pari/pcc-llms/src/playground"]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
         "mysql" := ["query.log", "slow.log"],
@@ -134,12 +135,29 @@ module Utils
 
     predicate has_valid_path_length(p: path)
     {
-      0 <= |p| < pathMaxLength
+    0 <= |p| < pathMaxLength
     }
+
+    // predicate HasValidPathFileLength(PathOrFile: PathOrFile)
+    // {
+    //   match PathOrFile
+    //   {
+    //     case Path(p) => 0 < |p| <= pathMaxLength
+    //     case File(f) => 0 < |f| <= fileMaxLength
+    //   }
+    // }
 
     predicate non_empty_path(f: file)
     {
         f != "" && |f| > 0
+    }
+
+    predicate validate_file_type(f: file)
+    ensures validate_file_type(f) <==> (get_file_extension(f) in allowedExtensionsForRead
+    && get_file_extension(f) !in invalidFileTypes)
+    {
+    var extension := get_file_extension(f);
+    if (extension in allowedExtensionsForRead  && extension !in invalidFileTypes) then true else false
     }
 
     // Function to check if filename has leading or trailing spaces
@@ -201,15 +219,18 @@ module Utils
 
     function get_path_length(pof: PathOrFile): nat
     {
-        match pof
-        {
-            case Path(p) => |p|
-            case File(f) => |f|
-        }
+    match pof
+    {
+        case Path(p) => |p|
+        case File(f) => |f|
+    }
     }
 
+    // TODO: fix this to accept C:/ as a valid path
+    //ToDo: Fix Utils.has_dangerous_pattern(file) and split it to separted methods for handling dangerous patterns
     predicate has_dangerous_pattern(p: path)
     {
+        contains_consecutive_periods(p) || !is_abs(p) ||
         contains_encoded_periods(p)
         || contains_dangerous_pattern(p)
         || has_dot_dot_slash(p)
@@ -217,32 +238,28 @@ module Utils
         || has_slash_dot_dot(p)
         || has_backslash_dot_dot(p)
     }
-
+    //ToDO: Test and support for all operating systems
     predicate has_relative_traversal_pattern(p: path)
     {
-        has_parent_dir_traversal(p)
+        !is_abs(p)
+        || has_parent_dir_traversal(p)
         || has_dot_dot_slash(p)
         || has_dot_dot_backslash(p)
         || has_slash_dot_dot(p)
         || has_backslash_dot_dot(p)
     }
 
-    function get_sep(p: path): string 
-    {
-        if '/' in p then "/" else "\\"
-    }
 
-
-    function is_abs_path(p: path): bool // retuns true if path has no consecutive periods
+    predicate is_abs(p: path)
     {
-        if (get_sep(p) == "/") then is_unix_absolute_path(p) else is_windows_abs_path(p)
+        |p| > 0 && (p[0] == '/')
     }
 
     method ContainsAbsolutePaths(p: path) returns (contains: bool)
     requires |p| > 0
-    ensures contains <==> is_abs_path(p)
+    ensures contains <==> is_abs(p)
     {
-        contains := is_abs_path(p);
+        contains := is_abs(p);
     }
 
     predicate is_unix_absolute_path(p: path)
@@ -250,38 +267,101 @@ module Utils
         |p| > 0 && p[0] == '/'
     }
 
-    predicate is_windows_abs_path(p: path)
+    predicate is_windows_absolute_path(p: path)
     {
         var isDrivePathWithSlash := |p| >= 3 && is_drive_letter(p[0]) && p[1] == ':' &&
                                     (p[2] == '\\' || p[2] == '/');
         var isDrivePath := |p| == 2 && is_drive_letter(p[0]) && p[1] == ':';
         var isUNCPath := |p| >= 2 && p[0] == '\\' && p[1] == '\\';
 
-        (isDrivePathWithSlash || isDrivePath || isUNCPath)
+        isDrivePathWithSlash || isDrivePath || isUNCPath
     }
 
-    predicate is_abs(p: path) // similar to python isabs
+    predicate is_absolute_path(p: path)
     {
-        is_unix_absolute_path(p) || is_windows_abs_path(p)
+        is_unix_absolute_path(p) || is_windows_absolute_path(p)
     }
-    
-    method get_file_extension(f: file) returns (extension: string) // Extract and return file extension
-    ensures extension != "" <==> exists i:: 0 <= i < |f| && i+1 < |f| && f[i] == '.' && f[i+1..] == extension
+
+    // / Function to check if a file extension is valid
+    predicate is_valid_file_extension(filename: string)
     {
-        extension := "";    
-        var lastDotIndex := LastCharIndex(f, '.');
-        if lastDotIndex == -1 
-        {
-            return;
-        }   
-        extension := f[lastDotIndex + 1..];
+        var lastDotIndex := find_last_index_c(filename, '.');
+        lastDotIndex >= 0 &&
+        lastDotIndex < |filename| - 1 &&
+        forall i :: lastDotIndex < i < |filename| ==>
+            filename[i] != '/' && filename[i] != '\\'
     }
-    
+
+    // Helper function to get the last index of a character in a sequence
+    function find_last_index_c(s: seq<char>, c: char): int
+    ensures -1 <= find_last_index_c(s, c) < |s|
+    ensures find_last_index_c(s, c) > -1 ==> s[find_last_index_c(s, c)] == c
+    ensures find_last_index_c(s, c) == -1 ==> forall i :: 0 <= i < |s| ==> s[i] != c
+    ensures forall i :: find_last_index_c(s, c) < i < |s| ==> s[i] != c
+    {
+        StringSliceLemma(s);
+        LastIndexOfLemma(s, c, |s| - 1)
+    }
+
+    // Recursive helper for LastIndexOf
+    function LastIndexOfLemma(s: string, c: char, start: int): (result: int)
+        requires -1 <= start < |s|
+        ensures -1 <= result <= start
+        ensures result >= 0 ==> s[result] == c
+        ensures result == -1 ==> forall i :: 0 <= i <= start ==> s[i] != c
+        ensures forall i :: result < i <= start ==> s[i] != c
+        decreases start + 1
+    {
+        if start == -1 || |s| == 0  then -1
+        else if s[start] == c then start
+        else LastIndexOfLemma(s, c, start - 1)
+
+
+    //     if |s| == 0 then -1
+    // else if s[|s|-1] == c then |s| - 1
+    // else find_last_index_c(s[..|s|-1], c)
+    }
+
+    // Lemma to help prove properties about LastIndexOf
+    lemma LastIndexOfPropertiesLemma(s: string, c: char)
+        ensures find_last_index_c(s, c) >= 0 ==>
+            exists i :: 0 <= i < |s| && s[i] == c &&
+            forall j :: i < j < |s| ==> s[j] != c
+        ensures find_last_index_c(s, c) == -1 ==>
+            forall i :: 0 <= i < |s| ==> s[i] != c
+    {
+        if |s| == 0 {
+            assert find_last_index_c(s, c) == -1;
+        } else {
+            var lastIndex := find_last_index_c(s, c);
+            if lastIndex >= 0 {
+                assert s[lastIndex] == c;
+                assert forall j :: lastIndex < j < |s| ==> s[j] != c;
+            } else {
+                assert forall i :: 0 <= i < |s| ==> s[i] != c;
+            }
+        }
+    }
+
+    // Helper function to get file extension
+    function get_file_extension(filename: file): string
+    {
+        var lastDotIndex := find_last_index_c(filename, '.');
+        if lastDotIndex == -1 then
+        []
+        else
+        filename[lastDotIndex + 1..]
+    }
+
     method ValidateFileType(t: fileType) returns (result: bool)
     requires 0 <= |t| <= 4
     {
         var res := ContainsSequence(restrictedDirs, t);
-        result := !res;
+        if !res {
+            result := true;
+        } else {
+            result := false;
+        }
     }
 
     method NonSensitiveFilePath(t: fileType) returns (result: bool)
@@ -320,7 +400,7 @@ module Utils
 
     predicate is_prefix(p1: path, p2: path)
     {
-        |p1| <= |p2| && p1 == p2[..|p1|]
+    |p1| <= |p2| && p1 == p2[..|p1|]
     }
 
     method ContainsSequence(list: seq<seq<char>>, sub: seq<char>) returns (result: bool)
@@ -473,10 +553,10 @@ module Utils
         list_contains_string(list[1..], sub)
     }
 
-    predicate ContainsChar(s: string, c: char)
+    function ContainsChar(s: string, c: char): bool
     // requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
     {
-        c in s
+    exists i :: 0 <= i < |s| && s[i] == c
     }
 
     lemma CharAtIndexImpliesContainsC(s: string, c: char, index: int)
@@ -485,8 +565,27 @@ module Utils
     requires s[index] == c
     ensures ContainsChar(s, c)
     {
+    // The body can be empty; Dafny can prove this automatically
     }
 
+    method ContainsCharMethod(s: string, c: char) returns (result: bool)
+    requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
+    ensures result == ContainsChar(s, c)
+    {
+    result := false;
+    var i := 0;
+    while i < |s|
+        invariant 0 <= i <= |s|
+        invariant result == (exists k :: 0 <= k < i && s[k] == c)
+    {
+        if s[i] == c {
+        CharAtIndexImpliesContainsC(s, c, i);
+        result := true;
+        return;
+        }
+        i := i + 1;
+    }
+    }
 
 
     // Check 1: Path is not empty
@@ -525,14 +624,94 @@ module Utils
         }
     }
 
+    method HasDotDot(path: string) returns (res:bool) 
+    requires |path| >= 2
+    ensures !res <==> forall i: int :: 0 <= i < |path| - 1 ==> !(path[i] == '.' && path[i+1] == '.')
+    ensures res <==> exists i: int :: 0 <= i < |path| - 1 && path[i] == '.' && path[i+1] == '.'
+    {
+        res := false;
+        var i: int := 0;
+        while i < |path| - 1
+            invariant 0 <= i <= |path| - 1
+            invariant !res <==> forall j: int :: 0 <= j < i && j + 1 < |path| ==> !(path[j] == '.' && path[j+1] == '.')
+        {
+            if (path[i] == '.' && path[i+1] == '.')
+            {
+                res := true;
+                return;
+            }
+            i := i + 1;
+        }
+    }
+
+    
+    method HasDotDotSlash(path: string) returns (res: bool)
+    requires |path| >= 3
+    ensures res <==> exists i: int :: 0 <= i < |path| - 2 && path[i] == '.' && path[i+1] == '.' && path[i+2] == '/'
+    {
+        res := false;
+        var i: int := 0;
+        while i < |path| - 2
+            invariant 0 <= i <= |path| - 2
+            invariant !res <==> forall j: int :: 0 <= j <= i - 1 && j + 2 < |path| ==> !(path[j] == '.' && path[j+1] == '.' && path[j+2] == '/')
+        {
+            if (path[i] == '.' && path[i+1] == '.' && path[i+2] == '/') 
+            {
+                res := true;
+                return;
+            }
+            i := i + 1;
+        }
+    }
+
+    method HasSlashDotDot(path: string) returns (res: bool)
+    requires |path| >= 3
+    ensures res <==> exists i: int :: 0 <= i < |path| - 2 && path[i] == '/' && path[i+1] == '.' && path[i+2] == '.'
+    {
+        res := false;
+        var i: int := 0;
+        while i < |path| - 2
+            invariant 0 <= i <= |path| - 2
+            invariant !res <==> forall j: int :: 0 <= j <= i - 1 && j + 2 < |path| ==> !(path[j] == '/' && path[j+1] == '.' && path[j+2] == '.')
+        {
+            if (path[i] == '/' && path[i+1] == '.' && path[i+2] == '.') {
+                res := true;
+                return;
+            }
+            i := i + 1;
+        }
+    }
+
+
+    method HasRelativePath(path: string) returns (res:bool)
+    requires |path| >=3
+    {
+        var hasDoubleDot := HasDotDot(path);
+        var hasDoubleDotSlash := HasDotDotSlash(path);
+        var hasSlashDotDot := HasSlashDotDot(path);
+        return hasDoubleDot || hasDoubleDotSlash || hasSlashDotDot;
+    }
+
+    predicate contains_consecutive_periods(s: seq<char>)
+    {
+    StringSliceLemma(s);
+        if |s| < 2 then
+            false
+        else if (s[0] == '.' && s[1] == '.') then
+            true
+        else
+            contains_consecutive_periods(s[1..])
+
+    }
+
     function has_dot_dot_slash(path: seq<char>): bool
     decreases |path|
     {
-        if |path| < 3 then
-            false
-        else
-            (path[0] == '.' && path[1] == '.' && path[2] == '/')
-            || has_dot_dot_slash(path[1..])
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '.' && path[1] == '.' && path[2] == '/')
+        || has_dot_dot_slash(path[1..])
     }
 
     method ContainsDotDotForwardSlash(path: seq<char>) returns (contains: bool)
@@ -544,12 +723,11 @@ module Utils
     function has_dot_dot_backslash(path: seq<char>): bool
     decreases |path|
     {
-        StringSliceLemma(path);
-        if |path| < 3 then
-            false
-        else
-            (path[0] == '.' && path[1] == '.' && path[2] == '\\')
-            || has_dot_dot_backslash(path[1..])
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '.' && path[1] == '.' && path[2] == '\\')
+        || has_dot_dot_backslash(path[1..])
     }
 
     method ContainsDotDotBackslash(path: seq<char>) returns (contains: bool)
@@ -561,12 +739,11 @@ module Utils
     function has_slash_dot_dot(path: seq<char>): bool
     decreases |path|
     {
-        StringSliceLemma(path);
-        if |path| < 3 then
-            false
-        else
-            (path[0] == '/' && path[1] == '.' && path[2] == '.')
-            || has_slash_dot_dot(path[1..])
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '/' && path[1] == '.' && path[2] == '.')
+        || has_slash_dot_dot(path[1..])
     }
 
     method ContainsSlashDotDot(path: seq<char>) returns (contains: bool)
@@ -579,19 +756,18 @@ module Utils
     function has_backslash_dot_dot(path: seq<char>): bool
     decreases |path|
     {
-        StringSliceLemma(path);
-        if |path| < 3 then
-            false
-        else
-            (path[0] == '\\' && path[1] == '.' && path[2] == '.')
-            || has_backslash_dot_dot(path[1..])
+    if |path| < 3 then
+        false
+    else
+        (path[0] == '\\' && path[1] == '.' && path[2] == '.')
+        || has_backslash_dot_dot(path[1..])
     }
 
     method ContainsBackslashDotDot(path: seq<char>) returns (contains: bool)
     requires |path| > 0
     ensures contains <==> has_backslash_dot_dot(path)
     {
-        contains := has_backslash_dot_dot(path);
+    contains := has_backslash_dot_dot(path);
     }
 
 
@@ -677,307 +853,5 @@ module Utils
     {
         |filePath| >= |base| && filePath[..|base|] == base
     }
-
-    method SplitPath(path: string) returns (head: string, tail: string)
-    ensures |path| == 0 ==> head == "" && tail == ""
-    ensures (forall i:: 0 <= i < |path| ==> path[i] != '/') ==> head == "" && tail == path
-    ensures path == head + tail
-    ensures head != "" && tail != "" ==> head == path[..|head|] && tail == path[|head|..]
-    ensures |head| == (|path| - 1) && tail == "" ==> head == path[..|path|-1] && tail == path[|head|..]
-    {
-        var slashIdx := LastSlash(path);
-        if slashIdx == -1 {
-            head, tail := "", path;  // No slash found    
-        } 
-        head, tail := path[..slashIdx + 1], path[slashIdx + 1..];  
-        StringSliceLemma(path);
-        assert path == head + tail;
-        print "head", "\n", head, "\n";
-        print "tail", "\n", tail, "\n";
-    }
-
-
-    method LastSlash(s: string) returns (idx: int)
-    ensures -1 <= idx < |s|
-    ensures idx == -1 ==> (forall i:: 0 <= i < |s| ==> s[i] != '/')
-    ensures s == s[..idx+1] + s[idx+1..]
-    ensures idx != -1 ==> (forall i :: idx < i < |s| ==> s[i] != '/') && s[idx] == '/'
-    ensures |s| > 0 && s[|s|-1] == '/' ==> idx == |s|-1
-    ensures s == "/" ==> idx == 0
-    {
-        idx := -1;
-        var i := |s| - 1;
-        while i >= 0
-            decreases i
-            invariant -1 <= i < |s|
-            invariant idx != -1 ==> s[idx] == '/' &&  (forall i :: idx < i < |s| ==> s[i] != '/')
-            invariant (idx == -1 ==> (forall j :: i < j < |s| ==> s[j] != '/'))
-        {
-            if s[i] == '/' {
-                idx := i;
-                assert i == idx;
-                assert s[idx] == '/';
-                print "\n", "Input", "\n", s;
-                print "\n", "Last slash index @", "\n", idx;
-                print "\n", "---------------", "\n";
-                assert if s == "/" then idx == 0 else idx == i;
-                break;
-            }
-            assert s[i] != '/';
-            assert idx != i;
-            i := i - 1;
-        }
-        StringSliceLemma(s);
-        assert idx == -1 || (0 <= idx < |s| && s[idx] == '/');
-    }
-
-    method SplitAll(path: string) returns (parts: seq<string>)
-    ensures path == "/" ==> parts == []
-    ensures |path| == 0 ==> parts == []
-    ensures path != "/" && |path| > 0 && path[0] == '/' ==> (forall p :: p in parts ==> |p| > 0)
-    decreases |path|
-    {
-        if |path| == 0 || path == "/" {
-            return [];
-        }
-        var head, tail := SplitPath(path);
-        
-        if head == "" && tail == "" {
-            return []; 
-        } else if head == "" && tail != "" {
-            return [tail]; 
-        }  else if head == path {
-            parts := SplitAll(path[..|path| - 1]);
-        } else {
-            var firstPart := tail;
-            var remainingParts := SplitAll(head[..|head|-1]);
-
-            if |firstPart| > 0 {
-                return remainingParts + [firstPart];
-            } else {
-                return remainingParts;
-            }
-        }
-    }
-
-    method SplitAllWithSlashes(path: string) returns (parts: seq<string>)
-    ensures path == "/" ==> parts == ["/"]
-    ensures |path| == 0 ==> parts == []
-    ensures forall p :: p in parts ==> |p| > 0
-    decreases |path| 
-    {
-        if |path| == 0 {
-            return [];
-            return;
-        } else if path == "/" {
-            return ["/"];
-        }
-
-        var head, tail := SplitPath(path);
-
-        if head == "" {
-            if |tail| > 0 {
-                return [tail];
-            } else {
-                return [];  
-            }
-        }
-
-        var firstPart := tail;
-        var remainingParts := SplitAllWithSlashes(head[..|head|-1]);
-        if |firstPart| > 0 {
-            return remainingParts + ["/"] + [firstPart];
-        } else {
-            return  remainingParts;
-        }
-    }
-
-     //This method should return true iff pre is a prefix of str. That is, str starts with pre
-    method IsPrefix(pre:string, str:string) returns(res:bool)
-        requires 0 < |pre| <= |str| //This line states that this method requires that pre is less than or equal in length to str. Without this line, an out of bounds error is shown on line 14: "str[i] != pre[i]"
-    {
-        //Initialising the index variable
-        var i := 0;
-
-        //Iterating through the first |pre| elements in str
-        while (i < |pre|)
-            invariant 0 <= i <= |pre|                               //Specifying the range of the while loop
-            decreases |pre| - i                                     //Specifying that the while loop will terminate
-        {
-            //If an element does not match, return false
-            if (str[i] != pre[i]) {
-                //Debug print
-                print str[i], " != ", pre[i], "\n";
-
-                //Return once mismatch detected, no point in iterating any further
-                return false;
-            }
-            //Else loop until mismatch found or we have reached the end of pre
-            else{
-                //Debug pront
-                print str[i], " == ", pre[i], "\n";
-
-                i := i + 1;
-            }
-        }
-        return true;
-    }
-
-    //This method should return true iff sub is a substring of str. That is, str contains sub
-    method IsSubstring(sub:string, str:string) returns(res:bool)
-        requires 0 < |sub| <= |str| //This method requires that sub is less than or equal in length to str
-    {
-        //Initialising the index variable
-        var i := 0;
-
-        //This variable stores the difference in length between the two strings
-        var n := (|str| - |sub|);
-
-        //Here, we want to re-use the "isPrefix" method above, so with each iteration of the search, we are passing an offset of str - effectively trimming a character off the front of str and passing it to isPrefix
-            //example 1 (sub found in str): 
-            //str = door & sub = or
-            //iteration 1: isPrefix(or, door), returns false, trim & iterate again
-            //iteration 2: isprefix(or, oor), returns false, trim & iterate again
-            //iteration 3: isPrefix(or, or), returns true, stop iterating
-
-            //example 2 (sub not found in str):
-            //str = doom & sub = or
-            //iteration 1: isPrefix(or, doom), returns false, trim & iterate again
-            //iteration 2: isprefix(or, oom), returns false, trim & iterate again
-            //iteration 3: isPrefix(or, om), returns false, str is has not been "trimmed" to the same length as sub, so we stop iterating
-
-        while(i < n+1)
-            invariant 0 <= i <= n+1     //Specifying the range of the while loop
-            decreases n - i             //Specifying that the while loop will terminate
-        {
-            //Debug print to show what is being passed to isPrefix with each iteration
-            print "\n", sub, ", ", str[i..|str|], "\n";
-
-            var result:= IsPrefix(sub, str[i..|str|]);
-
-            //Return once the substring is found, no point in iterating any further
-            if(result == true){
-                return true;
-            }
-            //Else loop until sub is found, or we have reached the end of str
-            else{
-                i := i+1;
-            }
-        }
-        return false;
-    }
-
-    //This method should return true iff str1 and str1 have a common substring of length k
-    method HaveCommonKSubstring(k:nat, str1:string, str2:string) returns(found:bool)
-        requires 0 < k <= |str1| &&  0 < k <= |str2| //This method requires that k > 0 and k is less than or equal to in length to str1 and str2
-    {
-        //Initialising the index variable
-        var i := 0;
-
-        //This variable is used to define the end condition of the while loop
-        var n := |str1|-k;
-
-        //Here, we want to re-use the "isSubstring" method above, so with each iteration of the search, we are passing a substring of str1 with length k and searching for this substring in str2. If the k-length substring is not found, we "slide" the length-k substring "window" along and search again
-            //example:
-            //str1 = operation, str2 = rational, k = 5
-            //Iteration 1: isSubstring(opera, rational), returns false, slide the substring & iterate again
-            //Iteration 2: isSubstring(perat, rational), returns false, slide the substring & iterate again
-            //Iteration 3: isSubstring(erati, rational), returns false, slide the substring & iterate again
-            //Iteration 4: isSubstring(ratio, rational), returns true, stop iterating
-
-        while(i < n)
-            decreases n - i //Specifying that the loop will terminate
-        {
-            //Debug print to show what is being passed to isSubstring with each iteration
-            print "\n", str1[i..i+k], ", ", str2, "\n";
-
-            var result := IsSubstring(str1[i..i+k], str2);
-
-            //Return once the length-k substring is found, no point in iterating any further
-            if(result == true){
-                return true;
-            }
-            //Else loop until the length-k substring is found, or we have reached the end condition
-            else{
-                i:=i+1;
-            }
-        }
-        return false;
-    }
-
-    //This method should return the natural number len which is equal to the length of the longest common substring of str1 and str2. Note that every two strings have a common substring of length zero.
-    method MaxCommonSubstringLength(str1:string, str2:string) returns(len:nat)
-        requires 0 < |str1| && 0 < |str1|
-    {
-        //This variable is used to store the result of calling haveCommonKSubstring
-        var result:bool;
-        
-        //We want the longest common substring between str1 and str2, so the starting point is going to be the shorter of the two strings.
-        var i:= |str1|;
-        if(|str2| < |str1|){
-            i := |str2|;
-        }
-
-        //Here, we want to re-use the "haveKCommonSubstring" method above, so with each iteration of the search, we pass a decreasing value of k until a common substring of this length is found. If no common substring is found, we return 0.
-        while (i > 0)
-            decreases i - 0
-        {
-            print str1, ", ", str2, " k = ", i, "\n";
-            
-            result := HaveCommonKSubstring(i, str1, str2);
-
-            if(result == true){
-                return i;
-            }
-            else{
-                i := i - 1;
-            }
-        }
-        return 0;
-    }
-
-    method LastCharIndex(s: string, c: char) returns (idx: int)
-    ensures -1 <= idx < |s|
-    ensures idx == -1 ==> (forall i:: 0 <= i < |s| ==> s[i] != c)
-    ensures 0 <= idx < |s| ==> s[idx] == c
-    ensures idx != -1 ==> (forall i :: idx < i < |s| ==> s[i] != c)
-    {
-        idx := -1;
-        var i := |s| - 1;
-        while i >= 0
-            decreases i
-            invariant -1 <= i < |s|
-            invariant idx != -1 ==> s[idx] == c &&  (forall i :: idx < i < |s| ==> s[i] != c)
-            invariant (idx == -1 ==> (forall j :: i < j < |s| ==> s[j] != c))
-        {
-            if s[i] == c {
-                idx := i;
-                assert i == idx;
-                assert s[idx] == c;
-                print "Input", "\n", s;
-                print "Last slash index @", "\n", idx;
-                print "---------------", "\n";
-                break;
-            }
-            assert s[i] != c;
-            assert idx != i;
-            i := i - 1;
-        }
-        assert idx == -1 || (0 <= idx < |s| && s[idx] == c);
-    }
-
-    predicate access_to_private_key(p: path)
-    {
-        p == "~/.ssh/id_rsa" || (|p| > 4 && p[|p|-4..] != ".pub")
-    }
-
-    predicate forbidden_dir_access(p: path)
-    {
-        p in restrictedDirs
-    }
-
-    predicate is_json_file(e: extension)
-    {
-        e == ".json"
-    }
+ 
 }

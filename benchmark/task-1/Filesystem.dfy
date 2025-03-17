@@ -23,26 +23,19 @@ module {:options "-functionSyntax:4"} Filesystem {
   import Utils
   datatype Error =  Noent | Exist
   datatype Ok<T> = Ok(v: T)
-  datatype Permission = Read | Write | Execute | None
 
   class Files {
     var name: string
     var content: seq<char>
-    var permission: Permission
     ghost var is_open:bool // Ghost variable can only be used in the specifications
     ghost var is_symbolic_link:bool
     ghost var size: nat
-    // constructor Init(){
-    //   is_open := false;
-    //   is_symbolic_link := false;
-    // }
     
-    constructor Init (name: string:= "~", perm: Permission)
+    constructor Init (name: string:= "new_file.txt")
       requires |name| > 0      // We can't create a file with an empty name
     {
       this.name := name;
       this.content := [];  // Empty file content initially
-      this.permission := perm;
       this.is_open := false;
       this.is_symbolic_link := false;
     }
@@ -60,8 +53,6 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
- 
-    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
       ensures res.Success? ==> is_open == !Utils.access_to_private_key(file)
@@ -83,7 +74,6 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    requires permission == Write
     requires this.is_open == true
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
@@ -105,7 +95,6 @@ module {:options "-functionSyntax:4"} Filesystem {
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
-    // requires forall i:: 0 <=i <|paths| ==> paths[i] != ".ssh"
     ensures res.Success? ==> Utils.non_empty_path(res.value) && !Utils.has_dangerous_pattern(res.value)
     {
       if |paths| == 0 || |separator| == 0 {
