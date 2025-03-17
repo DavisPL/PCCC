@@ -3,6 +3,7 @@ module Utils
     type path = seq<char>
     type file = seq<char>
     type fileType = seq<char>
+    type extension = seq<char>
     const pathMaxLength :int  := 1024 // Maximum length of a path for UNIX Systems
     const fileMaxLength :int := 50
     const fileMinLength :int := 4
@@ -19,7 +20,7 @@ module Utils
     datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
     const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-    const restrictedDirs := ["etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files"]
+    const restrictedDirs := ["~/etc/passwd","/etc/passwd", "etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files", ".ssh/"]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
         "mysql" := ["query.log", "slow.log"],
@@ -209,7 +210,6 @@ module Utils
 
     predicate has_dangerous_pattern(p: path)
     {
-        contains_consecutive_periods(p) ||
         contains_encoded_periods(p)
         || contains_dangerous_pattern(p)
         || has_dot_dot_slash(p)
@@ -235,7 +235,7 @@ module Utils
 
     function is_abs_path(p: path): bool // retuns true if path has no consecutive periods
     {
-        if (get_sep(p) == "/") then (is_unix_absolute_path(p) && !contains_consecutive_periods(p)) else (is_windows_abs_path(p) && !contains_consecutive_periods(p))
+        if (get_sep(p) == "/") then is_unix_absolute_path(p) else is_windows_abs_path(p)
     }
 
     method ContainsAbsolutePaths(p: path) returns (contains: bool)
@@ -257,7 +257,7 @@ module Utils
         var isDrivePath := |p| == 2 && is_drive_letter(p[0]) && p[1] == ':';
         var isUNCPath := |p| >= 2 && p[0] == '\\' && p[1] == '\\';
 
-        isDrivePathWithSlash || isDrivePath || isUNCPath
+        (isDrivePathWithSlash || isDrivePath || isUNCPath)
     }
 
     predicate is_abs(p: path) // similar to python isabs
@@ -525,26 +525,14 @@ module Utils
         }
     }
 
-    predicate contains_consecutive_periods(s: seq<char>)
-    {
-    StringSliceLemma(s);
-        if |s| < 2 then
-            false
-        else if (s[0] == '.' && s[1] == '.') then
-            true
-        else
-            contains_consecutive_periods(s[1..])
-
-    }
-
     function has_dot_dot_slash(path: seq<char>): bool
     decreases |path|
     {
-    if |path| < 3 then
-        false
-    else
-        (path[0] == '.' && path[1] == '.' && path[2] == '/')
-        || has_dot_dot_slash(path[1..])
+        if |path| < 3 then
+            false
+        else
+            (path[0] == '.' && path[1] == '.' && path[2] == '/')
+            || has_dot_dot_slash(path[1..])
     }
 
     method ContainsDotDotForwardSlash(path: seq<char>) returns (contains: bool)
@@ -556,11 +544,12 @@ module Utils
     function has_dot_dot_backslash(path: seq<char>): bool
     decreases |path|
     {
-    if |path| < 3 then
-        false
-    else
-        (path[0] == '.' && path[1] == '.' && path[2] == '\\')
-        || has_dot_dot_backslash(path[1..])
+        StringSliceLemma(path);
+        if |path| < 3 then
+            false
+        else
+            (path[0] == '.' && path[1] == '.' && path[2] == '\\')
+            || has_dot_dot_backslash(path[1..])
     }
 
     method ContainsDotDotBackslash(path: seq<char>) returns (contains: bool)
@@ -572,11 +561,12 @@ module Utils
     function has_slash_dot_dot(path: seq<char>): bool
     decreases |path|
     {
-    if |path| < 3 then
-        false
-    else
-        (path[0] == '/' && path[1] == '.' && path[2] == '.')
-        || has_slash_dot_dot(path[1..])
+        StringSliceLemma(path);
+        if |path| < 3 then
+            false
+        else
+            (path[0] == '/' && path[1] == '.' && path[2] == '.')
+            || has_slash_dot_dot(path[1..])
     }
 
     method ContainsSlashDotDot(path: seq<char>) returns (contains: bool)
@@ -589,18 +579,19 @@ module Utils
     function has_backslash_dot_dot(path: seq<char>): bool
     decreases |path|
     {
-    if |path| < 3 then
-        false
-    else
-        (path[0] == '\\' && path[1] == '.' && path[2] == '.')
-        || has_backslash_dot_dot(path[1..])
+        StringSliceLemma(path);
+        if |path| < 3 then
+            false
+        else
+            (path[0] == '\\' && path[1] == '.' && path[2] == '.')
+            || has_backslash_dot_dot(path[1..])
     }
 
     method ContainsBackslashDotDot(path: seq<char>) returns (contains: bool)
     requires |path| > 0
     ensures contains <==> has_backslash_dot_dot(path)
     {
-    contains := has_backslash_dot_dot(path);
+        contains := has_backslash_dot_dot(path);
     }
 
 
@@ -978,5 +969,15 @@ module Utils
     predicate access_to_private_key(p: path)
     {
         p == "~/.ssh/id_rsa" || (|p| > 4 && p[|p|-4..] != ".pub")
+    }
+
+    predicate forbidden_dir_access(p: path)
+    {
+        p in restrictedDirs
+    }
+
+    predicate is_json_file(e: extension)
+    {
+        e == ".json"
     }
 }

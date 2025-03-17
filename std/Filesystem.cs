@@ -63,9 +63,9 @@ namespace Filesystem
                 string directory = Path.GetDirectoryName(pathStr);
                 if (Directory.Exists(directory) || File.Exists(pathStr))
                 {
-                    FileStream fs = new FileStream(pathStr, FileMode.Open, FileAccess.ReadWrite);
-                    fileHandle = Guid.NewGuid(); 
-                    openFileHandles[fileHandle] = fs;
+                    // FileStream fs = new FileStream(pathStr, FileMode.Open, FileAccess.Read);
+                    // fileHandle = Guid.NewGuid(); 
+                    // openFileHandles[fileHandle] = fs;
                     isError = false;
                 }
                 else
