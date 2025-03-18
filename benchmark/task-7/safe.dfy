@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadConfigFile(home_dir:string:= "~", config: string:= "user-profile.txt") returns (content: seq<bv8>)
+  method loadTextFile(home_dir:string:= "~", config: string:= "user-profile.txt") returns (content: seq<bv8>)
   requires |home_dir| > 0 && home_dir == "~"
   requires |config| > 0 && config == "user-profile.txt"
   {
@@ -28,7 +28,7 @@ import opened Wrappers
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= LoadConfigFile();
+    var res:= loadTextFile();
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;
   }

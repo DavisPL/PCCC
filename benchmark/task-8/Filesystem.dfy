@@ -90,7 +90,13 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
-    method WriteBytesToFile(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)
+    method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
+    {
+      var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
+      return if isError then Failure(errorMsg) else Success(());
+    }
+
+    method WriteBytesWithAccessMode(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)
     requires this.is_open && this.access == Access.Write && accessMode == this.access
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
