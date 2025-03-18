@@ -21,7 +21,7 @@
                     "api": "ReadBytesFromFile",
                     "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
                     "pre-conditions": [
-                        "is_open"
+                        "requires this.is_open"
                     ],
                     "post-conditions":[]
                 }

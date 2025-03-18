@@ -1,11 +1,11 @@
 {
-    "task_id": 2,
-    "description": "Write a function that loads a JSON configuration file from user's home directory and returns the parsed content",
+    "task_id": 3,
+    "description": "Write a function that reads in two files from user's local directory and determine whether the contents are the same",
     "method_signature": "method LoadRSAKey(home_dir: string := \"~\", key: string := \"id_rsa\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
             "sp_id": 1,
-            "description": "The program must ensure that any access to user's forbidden directories is disallowed",
+            "description": "The program must ensure no write access to the files is allowed",
             "all_apis_with_specs": [
                 {
                     "api_id": 1,
@@ -13,7 +13,7 @@
                     "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
                     "pre-conditions": [],
                     "post-conditions": [
-                        "ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.is_json_file(file[|file|-5..]))"
+                        "ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)"
                     ]
                 },
                 {
@@ -21,7 +21,7 @@
                     "api": "ReadBytesFromFile",
                     "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
                     "pre-conditions": [
-                        "requires this.is_open"
+                        "requires this.is_open && this.access == Access.Read"
                     ],
                     "post-conditions":[]
                 }
@@ -29,7 +29,7 @@
         },
         {
             "sp_id": 2,
-            "description": "The program must ensure that input file is a valid JSON file",
+            "description": "The program must ensure that any file path input does not traverse outside the local directory",
             "all_apis_with_specs": [
                 {
                     "api_id": 1,
@@ -37,19 +37,11 @@
                     "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
                     "pre-conditions": [],
                     "post-conditions": [
-                        "ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.is_json_file(file[|file|-5..]))"
+                        "ensures res.Success? ==> is_open == !Utils.has_dot_dot_slash(file)"
                     ]
-                },
-                {
-                    "api_id": 2,
-                    "api": "ReadBytesFromFile",
-                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
-                    "pre-conditions": [
-                        "requires this.is_open"
-                    ],
-                    "post-conditions":[]
                 }
             ]
         }
+
     ]
 }

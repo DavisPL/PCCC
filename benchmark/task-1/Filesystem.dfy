@@ -21,20 +21,20 @@ include "../../std/utils/AsciiConverter.dfy"
 module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
-  datatype Error =  Noent | Exist
-  datatype Ok<T> = Ok(v: T)
-
+  datatype Access = Read | Write | Execute | None
   class Files {
     var name: string
     var content: seq<char>
     ghost var is_open:bool // Ghost variable can only be used in the specifications
     ghost var is_symbolic_link:bool
     ghost var size: nat
+    ghost var access: Access
     
     constructor Init (name: string:= "new_file.txt")
       requires |name| > 0      // We can't create a file with an empty name
     {
       this.name := name;
+      this.access := Access.None;
       this.content := [];  // Empty file content initially
       this.is_open := false;
       this.is_symbolic_link := false;
@@ -67,14 +67,13 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open == true
+    requires this.is_open
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    requires this.is_open == true
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());

@@ -7,7 +7,6 @@
 include "../../std/Wrappers.dfy"
 include "../../std/utils/Utils.dfy"
 include "../../std/utils/AsciiConverter.dfy"
-
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
   * The provided API is intentionally limited in scope and will be expanded later.
@@ -21,7 +20,9 @@ include "../../std/utils/AsciiConverter.dfy"
 module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
+  import AsciiConverter
   datatype Access = Read | Write | Execute | None
+  datatype FileContentFormat = json | xml | csv | txt | binary | unknown
   class Files {
     var name: string
     var content: seq<char>
@@ -29,6 +30,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     ghost var is_symbolic_link:bool
     ghost var size: nat
     ghost var access: Access
+    ghost var format: FileContentFormat
     
     constructor Init (name: string:= "new_file.txt")
       requires |name| > 0      // We can't create a file with an empty name
@@ -38,6 +40,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       this.content := [];  // Empty file content initially
       this.is_open := false;
       this.is_symbolic_link := false;
+      this.format := FileContentFormat.unknown;
     }
 
      /**
@@ -53,21 +56,21 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
- 
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 5
-      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.is_json_file(file[|file|-5..]))
+      ensures res.Success? ==> is_open
+      ensures res.Success? ==> access == Access.Read
+      ensures res.Success? ==> format == FileContentFormat.txt
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      var forbiddenAccess := Utils.forbidden_dir_access(file);
-      var validJson := Utils.is_json_file(file[|file|-5..]);
-      is_open := (!forbiddenAccess && validJson);
-      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
+      is_open := !isError;
+      this.access := if is_open then Access.Read else Access.None;
+      this.format := if is_open then FileContentFormat.txt else FileContentFormat.unknown;
+      return if (isError) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open
+    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.binary
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -88,6 +91,46 @@ module {:options "-functionSyntax:4"} Filesystem {
       } else {
         res := Success(isLink);
       }
+    }
+
+    method ReadFileContent(file: string) returns (content: seq<char>)
+    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.txt
+    {
+        var bytesContent:= [];
+        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
+        if isError {
+            print "unexpected failure: " + errorMsg;
+            return [];
+        }
+        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
+        content := AsciiConverter.ByteToString(bytesContent);
+        if |content| < 8 {
+            return [];
+        } 
+        var unsanitized := SanitizeFileContent(content);
+        print "Unsanitized: ", unsanitized;
+        if unsanitized {
+            return [];
+        }
+        return content;
+    }
+
+    method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
+    requires forall i :: 0 <= i < |Utils.restricted_commands| ==> |Utils.restricted_commands[i]| <= |s| 
+    {
+        restrictedCommand := false;
+        var i := 0;
+        while i < |Utils.restricted_commands|
+            invariant 0 <= i <= |Utils.restricted_commands|
+            invariant restrictedCommand ==> forall j :: 0 <= j < i ==> |Utils.restricted_commands[j]| <= |s| && Utils.restricted_commands[j] != s[..|Utils.restricted_commands[j]|]
+        {
+          restrictedCommand := Utils.IsSubstring(Utils.restricted_commands[i], s[..|Utils.restricted_commands[i]|]);
+          if restrictedCommand {
+              return;
+          }
+          i := i + 1;
+        }
+        
     }
 
 
