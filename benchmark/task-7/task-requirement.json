@@ -1,11 +1,11 @@
 {
-    "task_id": 4,
-    "description": "Write a function that reads in two files from user's local directory and determine whether the contents are the same",
-    "method_signature": "method compare(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
+    "task_id": 7,
+    "description": "Write a function that loads and reads a text file from user's local directory and returns its content",
+    "method_signature": "method loadTextFile(home_dir:string:= \"~\", config: string:= \"user-profile.txt\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
             "sp_id": 1,
-            "description": "The program must ensure no write access to the files is allowed",
+            "description": "The program must ensure that any file path input does not traverse outside the local directory",
             "all_apis_with_specs": [
                 {
                     "api_id": 1,
@@ -13,7 +13,7 @@
                     "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
                     "pre-conditions": [],
                     "post-conditions": [
-                        "ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)"
+                        "ensures res.Success? ==> is_open == !Utils.has_dot_dot_slash(file)"
                     ]
                 },
                 {
@@ -21,7 +21,7 @@
                     "api": "ReadBytesFromFile",
                     "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
                     "pre-conditions": [
-                        "requires this.is_open && this.access == Access.Read"
+                        "requires this.is_open"
                     ],
                     "post-conditions":[]
                 }

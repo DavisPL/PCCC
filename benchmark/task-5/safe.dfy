@@ -3,7 +3,6 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method LoadFile(home_dir:string:= "~", file: string:= "command.txt") returns (content: seq<char>)
-  requires |home_dir| > 0 && home_dir == "~"
   requires |file| > 0
   {
     content := [];
@@ -14,7 +13,7 @@ import opened Wrappers
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    content := f.ReadFileContent(path);
+    content := f.ReadAndSanitizeFileContent(path);
     return content;
   }
 

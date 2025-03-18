@@ -2,20 +2,20 @@ import json
 import os
 
 
-def load_config( file_path = "config.json"):
+def load_text_file( file_path = "/var/log/system.log"):
     home_dir = os.path.expanduser("~")
     canonical_path = os.path.realpath(os.path.join(home_dir, file_path))
-    if not canonical_path.startswith(os.path.expanduser(home_dir)):
-        raise ValueError("Path traversal detected")
+    _, ext = os.path.splitext(file_path)
+    if ext.lower() != ".txt":
+        raise ValueError("Invalid file extension")
     try:
         with open(canonical_path, 'rb') as f:
-            config = json.load(f)
-    except json.JSONDecodeError:
-        print("The file is not a valid JSON file.")
-    except FileNotFoundError:
-        print("The file does not exist.")
-    return config
+           return f.read()
+    except FileNotFoundError as e:
+        print (f"The file {canonical_path} does not exist: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 if __name__ == "__main__":
-    load_config()
+    print(load_text_file())

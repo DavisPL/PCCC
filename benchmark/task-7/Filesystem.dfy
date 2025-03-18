@@ -58,26 +58,26 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
  
+    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 5
-      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], ".json"))
+      requires |file| > 0
+      ensures res.Success? ==> is_open == !Utils.has_dot_dot_slash(file)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      var forbiddenAccess := Utils.forbidden_dir_access(file);
-      var validJson := Utils.extract_file_type(file[|file|-5..], ".json");
-      is_open := (!forbiddenAccess && validJson);
-      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
+      is_open := !Utils.has_dot_dot_slash(file) ;
+      return if (isError || Utils.has_dot_dot_slash(file)) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open
+    requires this.is_open == true
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
+    requires this.is_open == true
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
@@ -94,7 +94,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -107,7 +106,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
+    method ReadFileContent(file: string) returns (content: seq<char>)
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);

@@ -2,19 +2,21 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadConfigFile(file: string:= "~/config.json") returns (content: seq<bv8>)
-  requires |file| > 0 && file == "~/config.json"
+  method LoadConfigFile(home_dir:string:= "~", config: string:= "user-profile.txt") returns (content: seq<bv8>)
+  requires |home_dir| > 0 && home_dir == "~"
+  requires |config| > 0 && config == "user-profile.txt"
   {
     content := [];
     var f := new FS.Files.Init();
-    var openRes := f.Open(file);
-    assert file == "~/config.json";
-    assert Utils.extract_file_type(file[|file|-5..], ".json");
+    var config_file := home_dir + "/" + config;
+    assert config_file == "~/user-profile.txt";
+    var openRes := f.Open(config_file);
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    var readRes := f.ReadBytesFromFile(file);
+    assert Utils.has_dot_dot_slash("~/user-profile.txt") == false;
+    var readRes := f.ReadBytesFromFile(config_file);
     if readRes.Failure? {
         print "unexpected failure: " + readRes.error;
         return;
@@ -25,7 +27,7 @@ import opened Wrappers
 
   method Main(args: seq<string>) {
     expect |args| > 0;
-    expect |args| == 2, "usage: " + args[0] + " file CONTENT EXPECTED_ERROR_PREFIX";
+    expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
     var res:= LoadConfigFile();
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;

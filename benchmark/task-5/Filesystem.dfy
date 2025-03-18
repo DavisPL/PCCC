@@ -58,6 +58,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
+      requires |file| > 0
       ensures res.Success? ==> is_open
       ensures res.Success? ==> access == Access.Read
       ensures res.Success? ==> format == FileContentFormat.txt
@@ -106,7 +107,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
     
-    method ReadFileContent(file: string) returns (content: seq<char>)
+    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);

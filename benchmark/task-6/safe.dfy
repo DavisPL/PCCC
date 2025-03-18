@@ -2,25 +2,31 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadFile(file: string:= "~/protected-file.txt") returns (content: seq<char>)
-  requires |file| > 0 && file == "~/protected-file.txt"
+  method LoadTextFile(file: string:= "~/protected-file.txt") returns (content: seq<char>)
+  requires |file| > 4
+  requires Utils.extract_file_type(file[|file|-4..], ".txt")
+  ensures  |content| > 0 ==> forall i: int :: 0 <= i < |content| ==> utils.is_valid_content_char(content[i])
   {
     content := [];
     var f := new FS.Files.Init();
     var openRes := f.Open(file);
-    assert file == "~/protected-file.txt";
     assert Utils.extract_file_type(file[|file|-|".txt"|..], ".txt");
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    content := f.ReadFileContent(file);
+    var validContent := false;
+    validContent, content := f.validateFileContent(file);
+    if !validContent {
+      print "unexpected error: invalid content";
+      return [];
+    }
     return content;
   }
 
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " file CONTENT EXPECTED_ERROR_PREFIX";
-    var content:= LoadFile();
+    var content:= LoadTextFile();
     print "\n content: ", content;
   }

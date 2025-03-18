@@ -109,7 +109,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ReadFileContent(file: string) returns (content: seq<char>)
+    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);

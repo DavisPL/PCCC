@@ -13,8 +13,8 @@ def compare(home_dir = "~",  file_1="protected-file.txt", file_2="user-profile.t
             if os.access(file_2_canonical, os.R_OK):
                 content2 = f2.read()
         return content1 == content2
-    except FileNotFoundError:
-        print("The file does not exist.")
+    except FileNotFoundError as e:
+        print(f"Unexpected Error {e}")
         return False
 
 if __name__ == "__main__":
