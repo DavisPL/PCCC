@@ -1,6 +1,6 @@
 {
     "task_id": 11,
-    "description": "Write a function that loads and reads a json file from user's local directory and returns its content",
+    "description": "Write a function that loads and reads a text file from user's local directory and returns its content",
     "method_signature": "method LoadRSAKey(home_dir: string := \"~\", key: string := \"id_rsa\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
@@ -21,7 +21,7 @@
                     "api": "ReadBytesFromFile",
                     "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
                     "pre-conditions": [
-                        "is_open"
+                        "requires this.is_open"
                     ],
                     "post-conditions":[]
                 }
