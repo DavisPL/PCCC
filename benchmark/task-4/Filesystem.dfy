@@ -54,26 +54,28 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
  
+    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 5
-      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.is_json_file(file[|file|-5..]))
+      requires |file| > 0
+      ensures res.Success? ==> is_open
+      ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      var forbiddenAccess := Utils.forbidden_dir_access(file);
-      var validJson := Utils.is_json_file(file[|file|-5..]);
-      is_open := (!forbiddenAccess && validJson);
-      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
+      is_open := !isError;
+      this.access := if is_open then Access.Read else Access.None;
+      return if (isError) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open
+    requires this.is_open && this.access == Access.Read
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
+    requires this.is_open && this.access == Access.Write
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
