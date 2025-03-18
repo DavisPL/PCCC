@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
+  method Compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
   requires |home_dir| > 0 && home_dir == "~"
   requires |file_1| > 0 && file_1 == "protected-file.txt"
   requires |file_2| > 0 && file_2 == "user-profile.txt"
@@ -43,6 +43,6 @@ import opened Wrappers
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= compare();
+    var res:= Compare();
     print "\n res: ", res;
   }
