@@ -8,6 +8,8 @@ import opened Wrappers
     content := [];
     var f := new FS.Files.Init();
     var openRes := f.Open(file);
+    assert file == "~/config.json";
+    assert Utils.extract_file_type(file[|file|-5..], ".json");
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
         return;

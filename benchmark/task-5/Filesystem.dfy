@@ -58,6 +58,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
+      requires |file| > 0
       ensures res.Success? ==> is_open
       ensures res.Success? ==> access == Access.Read
       ensures res.Success? ==> format == FileContentFormat.txt
@@ -93,46 +94,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-    method ReadFileContent(file: string) returns (content: seq<char>)
-    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.txt
-    {
-        var bytesContent:= [];
-        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
-        if isError {
-            print "unexpected failure: " + errorMsg;
-            return [];
-        }
-        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
-        content := AsciiConverter.ByteToString(bytesContent);
-        if |content| < 8 {
-            return [];
-        } 
-        var unsanitized := SanitizeFileContent(content);
-        print "Unsanitized: ", unsanitized;
-        if unsanitized {
-            return [];
-        }
-        return content;
-    }
-
-    method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
-    requires forall i :: 0 <= i < |Utils.restricted_commands| ==> |Utils.restricted_commands[i]| <= |s| 
-    {
-        restrictedCommand := false;
-        var i := 0;
-        while i < |Utils.restricted_commands|
-            invariant 0 <= i <= |Utils.restricted_commands|
-            invariant restrictedCommand ==> forall j :: 0 <= j < i ==> |Utils.restricted_commands[j]| <= |s| && Utils.restricted_commands[j] != s[..|Utils.restricted_commands[j]|]
-        {
-          restrictedCommand := Utils.IsSubstring(Utils.restricted_commands[i], s[..|Utils.restricted_commands[i]|]);
-          if restrictedCommand {
-              return;
-          }
-          i := i + 1;
-        }
-        
-    }
-
 
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
@@ -145,7 +106,27 @@ module {:options "-functionSyntax:4"} Filesystem {
       var isError, fullPath, errorMsg := INTERNAL_Join(paths, separator);
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
-
+    
+    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
+    {
+        var bytesContent:= [];
+        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
+        if isError {
+            print "unexpected failure: " + errorMsg;
+            return [];
+        }
+        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
+        content := AsciiConverter.ByteToString(bytesContent);
+        if |content| < 8 {
+            return [];
+        } 
+        var unsanitized := Utils.SanitizeFileContent(content);
+        print "Unsanitized: ", unsanitized;
+        if unsanitized {
+            return [];
+        }
+        return content;
+    }
 
   }
 

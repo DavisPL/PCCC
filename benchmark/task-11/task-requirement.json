@@ -1,7 +1,7 @@
 {
     "task_id": 11,
     "description": "Write a function that loads and reads a text file from user's local directory and returns its content",
-    "method_signature": "method LoadRSAKey(home_dir: string := \"~\", key: string := \"id_rsa\") returns (content: seq<bv8>)",
+    "method_signature": "method loadTextFile(home_dir:string:= \"~\", config: string:= \"user-profile.txt\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
             "sp_id": 1,

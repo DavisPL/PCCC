@@ -12,6 +12,7 @@ module Utils
     const validPathCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/'}
     const validStringCharacters := {' ','~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', '}', '\'', ' ', '\t', '\n', '\r'}
     const restricted_commands := [ "rm", "cd", "mv", "cp", "chmod", "chown", "kill", "reboot", "shutdown", "mkfs", "mount", "umount", "reboot"]
+    const text_extensions := [".txt", ".csv", ".json", ".log", ".md", ".yaml", ".xml"]
     newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
     newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
     newtype{:nativeType "int"} nat32 = i:int | 0 <= i < 0x80000000
@@ -102,6 +103,12 @@ module Utils
     {
         forall i :: 0 <= i < |s| ==> alpha_numeric(s[i]) || s[i] in validStringCharacters
     }
+
+    predicate is_valid_content_char(c: char)
+    {
+        alpha_numeric(c) || c in validStringCharacters
+    }
+
 
 
     predicate has_valid_file_length(f: file)
@@ -976,9 +983,26 @@ module Utils
         p in restrictedDirs
     }
 
-    predicate is_json_file(e: extension)
+    predicate extract_file_type(e: extension, requestedType: string)
     {
-        e == ".json"
+        e == requestedType
+    }
+
+     method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
+    requires forall i :: 0 <= i < |restricted_commands| ==> |restricted_commands[i]| <= |s| 
+    {
+        restrictedCommand := false;
+        var i := 0;
+        while i < |restricted_commands|
+            invariant 0 <= i <= |restricted_commands|
+            invariant restrictedCommand ==> forall j :: 0 <= j < i ==> |restricted_commands[j]| <= |s| && restricted_commands[j] != s[..|restricted_commands[j]|]
+        {
+          restrictedCommand := IsSubstring(restricted_commands[i], s[..|restricted_commands[i]|]);
+          if restrictedCommand {
+              return;
+          }
+          i := i + 1;
+        }  
     }
 
 }

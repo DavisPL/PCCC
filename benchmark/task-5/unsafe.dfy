@@ -3,7 +3,6 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method LoadFile(home_dir:string:= "~", file: string:= "command.txt") returns (content: seq<char>)
-  requires |home_dir| > 0 && home_dir == "~"
   requires |file| > 0
   {
     content := [];
@@ -22,7 +21,7 @@ import opened Wrappers
     content := AsciiConverter.ByteToString(seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i]));
     return content;
   }
-  
+
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
