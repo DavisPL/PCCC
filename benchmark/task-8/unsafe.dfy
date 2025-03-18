@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method Compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
+  method compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
   requires |home_dir| > 0 && home_dir == "~"
   requires |file_1| > 0 && file_1 == "protected-file.txt"
   requires |file_2| > 0 && file_2 == "user-profile.txt"
@@ -25,14 +25,19 @@ import opened Wrappers
         res := false;
         return;
     }
-    var readRes1 := f1.ReadBytesFromFile(p1);
-    if readRes1.Failure? {
-        print "unexpected failure in reading file: " + readRes1.error;
-        return false;
-    }
     var readRes2 := f2.ReadBytesFromFile(p2);
     if readRes2.Failure? {
         print "unexpected failure in reading file: " + readRes2.error;
+        return false;
+    }
+    var writeRes1:= f1.WriteBytesToFile(p1, readRes2.value);
+    if writeRes1.Failure? {
+        print "unexpected failure in writing file: " + writeRes1.error;
+        return false;
+    }
+    var readRes1 := f1.ReadBytesFromFile(p1);
+    if readRes1.Failure? {
+        print "unexpected failure in reading file: " + readRes1.error;
         return false;
     }
     content1 := seq(|readRes1.value|, i requires 0 <= i < |readRes1.value| => readRes1.value[i]);
@@ -43,6 +48,6 @@ import opened Wrappers
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= Compare();
+    var res:= compare();
     print "\n res: ", res;
   }

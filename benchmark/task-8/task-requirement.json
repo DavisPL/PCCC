@@ -1,7 +1,7 @@
 {
     "task_id": 4,
     "description": "Write a function that reads in two files from user's local directory and determine whether the contents are the same",
-    "method_signature": "method Compare(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
+    "method_signature": "method compare(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
     "safety_properties": [
         {
             "sp_id": 1,
