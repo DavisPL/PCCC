@@ -58,26 +58,43 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
  
-    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 0
-      ensures res.Success? ==> is_open == !Utils.has_dot_dot_slash(file)
+      requires |file| > 4
+      requires Utils.extract_file_type(file[|file|-4..], ".txt")
+      ensures res.Success? ==> is_open
+      ensures res.Success? ==> access == Access.Read
+      ensures res.Success? ==> format == FileContentFormat.txt
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !Utils.has_dot_dot_slash(file) ;
-      return if (isError || Utils.has_dot_dot_slash(file)) then Failure(errorMsg) else Success(fileStream);
+      is_open := !isError;
+      this.access := if is_open then Access.Read else Access.None;
+      this.format := if is_open then FileContentFormat.txt else FileContentFormat.unknown;
+      return if (isError) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open == true
+    ensures res.Success? ==> forall i:: 0 <= i < |res.value| ==> 0 <= res.value[i] < 255
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
-      return if isError then Failure(errorMsg) else Success(bytesRead);
+      var invalidByte := false;
+      if !isError {
+        var i := 0;
+        while i < |bytesRead|
+          invariant 0 <= i <= |bytesRead|
+          invariant forall j:: 0 <= j < i ==> 0 <= bytesRead[j] < 255
+          {
+            if !(0 <= bytesRead[i] < 255) {
+              invalidByte := true;
+              break;
+            }
+            i := i + 1;
+          }
+      }
+      return if isError || invalidByte then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    requires this.is_open == true
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
@@ -106,7 +123,8 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ReadFileContent(file: string) returns (content: seq<char>)
+    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
+    requires this.is_open && this.access == Access.Read
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
@@ -124,7 +142,40 @@ module {:options "-functionSyntax:4"} Filesystem {
         if unsanitized {
             return [];
         }
-        return content;
+    }
+
+    method validateFileContent(file: string) returns (isValid: bool, content: seq<char>)
+    requires this.is_open && this.access == Access.Read
+    ensures isValid <==> (|content| > 0 && forall i:: 0 <= i < |content| ==> Utils.is_valid_content_char(content[i])) 
+    {
+        content := [];
+        isValid := false;
+        var bytesContent:= [];
+        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
+        if isError {
+            print "unexpected failure: " + errorMsg;
+            return isValid, [];
+        }
+        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
+        var strContent := AsciiConverter.ByteToString(bytesContent);
+        if |strContent| < 1 {
+          isValid := false;
+          return isValid, [];
+        }
+        var i:=0;
+        while i < |strContent|
+          invariant 0 <= i <= |strContent|
+          invariant forall j:: 0 <= j < i ==> Utils.is_valid_content_char(strContent[j])
+          {
+            if !Utils.is_valid_content_char(strContent[i]) {
+              isValid := false;
+              return isValid, [];
+            }
+            i := i + 1;
+          }
+        content := strContent;
+        isValid := true;
+        return isValid, content;
     }
 
 
