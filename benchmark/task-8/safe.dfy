@@ -17,7 +17,7 @@ import opened Wrappers
     var p2 := home_dir + "/" + file_2;
     var openRes1 := f1.OpenWithAccessMode(p1, FS.Access.Read);
     if openRes1.Failure? {
-        print("unexpected error in openning file: \n" + openRes1.error);
+        print("unexpected error in opening file: \n" + openRes1.error);
         res := false;
         return;
     }
@@ -27,35 +27,33 @@ import opened Wrappers
         return false;
     }
     contentBytes1 := seq(|readRes1.value|, i requires 0 <= i < |readRes1.value| => readRes1.value[i]);
-    print "contentBytes1: ", contentBytes1;
     content1 := AsciiConverter.ByteToString(contentBytes1);
     var openRes2 := f2.OpenWithAccessMode(p2, FS.Access.Write);
     if openRes2.Failure? {
-        print("unexpected error in openning file: \n" + openRes2.error);
+        print("unexpected error in opening file: \n" + openRes2.error);
         res := false;
         return;
     }
-    var writeRes2:= f2.WriteBytesToFile(p1, readRes1.value, FS.Access.Write);
+    var writeRes2:= f2.WriteBytesWithAccessMode(p2, contentBytes1, FS.Access.Write);
     if writeRes2.Failure? {
         print "unexpected failure in writing file: " + writeRes2.error;
         return false;
     }
+    print "writeRes2: ", writeRes2.value;
     var openRes3 := f2.OpenWithAccessMode(p2, FS.Access.Read);
     if openRes3.Failure? {
         print("unexpected error in opening file: \n" + openRes3.error);
         res := false;
         return;
+    } else {
+      var readRes2 := f2.ReadBytesFromFile(p2);
+      if readRes2.Failure? {
+          print "unexpected failure in reading file: " + readRes2.error;
+          return false;
+      }
+      contentBytes2 := seq(|readRes2.value|, i requires 0 <= i < |readRes2.value| => readRes2.value[i]);
+      content2 := AsciiConverter.ByteToString(contentBytes2);
     }
-    var readRes2 := f2.ReadBytesFromFile(p2);
-    if readRes2.Failure? {
-        print "unexpected failure in reading file: " + readRes2.error;
-        return false;
-    }
-    contentBytes2 := seq(|readRes2.value|, i requires 0 <= i < |readRes2.value| => readRes2.value[i]);
-    print "contentBytes1: ", contentBytes1;
-    content2 := AsciiConverter.ByteToString(contentBytes2);
-    print "content1: ", content1;
-    print "content2: ", content2;
     return content1 == content2;
   }
 

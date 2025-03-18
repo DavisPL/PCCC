@@ -110,18 +110,16 @@ namespace Filesystem
             isError = true;
             bytesRead = Sequence<byte>.Empty;
             errorMsg = Sequence<char>.Empty;
+            string pathStr = path?.ToString();
              try
             {
-                string pathStr = path?.ToString();
                 Console.WriteLine("User's path: " + pathStr);
-                
                 if (pathStr.StartsWith("~"))
                 {
                     pathStr = ExpandUser(pathStr);
                 }
 
                 pathStr = Path.GetFullPath(pathStr);
-                Console.WriteLine("Opening file at: " + pathStr);
 
                 // Check if the directory exists
                 string directory = Path.GetDirectoryName(pathStr);
@@ -170,11 +168,11 @@ namespace Filesystem
             string pathStr = path?.ToString();
             try
             {
+                Console.WriteLine("User's path: " + pathStr);
                 
                 if (pathStr.StartsWith("~"))
                 {
                     pathStr = ExpandUser(pathStr);
-                    pathStr = path?.ToString();
                 }
 
                 pathStr = Path.GetFullPath(pathStr);
@@ -183,7 +181,8 @@ namespace Filesystem
                 string directory = Path.GetDirectoryName(pathStr);
                 if (File.Exists(pathStr) || Directory.Exists(directory))
                 {
-                    CreateParentDirs(Helpers.SeqFromArray(pathStr.ToString().ToCharArray()));
+                    Console.WriteLine("Writing to file: " + pathStr);
+                    Console.WriteLine("Bytes: " + bytes.ToString());
                     File.WriteAllBytes(pathStr, bytes.CloneAsArray());
                     isError = false;
                 }
