@@ -21,7 +21,9 @@ include "../../std/utils/AsciiConverter.dfy"
 module {:options "-functionSyntax:4"} Filesystem {
   import opened Wrappers
   import Utils
+  import AsciiConverter
   datatype Access = Read | Write | Execute | None
+  datatype FileContentFormat = json | xml | csv | txt | binary | unknown
   class Files {
     var name: string
     var content: seq<char>
@@ -29,6 +31,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     ghost var is_symbolic_link:bool
     ghost var size: nat
     ghost var access: Access
+    ghost var format: FileContentFormat
     
     constructor Init (name: string:= "new_file.txt")
       requires |name| > 0      // We can't create a file with an empty name
@@ -38,6 +41,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       this.content := [];  // Empty file content initially
       this.is_open := false;
       this.is_symbolic_link := false;
+      this.format := FileContentFormat.unknown;
     }
 
      /**
@@ -92,7 +96,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-
+   
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -103,6 +107,27 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
       var isError, fullPath, errorMsg := INTERNAL_Join(paths, separator);
       return if (isError) then Failure(errorMsg) else Success(fullPath);
+    }
+
+    method ReadFileContent(file: string) returns (content: seq<char>)
+    {
+        var bytesContent:= [];
+        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
+        if isError {
+            print "unexpected failure: " + errorMsg;
+            return [];
+        }
+        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
+        content := AsciiConverter.ByteToString(bytesContent);
+        if |content| < 8 {
+            return [];
+        } 
+        var unsanitized := Utils.SanitizeFileContent(content);
+        print "Unsanitized: ", unsanitized;
+        if unsanitized {
+            return [];
+        }
+        return content;
     }
 
 

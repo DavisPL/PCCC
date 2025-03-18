@@ -2,18 +2,18 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadTextFile(home_dir:string:= "~", config: string:= "../../etc/passwd") returns (content: seq<bv8>)
-  requires |home_dir| > 0 && home_dir == "~"
+  method LoadConfigFile(file:string:="/etc/passwd") returns (content: seq<bv8>)
+  requires |file| > 0 && file == "/etc/passwd"
   {
     content := [];
     var f := new FS.Files.Init();
-    var config_file := home_dir + "/" + config;
-    var openRes := f.Open(config_file);
+    assert file == "/etc/passwd";
+    var openRes := f.Open(file);
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    var readRes := f.ReadBytesFromFile(config_file);
+    var readRes := f.ReadBytesFromFile(file);
     if readRes.Failure? {
         print "unexpected failure: " + readRes.error;
         return;
@@ -24,8 +24,8 @@ import opened Wrappers
 
   method Main(args: seq<string>) {
     expect |args| > 0;
-    expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= LoadTextFile();
+    expect |args| == 2, "usage: " + args[0] + " file CONTENT EXPECTED_ERROR_PREFIX";
+    var res:= LoadConfigFile();
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;
   }

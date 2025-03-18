@@ -1,7 +1,7 @@
 {
     "task_id": 2,
     "description": "Write a function that loads a JSON configuration file from user's home directory and returns the parsed content",
-    "method_signature": " method LoadConfigFile(file: string:= \"~/config.json\") returns (content: seq<bv8>)",
+    "method_signature": " method LoadFile(file: string:= \"~/protected-file.txt\") returns (content: seq<char>)",
     "safety_properties": [
         {
             "sp_id": 1,
@@ -13,7 +13,9 @@
                     "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
                     "pre-conditions": [],
                     "post-conditions": [
-                        "ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], \".json\"))"
+                        "ensures res.Success? ==> is_open == Utils.extract_file_type(file[|file|-|\".txt\"|..], \".txt\")",
+                        "ensures res.Success? ==> access == Access.Read",
+                        "ensures res.Success? ==> format == FileContentFormat.txt"
                     ]
                 },
                 {

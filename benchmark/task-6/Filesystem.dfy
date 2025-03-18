@@ -7,6 +7,7 @@
 include "../../std/Wrappers.dfy"
 include "../../std/utils/Utils.dfy"
 include "../../std/utils/AsciiConverter.dfy"
+
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
   * The provided API is intentionally limited in scope and will be expanded later.
@@ -56,21 +57,23 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
+ 
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      ensures res.Success? ==> is_open
+      requires |file| > 5
+      ensures res.Success? ==> is_open == Utils.extract_file_type(file[|file|-|".txt"|..], ".txt")
       ensures res.Success? ==> access == Access.Read
       ensures res.Success? ==> format == FileContentFormat.txt
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !isError;
+      var validText := Utils.extract_file_type(file[|file|-|".txt"|..], ".txt");
+      is_open := ( validText);
       this.access := if is_open then Access.Read else Access.None;
       this.format := if is_open then FileContentFormat.txt else FileContentFormat.unknown;
-      return if (isError) then Failure(errorMsg) else Success(fileStream);
+      return if (isError || (!validText)) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.binary
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -93,7 +96,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -105,8 +107,9 @@ module {:options "-functionSyntax:4"} Filesystem {
       var isError, fullPath, errorMsg := INTERNAL_Join(paths, separator);
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
-    
+
     method ReadFileContent(file: string) returns (content: seq<char>)
+    requires this.is_open && this.access == Access.Read
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
@@ -126,6 +129,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         }
         return content;
     }
+
 
   }
 
