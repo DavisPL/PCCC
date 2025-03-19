@@ -1,0 +1,31 @@
+{
+    "task_id": 2,
+    "description": "Write a function that loads a text file from user's home directory and returns the parsed content",
+    "method_signature": "method LoadTextFile(home_dir:string :=\"~\", file: string:= \"/user-profile.txt\") returns (content: seq<bv8>)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The program must ensure that files under /var/ cannot be read",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open == !(file[1..6] == \"/var/\" || file[0..5] == \"/var/\" || file[0..5] == \"var/\")"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        "requires this.is_open"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        }
+    ]
+}
