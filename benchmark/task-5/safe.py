@@ -10,7 +10,6 @@ def sanitize_content(content):
     for command in restricted_commands:
         if command in content_lower:
             raise ValueError(f"Unsafe command detected: '{command}'")
-    
     return content
 
 def load_file(home_dir="~", file="command.txt"):
