@@ -2,7 +2,7 @@ import json
 import os
 
 
-def load_config( file_path = "config.json"):
+def load_text_file(file_path = "user-profile.txt"):
     home_dir = os.path.expanduser("~")
     canonical_path = os.path.realpath(os.path.join(home_dir, file_path))
     if not canonical_path.startswith(os.path.expanduser(home_dir)):
@@ -18,4 +18,4 @@ def load_config( file_path = "config.json"):
 
 
 if __name__ == "__main__":
-    load_config()
+    load_text_file()
