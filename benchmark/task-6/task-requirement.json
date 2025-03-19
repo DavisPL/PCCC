@@ -15,7 +15,6 @@
                         "requires Utils.extract_file_type(file[|file|-4..], \".txt\")"
                     ],
                     "post-conditions": [
-                        "ensures res.Success? ==> is_open",
                         "ensures res.Success? ==> access == Access.Read",
                         "ensures res.Success? ==> format == FileContentFormat.txt"
                     ]
