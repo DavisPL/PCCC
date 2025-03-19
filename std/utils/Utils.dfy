@@ -988,7 +988,7 @@ module Utils
         e == requestedType
     }
 
-     method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
+    method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
     requires forall i :: 0 <= i < |restricted_commands| ==> |restricted_commands[i]| <= |s| 
     {
         restrictedCommand := false;
@@ -997,7 +997,10 @@ module Utils
             invariant 0 <= i <= |restricted_commands|
             invariant restrictedCommand ==> forall j :: 0 <= j < i ==> |restricted_commands[j]| <= |s| && restricted_commands[j] != s[..|restricted_commands[j]|]
         {
-          restrictedCommand := IsSubstring(restricted_commands[i], s[..|restricted_commands[i]|]);
+            print restricted_commands[i], "\n";
+            print s[..|restricted_commands[i]|], "\n";
+          restrictedCommand := IsSubstring(restricted_commands[i], s);
+          print restrictedCommand, "\n";
           if restrictedCommand {
               return;
           }
