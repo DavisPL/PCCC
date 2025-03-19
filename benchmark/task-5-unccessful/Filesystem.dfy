@@ -7,7 +7,6 @@
 include "../../std/Wrappers.dfy"
 include "../../std/utils/Utils.dfy"
 include "../../std/utils/AsciiConverter.dfy"
-
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
   * The provided API is intentionally limited in scope and will be expanded later.
@@ -32,6 +31,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     ghost var size: nat
     ghost var access: Access
     ghost var format: FileContentFormat
+    ghost var needs_sanitization: bool
     
     constructor Init (name: string:= "new_file.txt")
       requires |name| > 0      // We can't create a file with an empty name
@@ -57,47 +57,30 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
- 
-    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
       requires |file| > 0
       ensures res.Success? ==> is_open
-      ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
+      ensures res.Success? ==> access == Access.Read
+      ensures res.Success? ==> format == FileContentFormat.binary
+      ensures res.Success? ==> needs_sanitization
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
       is_open := !isError;
       this.access := if is_open then Access.Read else Access.None;
-      return if (isError) then Failure(errorMsg) else Success(fileStream);
-    }
-
-    method OpenWithAccessMode(file: string, accessMode: Access) returns (res: Result<object, string>)
-      modifies this
-      requires |file| > 0
-      ensures res.Success? ==> is_open
-      ensures res.Success? ==> access == (if is_open then accessMode else Access.None)
-    {
-      var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !isError;
-      this.access := if is_open then accessMode else Access.None;
+      this.format := if is_open then FileContentFormat.binary else FileContentFormat.unknown;
+      needs_sanitization := is_open;
       return if (isError) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open && this.access == Access.Read
+    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.binary
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    {
-      var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
-      return if isError then Failure(errorMsg) else Success(());
-    }
-
-    method WriteBytesWithAccessMode(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)
-    requires this.is_open && this.access == Access.Write && accessMode == this.access
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
@@ -114,7 +97,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-   
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -126,8 +108,11 @@ module {:options "-functionSyntax:4"} Filesystem {
       var isError, fullPath, errorMsg := INTERNAL_Join(paths, separator);
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
-
+    
     method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
+    requires is_open
+    requires access == Access.Read
+    requires needs_sanitization 
     {
         var bytesContent:= [];
         var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
@@ -147,7 +132,6 @@ module {:options "-functionSyntax:4"} Filesystem {
         }
         return content;
     }
-
 
   }
 

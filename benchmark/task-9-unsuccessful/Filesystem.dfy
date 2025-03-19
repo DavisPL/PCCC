@@ -96,11 +96,31 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if isError then Failure(errorMsg) else Success(());
     }
 
+
     method WriteBytesWithAccessMode(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)
+    modifies this
     requires this.is_open && this.access == Access.Write && accessMode == this.access
+    ensures res.Success? ==> this.access == Access.Read
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
+      this.access := if isError then Access.None else Access.Read;
       return if isError then Failure(errorMsg) else Success(());
+    }
+
+    method SanitizedBytesAndUpdateAccessMode(file: string, bytes: seq<bv8>) returns (access: Access)
+    modifies this
+    requires this.is_open
+    ensures is_open == (access != Access.None)
+    {
+      if |bytes| < 9 {
+        is_open := false;
+        return Access.None;
+      }
+      var strRead := AsciiConverter.ByteToString(bytes);
+      var unsanitized := Utils.UnsanitizeFileContent(strRead);
+      access := if unsanitized then Access.None else Access.Write;
+      is_open := (access != Access.None);
+      return access;
     }
 
 
@@ -127,16 +147,9 @@ module {:options "-functionSyntax:4"} Filesystem {
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
 
-    method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
+    method SanitizeFileContent(content: string) returns (sanitizedContent: seq<char>)
+    // ensures forall i :: 0 <= i < |content| ==> 0 <= content[i] as int < 255
     {
-        var bytesContent:= [];
-        var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
-        if isError {
-            print "unexpected failure: " + errorMsg;
-            return [];
-        }
-        bytesContent := seq(|bytesRead|, i requires 0 <= i < |bytesRead| => bytesRead[i]);
-        content := AsciiConverter.ByteToString(bytesContent);
         if |content| < 8 {
             return [];
         } 

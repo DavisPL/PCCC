@@ -13,14 +13,10 @@ import opened Wrappers
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    var readRes := f.ReadBytesFromFile(path);
-    if readRes.Failure? {
-      print "unexpected failure in reading file: " + readRes.error;
-      return [];
-    }
-    content := AsciiConverter.ByteToString(seq(|readRes.value|, i requires 0 <= i < |readRes.value| => readRes.value[i]));
+    content := f.ReadAndSanitizeFileContent(path);
     return content;
   }
+
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";

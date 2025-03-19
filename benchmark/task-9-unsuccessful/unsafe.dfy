@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method CopyFile(home_dir:string:= "~", file_1:string:="command.txt", file_2:string:="user-profile.txt") returns (res: bool)
+  method CopyFile(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
   requires |home_dir| > 0 && home_dir == "~"
   requires |file_1| > 0 
   requires |file_2| > 0
@@ -33,18 +33,15 @@ import opened Wrappers
         print "Cannot be sanitized for command injection: " + p1 + "\n" + "At least 8 characters are required";
         return false;
     }
-    var unsanitized := Utils.UnsanitizeFileContent(content1);
-    if unsanitized {
-        print "Copy failed because of command injection in file" + p1;
-        return false;
-    }
     var openRes2 := f2.OpenWithAccessMode(p2, FS.Access.Write);
     if openRes2.Failure? {
         print("unexpected error in opening file: \n" + openRes2.error);
         res := false;
         return;
     }
-    var writeRes2:= f2.WriteSanitizedBytesWithAccessMode(p2, contentBytes1, FS.Access.Write);
+
+    var writeRes2:= f2.WriteSanitizedBytesWithAccessMode(p2, contentBytes1);
+    assert f2.access == FS.Access.Write;
     if writeRes2.Failure? {
         print "unexpected failure in writing file: " + writeRes2.error;
         return false;

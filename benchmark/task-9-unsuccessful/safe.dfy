@@ -2,7 +2,7 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method CopyFile(home_dir:string:= "~", file_1:string:="command.txt", file_2:string:="user-profile.txt") returns (res: bool)
+  method CopyFile(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
   requires |home_dir| > 0 && home_dir == "~"
   requires |file_1| > 0 
   requires |file_2| > 0
@@ -44,7 +44,14 @@ import opened Wrappers
         res := false;
         return;
     }
-    var writeRes2:= f2.WriteSanitizedBytesWithAccessMode(p2, contentBytes1, FS.Access.Write);
+
+    var accessRes := f2.SanitizedBytesAndUpdateAccessMode(p2, contentBytes1);
+    // if accessRes != FS.Access.None && f2.is_open{
+    //     // print "unexpected failure in writing file: ";
+    //     // return false;
+    // }
+    // expect f2.access == FS.Access.Write;
+    var writeRes2:= f2.WriteBytesWithAccessMode(p2, contentBytes1, accessRes);
     if writeRes2.Failure? {
         print "unexpected failure in writing file: " + writeRes2.error;
         return false;

@@ -58,46 +58,26 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
  
-    // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 0
-      ensures res.Success? ==> is_open
-      ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
+      requires |file| > 5
+      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], ".json"))
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !isError;
-      this.access := if is_open then Access.Read else Access.None;
-      return if (isError) then Failure(errorMsg) else Success(fileStream);
-    }
-
-    method OpenWithAccessMode(file: string, accessMode: Access) returns (res: Result<object, string>)
-      modifies this
-      requires |file| > 0
-      ensures res.Success? ==> is_open
-      ensures res.Success? ==> access == (if is_open then accessMode else Access.None)
-    {
-      var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !isError;
-      this.access := if is_open then accessMode else Access.None;
-      return if (isError) then Failure(errorMsg) else Success(fileStream);
+      var forbiddenAccess := Utils.forbidden_dir_access(file);
+      var validJson := Utils.extract_file_type(file[|file|-5..], ".json");
+      is_open := (!forbiddenAccess && validJson);
+      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open && this.access == Access.Read
+    requires this.is_open
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
-    {
-      var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
-      return if isError then Failure(errorMsg) else Success(());
-    }
-
-    method WriteBytesWithAccessMode(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)
-    requires this.is_open && this.access == Access.Write && accessMode == this.access
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());
@@ -114,7 +94,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-   
+
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -140,7 +120,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.UnsanitizeFileContent(content);
+        var unsanitized := Utils.SanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];

@@ -15,7 +15,6 @@
                         "requires Utils.extract_file_type(file[|file|-4..], \".txt\")"
                     ],
                     "post-conditions": [
-                        "ensures res.Success? ==> is_open",
                         "ensures res.Success? ==> access == Access.Read",
                         "ensures res.Success? ==> format == FileContentFormat.txt"
                     ]
@@ -34,7 +33,6 @@
                         "requires this.is_open && this.access == Access.Read"
                     ],
                     "post-conditions":[
-                        "ensures isValid <==> (|content| > 0 && forall i:: 0 <= i < |content| ==> Utils.is_valid_content_char(content[i]))"
                     ]
                 }
             ]

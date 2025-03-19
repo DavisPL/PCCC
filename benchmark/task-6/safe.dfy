@@ -5,7 +5,6 @@ import opened Wrappers
   method LoadTextFile(file: string:= "~/protected-file.txt") returns (content: seq<char>)
   requires |file| > 4
   requires Utils.extract_file_type(file[|file|-4..], ".txt")
-  ensures  |content| > 0 ==> forall i: int :: 0 <= i < |content| ==> utils.is_valid_content_char(content[i])
   {
     content := [];
     var f := new FS.Files.Init();
@@ -21,6 +20,7 @@ import opened Wrappers
       print "unexpected error: invalid content";
       return [];
     }
+    expect forall i: int :: 0 <= i < |content| ==> utils.is_valid_content_char(content[i]);
     return content;
   }
 

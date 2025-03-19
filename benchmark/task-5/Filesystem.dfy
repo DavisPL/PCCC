@@ -94,7 +94,6 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
-
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -120,7 +119,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.SanitizeFileContent(content);
+        var unsanitized := Utils.UnsanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];

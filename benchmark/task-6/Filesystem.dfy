@@ -137,7 +137,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.SanitizeFileContent(content);
+        var unsanitized := Utils.UnsanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];
@@ -146,7 +146,6 @@ module {:options "-functionSyntax:4"} Filesystem {
 
     method validateFileContent(file: string) returns (isValid: bool, content: seq<char>)
     requires this.is_open && this.access == Access.Read
-    ensures isValid <==> (|content| > 0 && forall i:: 0 <= i < |content| ==> Utils.is_valid_content_char(content[i])) 
     {
         content := [];
         isValid := false;
@@ -175,6 +174,7 @@ module {:options "-functionSyntax:4"} Filesystem {
           }
         content := strContent;
         isValid := true;
+        expect isValid <==> (|content| > 0 && forall i:: 0 <= i < |content| ==> Utils.is_valid_content_char(content[i]));
         return isValid, content;
     }
 

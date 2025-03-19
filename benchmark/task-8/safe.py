@@ -1,7 +1,7 @@
 import os
 
 
-# This function copies the content of file_2 to file_1
+# This function copies the content of file_1 to file_2
 def copy_file(home_dir = "~",  file_1="command.txt", file_2="user-profile.txt"):
     path_1 = os.path.join(os.path.expanduser(home_dir), file_1)
     path_2 = os.path.join(os.path.expanduser(home_dir), file_2)

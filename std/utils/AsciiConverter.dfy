@@ -7,7 +7,7 @@ module AsciiConverter {
   {
     asciiValue := (c as nat) as bv8; // Convert character to ASCII and store as bv8
   }
-  method strToBytes(s: string) returns (contentBytes: seq<bv8>)
+  method strToByte(s: string) returns (contentBytes: seq<bv8>)
   requires |s| > 0 
   requires forall i :: 0 <= i < |s| ==> 0 <= s[i] as int < 255
   ensures |contentBytes| == |s|
