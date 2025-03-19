@@ -113,7 +113,7 @@ namespace Filesystem
             string pathStr = path?.ToString();
              try
             {
-                Console.WriteLine("User's path: " + pathStr);
+                Console.WriteLine("Input path: " + pathStr);
                 if (pathStr.StartsWith("~"))
                 {
                     pathStr = ExpandUser(pathStr);
@@ -168,7 +168,7 @@ namespace Filesystem
             string pathStr = path?.ToString();
             try
             {
-                Console.WriteLine("User's path: " + pathStr);
+                Console.WriteLine("Input path: " + pathStr);
                 
                 if (pathStr.StartsWith("~"))
                 {
@@ -395,6 +395,51 @@ namespace Filesystem
             string parentDir = Path.GetDirectoryName(Path.GetFullPath(pathStr));
             Directory.CreateDirectory(parentDir);
         }
+
+
+        public static void INTERNAL_AppendBytesToFile(ISequence<char> path, ISequence<byte> bytes, out bool isError, out ISequence<char> errorMsg)
+        {
+            isError = true;
+            errorMsg = Sequence<char>.Empty;
+            string pathStr = path?.ToString();
+            
+            try
+            {
+                Console.WriteLine("Input path: " + pathStr);
+                
+                if (pathStr.StartsWith("~"))
+                {
+                    pathStr = ExpandUser(pathStr);
+                }
+
+                pathStr = Path.GetFullPath(pathStr);
+
+                // Check if the directory exists
+                string directory = Path.GetDirectoryName(pathStr);
+                if (File.Exists(pathStr) || Directory.Exists(directory))
+                {
+                    Console.WriteLine("Appending to file: " + pathStr);
+                    Console.WriteLine("Bytes: " + bytes.ToString());
+
+                    // Open the file with FileMode.Append to append bytes to the end of the file
+                    using (FileStream fs = new FileStream(pathStr, FileMode.Append, FileAccess.Write))
+                    {
+                        fs.Write(bytes.CloneAsArray(), 0, bytes.Count); // Write the bytes to the file
+                    }
+
+                    isError = false;
+                }
+                else
+                {
+                    throw new FileNotFoundException("Given path does not exist: ", pathStr);
+                }
+            }
+            catch (Exception e)
+            {
+                errorMsg = Helpers.SeqFromArray(e.ToString().ToCharArray());
+            }
+        }
     }
+
     
 }
