@@ -988,7 +988,7 @@ module Utils
         e == requestedType
     }
 
-    method SanitizeFileContent(s: string) returns (restrictedCommand: bool)
+    method UnsanitizeFileContent(s: string) returns (restrictedCommand: bool)
     requires forall i :: 0 <= i < |restricted_commands| ==> |restricted_commands[i]| <= |s| 
     {
         restrictedCommand := false;

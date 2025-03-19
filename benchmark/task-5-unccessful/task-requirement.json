@@ -1,0 +1,32 @@
+{
+    "task_id": 5,
+    "description": "Write a function that loads and reads a text file and returns its content",
+    "method_signature": "method LoadFile(home_dir:string:= \"~\", file: string:= \"command.txt\") returns (content: seq<char>)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The code must sanitize the file content to prevent any command injection attack",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> access == Access.Read",
+                        "ensures res.Success? ==> format == FileContentFormat.txt"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadAndSanitizeFileContent",
+                    "api_signature": " method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)",
+                    "pre-conditions": [
+                        "requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.txt"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        }
+    ]
+}
