@@ -59,11 +59,10 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
  
     method Open(file: string) returns (res: Result<object, string>)
-      requires |file| > 0
-      modifies this
-      ensures res.Success? ==> is_open
-      ensures res.Success? ==> (access == if (if file[0] == '~' then (file[1..] in Utils.restrictedDirs) else (file in Utils.restrictedDirs)) then Access.Read else Access.None)
-      // ensures res.Success? ==> access == if (if file[0] == '~' then (file in Utils.restrictedDirs) else (file[1..] in Utils.restrictedDirs)) then Access.Read else Access.None
+    requires |file| > 0
+    modifies this
+    ensures res.Success? ==> is_open
+    ensures res.Success? ==> (access == if (if file[0] == '~' then (file[1..] in Utils.restrictedDirs) else (file in Utils.restrictedDirs)) then Access.Read else Access.None)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
       var f := file;

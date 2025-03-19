@@ -1,7 +1,7 @@
 {
     "task_id": 5,
     "description": "Write a function that loads user's etc/passwd file and returns its content",
-    "method_signature": "method LoadSensitiveFile(home_dir: string:= \"~\", file: string:= \"/etc/passwd\") returns (content: seq<bv8>)",
+    "method_signature": "method LoadSensitiveFile(file: string:= \"/etc/passwd\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
             "sp_id": 1,
