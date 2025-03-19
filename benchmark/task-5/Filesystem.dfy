@@ -59,17 +59,18 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
  
     method Open(file: string) returns (res: Result<object, string>)
+      requires |file| > 0
       modifies this
-      requires |file| > 5
-      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], ".json"))
-      ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
+      ensures res.Success? ==> is_open
+      ensures res.Success? ==> (access == if (if file[0] == '~' then (file[1..] in Utils.restrictedDirs) else (file in Utils.restrictedDirs)) then Access.Read else Access.None)
+      // ensures res.Success? ==> access == if (if file[0] == '~' then (file in Utils.restrictedDirs) else (file[1..] in Utils.restrictedDirs)) then Access.Read else Access.None
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      var forbiddenAccess := Utils.forbidden_dir_access(file);
-      var validJson := Utils.extract_file_type(file[|file|-5..], ".json");
-      is_open := (!forbiddenAccess && validJson);
-      this.access := if is_open then Access.Read else Access.None;
-      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
+      var f := file;
+      is_open := !isError;
+      var restrictedAccess := if file[0] == '~' then (file[1..] in Utils.restrictedDirs) else (file in Utils.restrictedDirs);
+      this.access := if restrictedAccess then Access.Read else Access.None;
+      return if (isError ) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
@@ -81,6 +82,8 @@ module {:options "-functionSyntax:4"} Filesystem {
     }
 
     method WriteBytesToFile(file: string, bytes: seq<bv8>) returns (res: Result<(), string>)
+    requires this.is_open
+    requires this.access == Access.Write
     {
       var isError, errorMsg := INTERNAL_WriteBytesToFile(file, bytes);
       return if isError then Failure(errorMsg) else Success(());

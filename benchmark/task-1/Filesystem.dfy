@@ -59,6 +59,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
       ensures res.Success? ==> is_open == !Utils.access_to_private_key(file)
+      ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
       var privateKeyAccess := true;
@@ -66,11 +67,13 @@ module {:options "-functionSyntax:4"} Filesystem {
         privateKeyAccess := Utils.access_to_private_key(file);
       }
       is_open := !Utils.access_to_private_key(file);
+      this.access := if is_open then Access.Read else Access.None;
       return if (isError || privateKeyAccess) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
     requires this.is_open
+    requires this.access == Access.Read
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -119,7 +122,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.SanitizeFileContent(content);
+        var unsanitized := Utils.UnsanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];
