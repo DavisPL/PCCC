@@ -15,7 +15,7 @@ import opened Wrappers
         print("unexpected error: \n" + openRes.error);
         return;
     }
-    assert Utils.has_dot_dot_slash("~/user-profile.txt") == false;
+    assert !Utils.has_dot_dot_slash("~/user-profile.txt");
     var readRes := f.ReadBytesFromFile(config_file);
     if readRes.Failure? {
         print "unexpected failure: " + readRes.error;
