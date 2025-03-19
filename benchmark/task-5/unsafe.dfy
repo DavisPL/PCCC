@@ -2,13 +2,13 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadSensitiveFile(home_dir: string:= "~", file: string:= "/etc/passwd") returns (content: seq<bv8>)
+ method LoadSensitiveFile(file: string:= "/etc/passwd") returns (content: seq<bv8>)
   requires |file| > 0
-  requires home_dir + file == "~/etc/passwd"
+  requires file == "/etc/passwd" 
   {
     content := [];
     var f := new FS.Files.Init();
-    var filePath := home_dir + file;
+    var filePath := file;
     var openRes := f.Open(filePath);
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
