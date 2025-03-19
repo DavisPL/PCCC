@@ -3,6 +3,7 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method LoadTextFile(file: string:= "~/protected-file.txt") returns (content: seq<char>)
+  requires |file| > 4
   {
     content := [];
     var f := new FS.Files.Init();
