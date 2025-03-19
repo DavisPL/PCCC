@@ -7,6 +7,7 @@
 include "../../std/Wrappers.dfy"
 include "../../std/utils/Utils.dfy"
 include "../../std/utils/AsciiConverter.dfy"
+
 /**
   * This module provides basic file I/O operations: reading and writing bytes from/to a file.
   * The provided API is intentionally limited in scope and will be expanded later.
@@ -56,22 +57,21 @@ module {:options "-functionSyntax:4"} Filesystem {
     //   var isError, fileExists, errorMsg := INTERNAL_fileExists(file);
     //   return if isError then Failure(errorMsg) else Success(fileExists);
     // }
+ 
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 0
-      ensures res.Success? ==> is_open
-      ensures res.Success? ==> access == Access.Read
-      ensures res.Success? ==> format == FileContentFormat.txt
+      requires |file| > 5
+      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], ".json"))
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      is_open := !isError;
-      this.access := if is_open then Access.Read else Access.None;
-      this.format := if is_open then FileContentFormat.txt else FileContentFormat.unknown;
-      return if (isError) then Failure(errorMsg) else Success(fileStream);
+      var forbiddenAccess := Utils.forbidden_dir_access(file);
+      var validJson := Utils.extract_file_type(file[|file|-5..], ".json");
+      is_open := (!forbiddenAccess && validJson);
+      return if (isError || (forbiddenAccess && !validJson)) then Failure(errorMsg) else Success(fileStream);
     }
 
     method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) 
-    requires this.is_open && this.access == Access.Read && this.format == FileContentFormat.binary
+    requires this.is_open
     {
       var isError, bytesRead, errorMsg := INTERNAL_ReadBytesFromFile(file);
       return if isError then Failure(errorMsg) else Success(bytesRead);
@@ -94,6 +94,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       }
     }
 
+
     method Join(paths: seq<string>, separator: string) returns (res: Result<string, string>) 
     requires |separator| == 1
     requires |paths| > 0
@@ -105,7 +106,7 @@ module {:options "-functionSyntax:4"} Filesystem {
       var isError, fullPath, errorMsg := INTERNAL_Join(paths, separator);
       return if (isError) then Failure(errorMsg) else Success(fullPath);
     }
-    
+
     method ReadAndSanitizeFileContent(file: string) returns (content: seq<char>)
     {
         var bytesContent:= [];
@@ -119,13 +120,14 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.UnsanitizeFileContent(content);
+        var unsanitized := Utils.SanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];
         }
         return content;
     }
+
 
   }
 

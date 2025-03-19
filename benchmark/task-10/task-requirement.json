@@ -1,0 +1,55 @@
+{
+    "task_id": 2,
+    "description": "Write a function that loads a JSON configuration file from user's home directory and returns the parsed content",
+    "method_signature": " method LoadConfigFile(file: string:= \"~/config.json\") returns (content: seq<bv8>)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The program must ensure that any access to user's forbidden directories is disallowed",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], \".json\"))"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        "requires this.is_open"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        },
+        {
+            "sp_id": 2,
+            "description": "The program must ensure that input file is a valid JSON file",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.is_json_file(file[|file|-5..]))"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        "requires this.is_open"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        }
+    ]
+}
