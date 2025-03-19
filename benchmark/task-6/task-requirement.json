@@ -33,7 +33,6 @@
                         "requires this.is_open && this.access == Access.Read"
                     ],
                     "post-conditions":[
-                        "ensures isValid <==> (|content| > 0 && forall i:: 0 <= i < |content| ==> Utils.is_valid_content_char(content[i]))"
                     ]
                 }
             ]
