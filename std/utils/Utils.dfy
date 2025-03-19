@@ -10,8 +10,11 @@ module Utils
     const fileMaxSize :int32 := 0x79999999 // Maximum file size
     const validFileCharacters := {'-', '_', '.', '(', ')', ' ', '%'}
     const validPathCharacters := {'~','-', '_', '.', '(', ')', ' ', '%', '/'}
-    const validStringCharacters := {' ','~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', '}', '\'', ' ', '\t', '\n', '\r'}
-    const restricted_commands := [ "rm", "cd", "mv", "cp", "chmod", "chown", "kill", "reboot", "shutdown", "mkfs", "mount", "umount", "reboot"]
+    const validStringCharacters := {' ','~','-', '_', '.', '(', ')', ' ', '%', '/', '!', '@', 
+    '#', '$', '^', '&', '*', '+', '=', '|', '\\', ':', ';', ',', '?', '<', '>', '[', ']', '{', 
+    '}', '\'', ' ', '\t', '\n', '\r'}
+    const restricted_commands := [ "rm", "cd", "mv", "cp", "chmod", "chown", "kill", "reboot",
+     "shutdown", "mkfs", "mount", "umount", "reboot"]
     const text_extensions := [".txt", ".csv", ".json", ".log", ".md", ".yaml", ".xml"]
     newtype{:nativeType "byte"} byte = i:int | 0 <= i < 0x100
     newtype{:nativeType "int"} int32 = i:int | -0x80000000 <= i < 0x80000000
@@ -20,8 +23,53 @@ module Utils
     newtype nat64 = i:int | 0 <= i < 0x10000000000000000
     datatype PathOrFile = Path(p: string) | File(f: string)
     // Constants for sensitive paths and files
-    const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
-    const restrictedDirs := ["~/etc/passwd","/etc/shadow", "/etc/fstab","/etc/passwd", "etc/", "/root/", "/var/", "C:\\Windows\\System32", "C:\\Program Files", "/.ssh/rsa_id"]
+    const invalidFileTypes :=  ["php", "CON", "PRN", "AUX", "NUL", "COM1", "COM2",
+    "COM3", "COM4", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
+    const restrictedDirs := [
+    "/etc/passwd", 
+    "/etc/shadow", 
+    "/etc/hostname", 
+    "/etc/network/interfaces", 
+    "/etc/hosts", 
+    "/etc/fstab", 
+    "/var/log/syslog", 
+    "/var/log/auth.log", 
+    "/var/log/messages", 
+    "/var/log/secure", 
+    "/bin/", 
+    "/usr/bin/", 
+    "/sbin/", 
+    "/usr/sbin/", 
+    "/lib/", 
+    "/lib64/", 
+    "/usr/lib/", 
+    "/usr/lib64/", 
+    "/usr/share/", 
+    "/var/www/html", 
+    "/boot/", 
+    "/proc/", 
+    "/sys/", 
+    "/etc/ssl/", 
+    "/etc/ssh/", 
+    "/var/lib/ssl/", 
+    "/etc/mysql/", 
+    "/etc/postgresql/", 
+    "/etc/crontab", 
+    "/etc/cron.d/", 
+    "/var/spool/cron/", 
+    "/var/lib/dpkg/", 
+    "/var/lib/rpm/", 
+    "/var/cache/apt/", 
+    "/var/backups/", 
+    "/home/user/backup/", 
+    "/root/.ssh/", 
+    "/dev/", 
+    "/mnt/", 
+    "/media/", 
+    "/home/user/.bashrc", 
+    "/home/user/.profile", 
+    "/.ssh/rsa_id"
+    ]
     const allowedServices: map<string, seq<string>> := map[
         "apache" := ["access.log", "error.log"],
         "mysql" := ["query.log", "slow.log"],
