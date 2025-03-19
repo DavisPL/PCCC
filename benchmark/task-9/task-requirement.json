@@ -1,0 +1,42 @@
+{
+    "task_id": 8,
+    "description": "Write a function that copies the contents of file_1 to file_2",
+    "method_signature": "  method CopyFile(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The program must ensure file_1 has only read access",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "OpenWithAccessMode",
+                    "api_signature": "method OpenWithAccessMode(file: string, accessMode: Access) returns (res: Result<object, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open",
+                        "ensures res.Success? ==> access == (if is_open then accessMode else Access.None)"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<seq<bv8>, string>) ",
+                    "pre-conditions": [
+                        "requires this.is_open && this.access == Access.Read"
+                    ],
+                    "post-conditions":[]
+                },
+                {
+                    "api_id": 3,
+                    "api": "WriteBytesWithAccessMode",
+                    "api_signature": "method WriteBytesWithAccessMode(file: string, bytes: seq<bv8>, accessMode: Access) returns (res: Result<(), string>)",
+                    "pre-conditions": [
+                        "requires this.is_open && this.access == Access.Write && accessMode == this.access"
+                    ],
+                    "post-conditions":[]
+                }
+                
+            ]
+        }
+    ]
+}
