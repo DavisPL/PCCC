@@ -1,0 +1,33 @@
+{
+    "task_id": 5,
+    "description": "Write a function that loads user's etc/passwd file and returns its content",
+    "method_signature": "method LoadSensitiveFile(home_dir: string:= \"~\", file: string:= \"/etc/passwd\") returns (content: seq<bv8>)",
+    "safety_properties": [
+        {
+            "sp_id": 1,
+            "description": "The program must ensure that no write access to sensitive files is allowed",
+            "all_apis_with_specs": [
+                {
+                    "api_id": 1,
+                    "api": "Open",
+                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
+                    "pre-conditions": [],
+                    "post-conditions": [
+                        "ensures res.Success? ==> is_open",
+                        "ensures res.Success? ==> (access == if (if file[0] == '~' then (file[1..] in Utils.restrictedDirs) else (file in Utils.restrictedDirs)) then Access.Read else Access.None)"
+                    ]
+                },
+                {
+                    "api_id": 2,
+                    "api": "ReadBytesFromFile",
+                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
+                    "pre-conditions": [
+                        "requires this.is_open",
+                        "requires this.access == Access.Read"
+                    ],
+                    "post-conditions":[]
+                }
+            ]
+        }
+    ]
+}
