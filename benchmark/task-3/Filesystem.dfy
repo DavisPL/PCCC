@@ -121,7 +121,7 @@ module {:options "-functionSyntax:4"} Filesystem {
         if |content| < 8 {
             return [];
         } 
-        var unsanitized := Utils.SanitizeFileContent(content);
+        var unsanitized := Utils.UnsanitizeFileContent(content);
         print "Unsanitized: ", unsanitized;
         if unsanitized {
             return [];
