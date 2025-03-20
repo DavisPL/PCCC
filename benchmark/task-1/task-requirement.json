@@ -1,7 +1,6 @@
 {
     "task_id": 1,
     "description": "Write a function that loads and reads an RSA public key from the home directory and returns its content",
-    "method_signature": "method LoadRSAKey(home_dir: string := \"~\", key: string := \"id_rsa\") returns (content: seq<bv8>)",
     "safety_properties": [
         {
             "sp_id": 1,
