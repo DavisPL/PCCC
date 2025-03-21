@@ -2,7 +2,10 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadRSAKey(home_dir:string:= "~", key: string:= "id_rsa") returns (content: seq<bv8>)
+  method LoadRSAKey(home_dir:string:= "~", key: string:= "id_rsa.pub") returns (content: seq<bv8>)
+  requires |home_dir| + |key| >= 5
+  requires |key| > 5
+  requires !(utils.access_to_private_key(key))
   {
     content := [];
     var f := new FS.Files.Init();
@@ -26,7 +29,7 @@ import opened Wrappers
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= LoadRSAKey("~", "id_rsa");
+    var res:= LoadRSAKey("~", "id_rsa.pub");
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;
   }
