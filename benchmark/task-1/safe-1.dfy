@@ -3,9 +3,8 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method LoadRSAKey(home_dir:string:= "~", key: string:= "id_rsa.pub") returns (content: seq<bv8>)
-  requires |home_dir| + |key| >= 5
   requires |key| > 5
-  requires !(|key| >= 4 && key[|key|-4..] != ".pub")
+  requires key[|key|-4..] == ".pub"
   {
     content := [];
     var f := new FS.Files.Init();

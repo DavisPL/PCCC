@@ -58,6 +58,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     // }
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
+      requires |file| >= 4
       ensures res.Success? ==> is_open == !Utils.access_to_private_key(file)
       ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
     {
