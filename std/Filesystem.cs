@@ -55,12 +55,14 @@ namespace Filesystem
                 if (pathStr.StartsWith("~"))
                 {
                     pathStr = ExpandUser(pathStr);
+                    Console.WriteLine("Expanded path: " + pathStr);
                 }
 
                 pathStr = Path.GetFullPath(pathStr);
 
                 // Check if the directory exists
                 string directory = Path.GetDirectoryName(pathStr);
+                Console.WriteLine("Directory: " + directory);
                 if (Directory.Exists(directory) || File.Exists(pathStr))
                 {
                     // FileStream fs = new FileStream(pathStr, FileMode.Open, FileAccess.Read);

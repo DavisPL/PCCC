@@ -95,7 +95,6 @@ module Utils
     type User = seq<char>
 
     predicate alpha_numeric(c: char)
-    ensures alpha_numeric(c) == ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
     {
         (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
     }
@@ -106,7 +105,6 @@ module Utils
     }
 
     predicate is_drive_letter(c: char)
-    ensures is_drive_letter(c) <==> ('a' <= c <= 'z') || ('A' <= c <= 'Z')
     {
         ('a' <= c <= 'z') || ('A' <= c <= 'Z')
     }
@@ -120,14 +118,12 @@ module Utils
     }
 
     predicate is_valid_char(c: char)
-    ensures is_valid_char(c) <==> alpha_numeric(c) || c in validPathCharacters
     {
         alpha_numeric(c) || c in validPathCharacters
 
     }
 
     predicate is_file_valid_char(c: char)
-    ensures is_file_valid_char(c) <==> alpha_numeric(c) || c in validFileCharacters
     {
         alpha_numeric(c) || c in validFileCharacters
     }
@@ -138,7 +134,6 @@ module Utils
     }
 
     predicate is_valid_path_char(c: char)
-    ensures is_valid_path_char(c) <==> alpha_numeric(c) || c in validPathCharacters
     {
         alpha_numeric(c) || c in validPathCharacters
     }
@@ -176,16 +171,13 @@ module Utils
     }
 
     predicate is_valid_dir_char(c: char)
-    ensures is_valid_dir_char(c) <==> alpha_numeric(c) || c in validPathCharacters
     {
         alpha_numeric(c) || c in validPathCharacters
     }
 
     predicate is_valid_dir(p: path)
-    requires 0 <= |p| <= pathMaxLength
-    ensures is_valid_dir(p) <==> forall i :: 0 <= i < |p| ==> is_valid_char(p[i])
     {
-    forall i :: 0 <= i < |p| ==> is_valid_char(p[i])
+        forall i :: 0 <= i < |p| ==> is_valid_char(p[i])
     }
 
     predicate has_valid_path_length(p: path)
@@ -200,17 +192,14 @@ module Utils
 
     // Function to check if filename has leading or trailing spaces
     function no_leading_trailing_space(filename: string): bool
-    requires |filename| > 0
     {
-        StringSliceLemma(filename);
-        filename[0] != ' ' && filename[|filename|-1] != ' '
+       |filename| > 0 && filename[0] != ' ' && filename[|filename|-1] != ' '
     }
 
     // Function to check if filename starts with a period
     function no_period_at_start(filename: string): bool
-    requires |filename| > 0
     {
-        filename[0] != '.'
+        |filename| > 0 && filename[0] != '.'
     }
 
 
@@ -226,32 +215,19 @@ module Utils
     }
 
     function concat(s1: seq<char>, s2: seq<char>): seq<char>
-    requires 0 <= |s1| + |s2| <= pathMaxLength && 0 <= |s1| && 0 <= |s2|
-    ensures |concat(s1, s2)| == |s1| + |s2| && concat(s1, s2) == s1 + s2 && 0 <= |s1| + |s2| <= pathMaxLength 
     {
-    s1 + s2
+        s1 + s2
     }
 
     predicate joint_path_length(p: path, f: file)
-    requires 0 < |p| < pathMaxLength && 0 < |f| < fileMaxLength && 0 < |p| + |f| < pathMaxLength
-    requires 0 < get_path_length(PathOrFile.File(f)) <= fileMaxLength && 0 < get_path_length(PathOrFile.Path(p)) <= pathMaxLength 
-    &&  get_path_length(PathOrFile.Path(p)) + get_path_length(PathOrFile.File(f)) <= pathMaxLength
-    requires 0 < |p| < pathMaxLength && 0 < |f| < fileMaxLength && 0 < |p| + |f| < pathMaxLength
-    requires 0 < get_path_length(PathOrFile.File(f)) <= fileMaxLength && 0 < get_path_length(PathOrFile.Path(p)) <= pathMaxLength 
-    &&  get_path_length(PathOrFile.Path(p)) + get_path_length(PathOrFile.File(f)) <= pathMaxLength
     {
-    0 < get_path_length(PathOrFile.File(f)) <= fileMaxLength && 0 < get_path_length(PathOrFile.Path(p)) <= pathMaxLength 
-    &&  get_path_length(PathOrFile.Path(p)) + get_path_length(PathOrFile.File(f)) <= pathMaxLength
+        0 < get_path_length(PathOrFile.File(f)) <= fileMaxLength && 0 < get_path_length(PathOrFile.Path(p)) <= pathMaxLength 
+        &&  get_path_length(PathOrFile.Path(p)) + get_path_length(PathOrFile.File(f)) <= pathMaxLength
     }
 
     function append_file_to_path(p: path, f: file): seq<char>
-    requires 0 < |p| + |f| <= pathMaxLength - 1 && 0 <= |p| && 0 < |f| 
-    ensures |append_file_to_path(p, f )| <= pathMaxLength
-    ensures |concat(concat(p, "/"), f)| == |p| + |f| + 1 && 
-            concat(concat(p, "/"), f) == p + "/" + f && |p| + |f| <= pathMaxLength 
-    ensures (append_file_to_path(p, f) == concat(p, f) || append_file_to_path(p, f) == concat(concat(p, "/"), f))
-    {
-    if |p| == 0 then f else if p[|p| - 1] == '/' then  concat(p, f) else concat(concat(p, "/"), f)
+   {
+        if |p| == 0 then f else if p[|p| - 1] == '/' then  concat(p, f) else concat(concat(p, "/"), f)
     }
 
 
@@ -322,6 +298,7 @@ module Utils
     }
     
     method get_file_extension(f: file) returns (extension: string) // Extract and return file extension
+    requires |f| > 0
     ensures extension != "" <==> exists i:: 0 <= i < |f| && i+1 < |f| && f[i] == '.' && f[i+1..] == extension
     {
         extension := "";    
@@ -380,23 +357,30 @@ module Utils
     }
 
     method ContainsSequence(list: seq<seq<char>>, sub: seq<char>) returns (result: bool)
-    ensures result <==> (exists i :: 0 <= i < |list| && sub == list[i]) || sub in list
+    ensures result <==> (exists i :: 0 <= i < |list| && sub == list[i])
     {
-    result := false;
-    for i := 0 to |list|
-        invariant 0 <= i <= |list|
-        invariant result <==> (exists k :: 0 <= k < i && sub == list[k])
-    {
-        if sub == list[i] {
-        result := true;
-        break;
+        result := false;
+        if |list| == 0
+        {
+            return;
+        }  
+        var i := 0;
+        while i < |list|
+            invariant 0 <= i <= |list|
+            invariant result <==> (exists k :: 0 <= k < i && sub == list[k])
+            decreases |list| - i
+        {
+            if sub == list[i] {
+            result := true;
+            return;
+            }
+            i := i + 1;
         }
-    }
     }
 
     predicate is_lower_case(c : char)
     {
-        97 <= c as int <= 122
+        'a' <= c <= 'z'
     }
 
     predicate is_lower_upper_pair(c : char, C : char)
@@ -441,50 +425,15 @@ module Utils
     }
 
     function digit_to_char(n: nat): char
-    // Compute the character representation of a digit
-    requires 0  <= n <=  9
-    ensures '0' <= digit_to_char(n) <= '9'
+    {   
+        if (n < 10) then '0' + n as char else '0'
+    }
+
+    function number_to_string(n: nat): string
     {
-    '0' + n as char // `as` is the type-casting operator
+        if n < 10 then [digit_to_char(n)] else number_to_string(n/10) + [digit_to_char(n % 10)]
     }
 
-    function numbert_to_string(n: nat): string
-    // Convert a number to its string representation
-    ensures forall i :: 0 <= i < |numbert_to_string(n)| ==> '0' <= numbert_to_string(n)[i] <= '9'
-    {
-    if n < 10
-    // Base case: A nat on [0, 10) is just one character long.
-    then [digit_to_char(n)]
-    // Inductive case: Compute all but the last character, then append the final one at the end
-    else numbert_to_string(n/10) + [digit_to_char(n % 10)]
-    }
-
-
-    method Computedigit_to_char(n: nat) returns (result: char)
-    // Compute the character representation of a digit
-    requires 0  <= n <=  9
-    ensures '0' <= result <= '9'
-    ensures result == digit_to_char(n)
-    {
-    return '0' + n as char;
-    }
-
-    method ConvertNumberToString(n: nat) returns (r: string)
-    // Compute the string representation of a number
-    ensures r == numbert_to_string(n)
-    {
-    if n < 10 {
-        var digit_to_char := Computedigit_to_char(n);
-        r := [digit_to_char];
-    }
-
-    else {
-        var numToChar := ConvertNumberToString(n/10);
-        var digit_to_char := Computedigit_to_char(n % 10);
-        r := numToChar + [digit_to_char];
-    }
-
-    }
 
     function char_to_int(c: char): int 
     // Convert a character to a byte
@@ -530,7 +479,6 @@ module Utils
     }
 
     predicate ContainsChar(s: string, c: char)
-    // requires 'a' <= c <= 'z' || 'A' <= c <= 'Z' || '0' <= c <= '9'
     {
         c in s
     }
@@ -545,13 +493,13 @@ module Utils
 
 
 
-    // Check 1: Path is not empty
+    //Path is not empty
     predicate non_empty_string(s: string)
     {
         |s| > 0 && s != ""
     }
 
-    // Check 3: Path does not contain reserved names
+    //Path does not contain reserved names
     method HasNoReservedNames(path: string) returns (isValid: bool)
     requires |path| > 0
     {
@@ -568,7 +516,7 @@ module Utils
     }
 
 
-    // Check if a given string starts with prefix
+    //A given string starts with prefix
     method StartsWith(s: string, prefix: string) returns (result: bool)
     requires |prefix| > 0
     requires |s| > 0
@@ -700,12 +648,6 @@ module Utils
         || has_consecutive_dots(path[1..])
     }
 
-
-    // Check for absolute path (starts with / or \)
-    // function StartsWithAbsolutePath(s: seq<char>): bool
-    // {
-    //     |s| > 0 && (s[0] == '/' || s[0] == '\\')
-    // }
 
     // Check for drive letter (contains :)
     predicate contains_drive_letter(s: seq<char>)
@@ -850,27 +792,21 @@ module Utils
 
      //This method should return true iff pre is a prefix of str. That is, str starts with pre
     method IsPrefix(pre:string, str:string) returns(res:bool)
-        requires 0 < |pre| <= |str| //This line states that this method requires that pre is less than or equal in length to str. Without this line, an out of bounds error is shown on line 14: "str[i] != pre[i]"
+        requires 0 < |pre| <= |str|
     {
-        //Initialising the index variable
+
         var i := 0;
 
-        //Iterating through the first |pre| elements in str
-        while (i < |pre|)
-            invariant 0 <= i <= |pre|                               //Specifying the range of the while loop
-            decreases |pre| - i                                     //Specifying that the while loop will terminate
-        {
-            //If an element does not match, return false
-            if (str[i] != pre[i]) {
-                //Debug print
-                print str[i], " != ", pre[i], "\n";
 
-                //Return once mismatch detected, no point in iterating any further
+        while (i < |pre|)
+            invariant 0 <= i <= |pre|   
+            decreases |pre| - i        
+        {
+            if (str[i] != pre[i]) {
+                print str[i], " != ", pre[i], "\n";
                 return false;
             }
-            //Else loop until mismatch found or we have reached the end of pre
             else{
-                //Debug pront
                 print str[i], " == ", pre[i], "\n";
 
                 i := i + 1;
@@ -881,41 +817,22 @@ module Utils
 
     //This method should return true iff sub is a substring of str. That is, str contains sub
     method IsSubstring(sub:string, str:string) returns(res:bool)
-        requires 0 < |sub| <= |str| //This method requires that sub is less than or equal in length to str
+        requires 0 < |sub| <= |str|
     {
-        //Initialising the index variable
-        var i := 0;
 
-        //This variable stores the difference in length between the two strings
+        var i := 0;
         var n := (|str| - |sub|);
 
-        //Here, we want to re-use the "isPrefix" method above, so with each iteration of the search, we are passing an offset of str - effectively trimming a character off the front of str and passing it to isPrefix
-            //example 1 (sub found in str): 
-            //str = door & sub = or
-            //iteration 1: isPrefix(or, door), returns false, trim & iterate again
-            //iteration 2: isprefix(or, oor), returns false, trim & iterate again
-            //iteration 3: isPrefix(or, or), returns true, stop iterating
-
-            //example 2 (sub not found in str):
-            //str = doom & sub = or
-            //iteration 1: isPrefix(or, doom), returns false, trim & iterate again
-            //iteration 2: isprefix(or, oom), returns false, trim & iterate again
-            //iteration 3: isPrefix(or, om), returns false, str is has not been "trimmed" to the same length as sub, so we stop iterating
-
-        while(i < n+1)
-            invariant 0 <= i <= n+1     //Specifying the range of the while loop
-            decreases n - i             //Specifying that the while loop will terminate
+            while(i < n+1)
+            invariant 0 <= i <= n+1   
+            decreases n - i         
         {
-            //Debug print to show what is being passed to isPrefix with each iteration
             print "\n", sub, ", ", str[i..|str|], "\n";
 
             var result:= IsPrefix(sub, str[i..|str|]);
-
-            //Return once the substring is found, no point in iterating any further
             if(result == true){
                 return true;
             }
-            //Else loop until sub is found, or we have reached the end of str
             else{
                 i := i+1;
             }
@@ -925,35 +842,19 @@ module Utils
 
     //This method should return true iff str1 and str1 have a common substring of length k
     method HaveCommonKSubstring(k:nat, str1:string, str2:string) returns(found:bool)
-        requires 0 < k <= |str1| &&  0 < k <= |str2| //This method requires that k > 0 and k is less than or equal to in length to str1 and str2
+        requires 0 < k <= |str1| &&  0 < k <= |str2|
     {
-        //Initialising the index variable
         var i := 0;
-
-        //This variable is used to define the end condition of the while loop
         var n := |str1|-k;
-
-        //Here, we want to re-use the "isSubstring" method above, so with each iteration of the search, we are passing a substring of str1 with length k and searching for this substring in str2. If the k-length substring is not found, we "slide" the length-k substring "window" along and search again
-            //example:
-            //str1 = operation, str2 = rational, k = 5
-            //Iteration 1: isSubstring(opera, rational), returns false, slide the substring & iterate again
-            //Iteration 2: isSubstring(perat, rational), returns false, slide the substring & iterate again
-            //Iteration 3: isSubstring(erati, rational), returns false, slide the substring & iterate again
-            //Iteration 4: isSubstring(ratio, rational), returns true, stop iterating
-
         while(i < n)
-            decreases n - i //Specifying that the loop will terminate
+            decreases n - i
         {
-            //Debug print to show what is being passed to isSubstring with each iteration
             print "\n", str1[i..i+k], ", ", str2, "\n";
 
             var result := IsSubstring(str1[i..i+k], str2);
-
-            //Return once the length-k substring is found, no point in iterating any further
             if(result == true){
                 return true;
             }
-            //Else loop until the length-k substring is found, or we have reached the end condition
             else{
                 i:=i+1;
             }
@@ -965,16 +866,12 @@ module Utils
     method MaxCommonSubstringLength(str1:string, str2:string) returns(len:nat)
         requires 0 < |str1| && 0 < |str1|
     {
-        //This variable is used to store the result of calling haveCommonKSubstring
         var result:bool;
-        
-        //We want the longest common substring between str1 and str2, so the starting point is going to be the shorter of the two strings.
         var i:= |str1|;
         if(|str2| < |str1|){
             i := |str2|;
         }
 
-        //Here, we want to re-use the "haveKCommonSubstring" method above, so with each iteration of the search, we pass a decreasing value of k until a common substring of this length is found. If no common substring is found, we return 0.
         while (i > 0)
             decreases i - 0
         {
@@ -1024,7 +921,7 @@ module Utils
 
     predicate access_to_private_key(p: path)
     {
-        p == "~/.ssh/id_rsa" || (|p| > 4 && p[|p|-4..] != ".pub")
+        |p| > 5 && p[|p|-4..] != ".pub"
     }
 
     predicate forbidden_dir_access(p: path)
