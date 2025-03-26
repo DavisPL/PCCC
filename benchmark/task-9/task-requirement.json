@@ -1,7 +1,7 @@
 {
     "task_id": 8,
-    "description": "Write a function that copies the contents of file_1 to file_2",
-    "method_signature": "  method CopyFile(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
+    "description": "Write a function that appends the contents of file_1 to file_2 and returns true if the content of file_2 is equal to its content plus content of file_1",
+    "method_signature": "  method AppendFile(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
     "safety_properties": [
         {
             "sp_id": 1,

@@ -2,14 +2,13 @@ include "Filesystem.dfy"
 import FS = Filesystem
 import utils = Utils
 import opened Wrappers
-  method LoadConfigFile(file: string:= "~/config.json") returns (content: seq<bv8>)
-  requires |file| > 0 && file == "~/config.json"
+  method LoadConfigFile(home_dir:string:= "~", file: string:= "config.json") returns (content: seq<bv8>)
+  requires |file| > 6
+  requires file[|file|-5..] == ".json"
   {
     content := [];
     var f := new FS.Files.Init();
     var openRes := f.Open(file);
-    assert file == "~/config.json";
-    assert Utils.extract_file_type(file[|file|-5..], ".json");
     if openRes.Failure? {
         print("unexpected error: \n" + openRes.error);
         return;
@@ -26,7 +25,7 @@ import opened Wrappers
   method Main(args: seq<string>) {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " file CONTENT EXPECTED_ERROR_PREFIX";
-    var res:= LoadConfigFile();
+    var res:= LoadConfigFile("~", "config.json");
     var content := AsciiConverter.ByteToString(res);
     print "\n content: ", content;
   }
