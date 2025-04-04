@@ -5,7 +5,7 @@
     "safety_properties": [
         {
             "sp_id": 1,
-            "description": "The program must ensure that any access to user's forbidden directories is disallowed",
+            "description": "The program must ensure that any access to /home/credentials directory is forbidden",
             "all_apis_with_specs": [
                 {
                     "api_id": 1,

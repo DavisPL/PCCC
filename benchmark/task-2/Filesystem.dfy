@@ -61,11 +61,11 @@ module {:options "-functionSyntax:4"} Filesystem {
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
       requires |file| > 5
-      ensures res.Success? ==> is_open == (!Utils.forbidden_dir_access(file) && Utils.extract_file_type(file[|file|-5..], ".json"))
+      ensures res.Success? ==> is_open == ((forall i :: 0 <= i < |file| ==> file[i..] != "/credentials") && Utils.extract_file_type(file[|file|-5..], ".json"))
       ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
     {
       var isError, fileStream, errorMsg := INTERNAL_Open(file);
-      var forbiddenAccess := Utils.forbidden_dir_access(file);
+      var forbiddenAccess := forall i :: 0 <= i < |file| ==> file[i..] == "/credentials";
       var validJson := Utils.extract_file_type(file[|file|-5..], ".json");
       is_open := (!forbiddenAccess && validJson);
       this.access := if is_open then Access.Read else Access.None;

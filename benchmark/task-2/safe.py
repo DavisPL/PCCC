@@ -2,11 +2,12 @@ import json
 import os
 
 
-def load_config( file_path = "home/config.json"):
-    home_dir = os.path.expanduser("~")
-    canonical_path = os.path.realpath(os.path.join(home_dir, file_path))
+def load_config(home_dir="~", file_path = "config.json"):
+    canonical_path = os.path.realpath(os.path.join(os.path.expanduser(home_dir), file_path))
     if not canonical_path.startswith(os.path.expanduser(home_dir)):
         raise ValueError("Path traversal detected")
+    if "credentials" in canonical_path:
+        raise ValueError("Sensitive file path detected")
     try:
         with open(canonical_path, 'rb') as f:
             config = json.load(f)
@@ -18,4 +19,4 @@ def load_config( file_path = "home/config.json"):
 
 
 if __name__ == "__main__":
-    load_config()
+    print(load_config(file_path="credentials/dpl-config.json"))
