@@ -3,9 +3,9 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method Compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
-  requires |home_dir| > 0 && home_dir == "~"
-  requires |file_1| > 0 && file_1 == "protected-file.txt"
-  requires |file_2| > 0 && file_2 == "user-profile.txt"
+  requires |home_dir| > 0
+  requires |file_1| > 0 
+  requires |file_2| > 0
   {
     var content2 := [];
     var content1 := [];
@@ -30,11 +30,13 @@ import opened Wrappers
         print "unexpected failure in reading file: " + readRes2.error;
         return false;
     }
+    f1.access := FS.Access.Write;  
     var writeRes1:= f1.WriteBytesToFile(p1, readRes2.value);
     if writeRes1.Failure? {
         print "unexpected failure in writing file: " + writeRes1.error;
         return false;
     }
+    f1.access := FS.Access.Read;
     var readRes1 := f1.ReadBytesFromFile(p1);
     if readRes1.Failure? {
         print "unexpected failure in reading file: " + readRes1.error;

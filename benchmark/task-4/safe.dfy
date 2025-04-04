@@ -3,9 +3,9 @@ import FS = Filesystem
 import utils = Utils
 import opened Wrappers
   method Compare(home_dir:string:= "~", file_1:string:="protected-file.txt", file_2:string:="user-profile.txt") returns (res: bool)
-  requires |home_dir| > 0 && home_dir == "~"
-  requires |file_1| > 0 && file_1 == "protected-file.txt"
-  requires |file_2| > 0 && file_2 == "user-profile.txt"
+  requires |home_dir| > 0
+  requires |file_1| > 0
+  requires |file_2| > 0
   {
     var content2 := [];
     var content1 := [];
@@ -15,13 +15,13 @@ import opened Wrappers
     var p2 := home_dir + "/" + file_2;
     var openRes1 := f1.Open(p1);
     if openRes1.Failure? {
-        print("unexpected error in openning file: \n" + openRes1.error);
+        print("unexpected error in opening file: \n" + openRes1.error);
         res := false;
         return;
     }
     var openRes2 := f2.Open(p2);
     if openRes2.Failure? {
-        print("unexpected error in openning file: \n" + openRes2.error);
+        print("unexpected error in opening file: \n" + openRes2.error);
         res := false;
         return;
     }
@@ -37,6 +37,10 @@ import opened Wrappers
     }
     content1 := seq(|readRes1.value|, i requires 0 <= i < |readRes1.value| => readRes1.value[i]);
     content2 := seq(|readRes2.value|, i requires 0 <= i < |readRes2.value| => readRes2.value[i]);
+    if |content1| != |content2| {
+      print "Content of two files are not identical";
+      return false;
+    }
     return content1 == content2;
   }
 
