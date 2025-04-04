@@ -1,7 +1,7 @@
 import os
 
 
-def load_rsa_public_key(filename='id_rsa.pub'):
+def load_rsa_public_key(home_dir="~",filename='id_rsa.pub'):
     """
     Load and read an RSA public key from the user's home directory.
 
