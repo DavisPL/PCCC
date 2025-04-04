@@ -1,32 +1,8 @@
 {
     "task_id": 3,
-    "description": "Write a function that reads in two files from user's local directory and determine whether the contents are the same",
+    "description": "Write a function that reads in two files from user's home directory and determine whether the contents are the same and if they are, return true and the content. Otherwise, return false and null.",
     "method_signature": "method compare(home_dir:string:= \"~\", file_1:string:=\"protected-file.txt\", file_2:string:=\"user-profile.txt\") returns (res: bool)",
     "safety_properties": [
-        {
-            "sp_id": 1,
-            "description": "The program must ensure no write access to the files is allowed",
-            "all_apis_with_specs": [
-                {
-                    "api_id": 1,
-                    "api": "Open",
-                    "api_signature": "method Open(path: string) returns (res: Result<File, string>)",
-                    "pre-conditions": [],
-                    "post-conditions": [
-                        "ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)"
-                    ]
-                },
-                {
-                    "api_id": 2,
-                    "api": "ReadBytesFromFile",
-                    "api_signature": "method ReadBytesFromFile(file: string) returns (res: Result<string, string>)",
-                    "pre-conditions": [
-                        "requires this.is_open && this.access == Access.Read"
-                    ],
-                    "post-conditions":[]
-                }
-            ]
-        },
         {
             "sp_id": 2,
             "description": "The program must ensure that any file path input does not traverse outside the local directory",

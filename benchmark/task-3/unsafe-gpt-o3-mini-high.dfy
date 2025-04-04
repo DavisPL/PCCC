@@ -6,9 +6,6 @@ import opened Wrappers
   requires |home_dir| > 0
   requires |file_1| > 3
   requires |file_2| > 3
-  requires !utils.has_dot_dot_slash(file_1)
-  requires !utils.has_dot_dot_slash(file_2)
-  requires !utils.has_dot_dot_slash(home_dir)
   {
     var content2 := [];
     var content1 := [];
@@ -28,10 +25,6 @@ import opened Wrappers
         res := false;
         return;
     }
-    assert p1 == home_dir + "/" + file_1;
-    assert p1 == home_dir + "/" + file_1;
-    assert f1.is_open;
-    assert f2.is_open;
     var readRes1 := f1.ReadBytesFromFile(p1);
     if readRes1.Failure? {
         print "unexpected failure in reading file: " + readRes1.error;
@@ -51,9 +44,6 @@ import opened Wrappers
   {
     expect |args| > 0;
     expect |args| == 2, "usage: " + args[0] + " FILE_PATH CONTENT EXPECTED_ERROR_PREFIX";
-    assert !utils.has_dot_dot_slash("~");
-    assert !utils.has_dot_dot_slash("protected-file.txt");
-    assert !utils.has_dot_dot_slash("user-profile.txt");
     var res:= compare("~", "protected-file.txt", "user-profile.txt");
     print "\n Content of two files are identical: ", res;
   }

@@ -61,7 +61,7 @@ module {:options "-functionSyntax:4"} Filesystem {
     // method Open(file: string, perm: Permission) returns (res: Result<object, string>)
     method Open(file: string) returns (res: Result<object, string>)
       modifies this
-      requires |file| > 0
+      requires |file| > 3
       ensures res.Success? ==> is_open == !Utils.has_dot_dot_slash(file)
       ensures res.Success? ==> access == (if is_open then Access.Read else Access.None)
     {
